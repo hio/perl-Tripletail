@@ -54,9 +54,19 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	Forcast
+	Ini
+	YMIRLINK
+	dbgroup
+	esmtp
+	ini
+	resendlimit
+	setTimeout
+
 =head1 NAME
 
-Tripletail::Sendmail::Esmtp - Forcast esmtpを使用するメール送信
+Tripletail::Sendmail::Esmtp - Forcast esmtp を使用するメール送信
 
 =head1 DESCRIPTION
 
@@ -65,12 +75,12 @@ Tripletail::Sendmail::Esmtp - Forcast esmtpを使用するメール送信
   Esmtpとは、ユミルリンク株式会社が販売している高速メール配信システムです。
 
 
-esmtpを用いてメールを送信する。
+esmtp を用いてメールを送信する。
 
-このクラスを使用する場合は、事前にesmtp用テーブル群を
+このクラスを使用する場合は、事前に esmtp 用テーブル群を
 用意しておかなければならない。
 
-また、このクラスはesmtpプロセスが起動しているかどうかを関知しない。
+また、このクラスは esmtp プロセスが起動しているかどうかを関知しない。
 
 =head2 METHODS
 
@@ -103,7 +113,7 @@ L<Tripletail::Sendmail> 参照。
 
   dbgroup = DB
 
-使用するDBグループ名。
+使用する DB グループ名。
 L<ini|Tripletail::Ini> で設定したグループ名を渡す。
 L<Tripletail#startCgi|Tripletail/"startCgi"> で有効化しなければならない。
 
@@ -124,7 +134,7 @@ L<Tripletail#startCgi|Tripletail/"startCgi"> で有効化しなければなら�
 再送に成功しない場合に、それを打ち切るまでの時間。
 0を指定した場合は永久に打ち切らない。L<度量衡|Tripletail/"度量衡"> 参照。省略可能。
 
-デフォルトは '24 hours'。
+デフォルトは 'C<24 hours>'。
 
 =back
 
@@ -143,7 +153,7 @@ L<Tripletail#startCgi|Tripletail/"startCgi"> で有効化しなければなら�
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

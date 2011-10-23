@@ -17,6 +17,7 @@ use warnings;
 use Test::Exception;
 use Test::More tests =>
   192
+  +15 # isPassword(v0.45).
   +17 # isChar.
   ;
 
@@ -85,6 +86,27 @@ ok(! $v->set('ｱ')->isWide, 'isWide');
 ok($v->set('_1aA')->isPassword, 'isPassword');
 ok(! $v->set('1aA')->isPassword, 'isPassword');
 ok(! $v->set('あ_1aA')->isPassword, 'isPassword');
+
+{
+  ok( $v->set('abx')->isPassword('alpha'), 'isPassword(alpha)');
+  ok(!$v->set('XYZ')->isPassword('alpha'), 'isPassword(alpha)');
+  ok( $v->set('XYz')->isPassword('ALPHA'), 'isPassword(ALPHA)');
+  ok(!$v->set('!#*')->isPassword('ALPHA'), 'isPassword(ALPHA)');
+  ok( $v->set('1!X')->isPassword('digit'), 'isPassword(digit)');
+  ok(!$v->set('!*x')->isPassword('digit'), 'isPassword(digit)');
+  ok( $v->set('!a9')->isPassword('symbol'), 'isPassword(symbol)');
+  ok(!$v->set(' a9')->isPassword('symbol'), 'isPassword(symbol)');
+
+  my $allow = ['!', '#', ' '];
+  ok( $v->set('!# ')->isPassword($allow), 'isPassword(custom)');
+  ok(!$v->set('***')->isPassword($allow), 'isPassword(custom)');
+
+  ok( $v->set('1x#')->isPassword('alpha', 'digit'), 'isPassword(alpha,digit)');
+  ok(!$v->set('12#')->isPassword('alpha', 'digit'), 'isPassword(alpha,digit)');
+  ok(!$v->set('xy#')->isPassword('alpha', 'digit'), 'isPassword(alpha,digit)');
+  ok(!$v->set('XY#')->isPassword('alpha', 'digit'), 'isPassword(alpha,digit)');
+  ok(!$v->set('999')->isPassword('alpha', 'digit'), 'isPassword(alpha,digit)');
+}
 
 ok($v->set('112-3345')->isZipCode, 'isZipCode');
 ok($v->set('743-48763-3216')->isTelNumber, 'isTelNumber');

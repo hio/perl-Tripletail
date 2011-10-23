@@ -296,10 +296,17 @@ Email等の形式である必要があるが、入力が任意であるような
 文字列が全角文字のみで構成されているかチェックする。
 値が空（存在しないか0文字）なら検証NGとなる。
 
-=item Password
+=item Password($spec)
 
-文字列が半角の数字、アルファベット大文字、小文字、記号を 全て最低1ずつ含んでいるかチェックする。
+文字列が$specに指定した要素をすべて最低1つずつ含んでいるかチェックする。
+
+$specに指定できるのはC<alpha>, C<ALPHA>, C<digit>, C<symbol>をカンマ区切りで指定した文字列で、
+指定がない場合はすべて指定した場合と同様となる。
+また、指定された文字以外が入っていることに関しては考慮しない。
+
 値が空（存在しないか0文字）なら検証NGとなる。
+
+L<Tripletail::Value/isPassword>
 
 =item ZipCode
 
@@ -430,6 +437,7 @@ $checkmaskは空白で区切って複数個指定する事が可能。
 =item SingleValue
 
 値がただ1つ存在することをチェックする拒否フィルタ。
+(0.44 以降)
 
 1つのみ存在すれば、次のフィルタに処理を渡す。
 
@@ -443,6 +451,7 @@ $checkmaskは空白で区切って複数個指定する事が可能。
 
 値が指定した C<$min> 個以上, C<$max> 個以下の範囲で
 存在することをチェックする拒否フィルタ。
+(0.44 以降)
 
 個数が範囲内であれば、
 次のフィルタに処理を渡す。
@@ -452,9 +461,13 @@ $checkmaskは空白で区切って複数個指定する事が可能。
 
 C<$max> を省略した場合、上限個数の確認は行わない。
 
+値が0個で、それが範囲内のときのみ(C<$min> が 0 の場合)、その場で受理される.
+(0.45以降)
+
 =item NoValues
 
 値が存在しないことを受け付ける受理フィルタ。
+(0.44 以降)
 
 値を全く持っていなければ、
 その時点で処理を中断し、成功を返す。
@@ -676,7 +689,7 @@ IniパラメータのValidatorグループに、
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

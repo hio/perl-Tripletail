@@ -54,6 +54,10 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	YMIRLINK
+	getFilter
+
 =head1 NAME
 
 Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
@@ -76,7 +80,7 @@ L<Tripletail::Validator> 参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

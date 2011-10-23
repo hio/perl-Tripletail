@@ -2106,7 +2106,7 @@ spanMonth / Year の場合、それ以下の日部分の大小や年部分の大
 それ以外の場合は引数をそのまま $TL->newDateTime に渡して生成した
 オブジェクトと比較する。
 
-返される値は ($dt) - ($dt2) もしくは、($dt1) - ($dt2)であり、引数が過去ならば結果は負になる。
+返される値は ($dt) - ($dt2) もしくは、($dt1) - ($dt2)であり、引数が過去ならば結果は正になる。
 
 =item C<< spanMinute >>
 
@@ -2388,7 +2388,7 @@ W3C Date and Time 形式に於けるタイムゾーン。JSTの場合は '+09:00
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

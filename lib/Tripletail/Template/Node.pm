@@ -1604,9 +1604,23 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	YMIRLINK
+	addHiddenForm
+	addSessionCheck
+	expandAny
+	extForm
+	getForm
+	getHtml
+	isRoot
+	isXHTML
+	setForm
+	setHtml
+	toStr
+
 =head1 NAME
 
-Tripletail::Template::Node - Templateノードオブジェクト
+Tripletail::Template::Node - Template ノードオブジェクト
 
 =head1 DESCRIPTION
 
@@ -1694,7 +1708,7 @@ L<Tripletail::Template> 参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

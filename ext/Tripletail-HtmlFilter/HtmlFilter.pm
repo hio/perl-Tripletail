@@ -10,7 +10,7 @@ use DynaLoader;
 use base 'DynaLoader';
 our @XSUBS = qw(next _next_elem Element::parse Element::attr);
 our $XS_LOADERROR;
-Tripletail::HtmlFilter->my_bootstrap($Tripletail::VERSION);
+Tripletail::HtmlFilter->my_bootstrap($Tripletail::XS_VERSION);
 
 use constant {
 	# 注意: ここを変更した時は XS 側も修正する事。

@@ -641,8 +641,8 @@ sub lock {
 	my $opts = { @_ };
 
 	my @tables;			# [name, 'WRITE' or 'READ']
-	local *add = sub {
-		my $type = shift;
+	foreach my $type (qw(read write))
+	{
 		if(defined(my $table = $opts->{$type})) {
 			if(!ref($table)) {
 				push @tables, [$table, uc $type];
@@ -661,23 +661,10 @@ sub lock {
 			}
 		}
 	};
-	add('read');
-	add('write');
 
 	if(!@tables) {
 		die __PACKAGE__."#lock: no tables are being locked. Specify at least one table. (テーブルが1つも指定されていません)\n";
 	}
-
-	my $sql = 'LOCK TABLES '.join(
-		', ',
-		map {
-			my $table = $_->[0];
-			my $type  = $_->[1];
-
-			sprintf '%s %s',
-				$this->symquote($table, $opts->{set}),
-				$type;
-		} @tables);
 
 	my $set = $this->_getDbSetName($opts->{set});
 
@@ -694,6 +681,26 @@ sub lock {
 	}
 
 	my $dbh = $this->{dbh}{$set};
+	my $type = $dbh->{type} or die __PACKAGE__."#lock: \$dbh->{type} is undef (接続されていません)";
+
+	my $sql;
+	if( $type eq 'mysql' )
+	{
+		$sql = 'LOCK TABLES '.join(
+		', ',
+		map {
+			my $table = $_->[0];
+			my $type  = $_->[1];
+
+			sprintf '%s %s',
+				$this->symquote($table, $opts->{set}),
+				$type;
+		} @tables);
+	}else
+	{
+		# on pgsql, LOCK [ TABLE ] name [, ...] [ IN lockmode MODE ] [ NOWAIT ]
+		die __PACKAGE__."#lock: DB type [$type] is not supported. (DB type [$type] に対する lock はサポートされていません)\n";
+	}
 
 	$sql = $this->__nameQuery($sql, $dbh);
 
@@ -725,11 +732,23 @@ sub unlock {
 	if(!defined($dbh)) {
 		die __PACKAGE__."#unlock: no tables are locked. (ロックされているテーブルはありません)\n";
 	}
+	my $type = $dbh->{type} or die __PACKAGE__."#lock: \$dbh->{type} is undef (接続されていません)";
 
-	my $sql = $this->__nameQuery('UNLOCK TABLES', $dbh);
+	my $sql;
+	if( $type eq 'mysql' )
+	{
+		$sql = 'UNLOCK TABLES';
+	}else
+	{
+		die __PACKAGE__."#unlock: DB type [$type] is not supported. (DB type [$type] に対する unlock はサポートされていません)\n";
+	}
+	$sql &&= $this->__nameQuery($sql, $dbh);
 	my $begintime = [Time::HiRes::gettimeofday()];
 
-	$dbh->{dbh}->do('UNLOCK TABLES');
+	if( $sql )
+	{
+		$dbh->{dbh}->do($sql);
+	}
 	$dbh->{locked} = undef;
 
 	my $elapsed = Time::HiRes::tv_interval($begintime);
@@ -976,7 +995,7 @@ sub __postRequest {
 	# UNLOCK TABLESを実行する。
 	# また、トランザクションが済んでいないものについてはrollbackする。
 
-	# 更にDBセットのデフォルト値をIniの物にする
+	# 更にDBセットのデフォルト値を Ini の物にする
 
 	foreach my $db (values %$INSTANCES) {
 		if(my $dbh = $db->{locked_dbh}) {
@@ -1113,12 +1132,12 @@ sub connect {
 		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 
 		my $host = $TL->INI->get($this->{inigroup} => 'host');
-		if(defined($host)) {
+		if(defined($host) && $host ne '') {
 			$opts->{host} = $host;
 		}
 
 		my $port = $TL->INI->get($this->{inigroup} => 'port');
-		if(defined($port)) {
+		if(defined($port) && $host ne '') {
 			$opts->{port} = $port;
 		}
 
@@ -1347,9 +1366,10 @@ sub getLastInsertId
 		return $this->{dbh}{mysql_insertid};
 	}elsif($type eq 'pgsql')
 	{
+		defined($obj) or die __PACKAGE__."#getLastInsertId: $type requires secuence name";
 		my ($curval) = $this->{dbh}->selectrow_array(q{
 			SELECT currval(?)
-		}, $obj);
+		}, undef, $obj);
 		return $curval;
 	}elsif($type eq 'oracle')
 	{
@@ -1764,9 +1784,25 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	CGI
+	DBI
+	Ini
+	ini
+	ODBC
+	unixODBC
+	TL
+	SQL
+	YMIRLINK
+	mysql
+	freetds
+	mssql
+	pgsql
+	sqlite
+
 =head1 NAME
 
-Tripletail::DB - DBIのラッパ
+Tripletail::DB - DBI のラッパ
 
 =head1 SYNOPSIS
 
@@ -1817,7 +1853,10 @@ Tripletail::DB - DBIのラッパ
 
 =item プレースホルダの値渡しの際に型指定が可能
 
-  $db->execute(q{select * from a limit ??}, ['a', \'SQL_INTEGER'])
+  $db->execute(q{select * from a limit ??}, [10, \'SQL_INTEGER'])
+
+型指定ができるのは拡張プレースホルダのみです.
+通常の C<?> によるプレースホルダではエラーとなります.
 
 =item リクエスト処理完了後のトランザクション未完了やunlock未完了を自動検出
 
@@ -1852,13 +1891,13 @@ DBのフェイルオーバーには（現時点では）対応していない。
 
 =back
 
-=head2 DBIからの移行
+=head2 DBI からの移行
 
-TripletailのDBクラスはDBIに対するラッパの形となっており、多くのインタフェースはDBIのものとは異なる。
-ただし、いつでも C<< $DB->getDbh() >> メソッドにより元のDBIオブジェクトを取得できるので、DBIのインタフェースで利用することも可能となっている。
+Tripletail の DB クラスは DBI に対するラッパの形となっており、多くのインタフェースは DBI のものとは異なる。
+ただし、いつでも C<< $DB->getDbh() >> メソッドにより元の DBI オブジェクトを取得できるので、 DBI のインタフェースで利用することも可能となっている。
 
-DBIのインタフェースは以下のようなケースで利用できる。
-ただし、DBIを直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
+DBI のインタフェースは以下のようなケースで利用できる。
+ただし、 DBI を直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
 
 =over 4
 
@@ -1866,11 +1905,11 @@ DBIのインタフェースは以下のようなケースで利用できる。
 
 =item 高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。
 
-DBIに対するラッパであるため、大量のSQLを実行する場合などはパフォーマンス上のデメリットがある。
+DBI に対するラッパであるため、大量の SQL を実行する場合などはパフォーマンス上のデメリットがある。
 
 =back
 
-DBIでのSELECTは、以下のように置き換えられる。
+DBI での SELECT は、以下のように置き換えられる。
 
  # DBI
  my $sth = $DB->prepare(q{SELECT * FROM test WHERE id = ?});
@@ -1882,9 +1921,9 @@ DBIでのSELECTは、以下のように置き換えられる。
  while(my $data = $sth->fetchHash) {
  }
 
-TLではprepare/executeは一括で行い、prepared statement は利用できない。
+TL では prepare/execute は一括で行い、 prepared statement は利用できない。
 
-INSERT・UPDATEは、以下のように置き換えられる。
+C<INSERT>・C<UPDATE>は、以下のように置き換えられる。
 
  # DBI
  my $sth = $DB->prepare(q{INSERT INTO test VALUES (?, ?)});
@@ -1893,7 +1932,7 @@ INSERT・UPDATEは、以下のように置き換えられる。
  my $sth = $DB->execute(q{INSERT INTO test VALUES (?, ?)}, $id, $data);
  my $ret = $sth->ret;
 
-prepare/executeを一括で行うのは同様であるが、executeの戻り値は$sthオブジェクトであり、影響した行数を取得するためには C<< $sth->ret >> メソッドを呼ぶ必要がある。
+prepare/execute を一括で行うのは同様であるが、 execute の戻り値はC<$sth>オブジェクトであり、影響した行数を取得するためには C<< $sth->ret >> メソッドを呼ぶ必要がある。
 
 プレースホルダの型指定は以下のように行う。
 
@@ -1922,7 +1961,7 @@ INSERTした行のAUTO_INCREMENT値の取得は、getLastInsertId で行える�
  # TL
  my $id = $DB->getLastInsertId;
 
-拡張ラッパでは制御できない機能にアクセスする場合などは、DBIのハンドラを直接利用する。
+拡張ラッパでは制御できない機能にアクセスする場合などは、 DBI のハンドラを直接利用する。
 
  # DBI
  my $id = $DB->{RowCacheSize};
@@ -1950,7 +1989,7 @@ C<begin()> メソッドも実装はされているがその使用は非推奨で
 
 =head2 拡張プレースホルダ詳細
 
-L</"execute"> に渡されるSQL文には、通常のプレースホルダの他に、
+L</"execute"> に渡される SQL 文には、通常のプレースホルダの他に、
 拡張プレースホルダ "??" を埋め込む事が出来る。
 拡張プレースホルダの置かれた場所には、パラメータとして通常のスカラー値でなく、
 配列へのリファレンスを与えなければならない。配列が複数の値を持っている場合には、
@@ -1967,8 +2006,8 @@ L</"execute"> に渡されるSQL文には、通常のプレースホルダの他
       'AAA', 'BBB', 'CCC', 800);
 
 パラメータとしての配列の最後の項目が文字列へのリファレンスである時、その文字列は
-SQL型名として扱われる。配列が複数の値を持つ時には、その全ての要素に対して
-型指定が適用される。型名はDBI.pmで定義される。
+SQL 型名として扱われる。配列が複数の値を持つ時には、その全ての要素に対して
+型指定が適用される。型名はF<DBI.pm>で定義される。
 
 例:
 
@@ -2001,7 +2040,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
    $DB = $TL->getDB($inigroup)
 
 Tripletail::DB オブジェクトを取得。
-引数にはIniで設定したグループ名を渡す。
+引数には Ini で設定したグループ名を渡す。
 引数省略時は 'DB' グループが使用される。
 
 L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"trapError" >> の関数内でDBオブジェクトを取得する場合に使用する。
@@ -2012,7 +2051,7 @@ L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"tra
    $DB = $TL->newDB($inigroup)
 
 新しく Tripletail::DB オブジェクト作成。
-引数にはIniで設定したグループ名を渡す。
+引数には Ini で設定したグループ名を渡す。
 引数省略時は 'DB' グループが使用される。
 
 動的にコネクションを作成したい場合などに使用する。
@@ -2026,7 +2065,7 @@ L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"tra
 
 L<< $TL->newDB|"$TL->newDB" >> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへ接続する必要がある。
 
-connect時には、AutoCommit 及び RaiseError オプションは 1 が指定され、PrintError オプションは 0 が指定される。
+C<connect>時には、C<AutoCommit> 及び C<RaiseError> オプションは 1 が指定され、C<PrintError> オプションは 0 が指定される。
 
 =item C<< disconnect >>
 
@@ -2042,14 +2081,14 @@ L<< $TL->newDB|"$TL->newDB" >> で作成した Tripletail::DB オブジェクト
   $DB->tx('SET_W_Trans' => sub{...})
 
 指定されたDBセット名でトランザクションを開始し、その中でコードを
-実行する。トランザクション名(DBセット名) はiniで定義されていな
+実行する。トランザクション名(DBセット名) は ini で定義されていな
 ければならない。名前を省略した場合は、デフォルトのDBセットが使われるが、
 setDefaultSetによってデフォルトが選ばれていない場合には例外を発生させる。
 
 コードを die なしに終了した時にトランザクションは暗黙にコミットされる。
 die した場合にはロールバックされる。
 コードの中で明示的にコミット若しくはロールバックを行うこともできる。
-明示的にコミット若しくはロールバックをした後は、 tx を抜けるまで
+明示的にコミット若しくはロールバックをした後は、 C<tx> を抜けるまで
 DB 操作は禁止される。 この間の DB 操作は例外を発生させる。 
 
 =item C<< rollback >>
@@ -2084,12 +2123,12 @@ DB 操作は禁止される。 この間の DB 操作は例外を発生させる
 非推奨。L</tx> を使用のこと。
 
 指定されたDBセット名でトランザクションを開始する。トランザクション名
-(DBセット名) はiniで定義されていなければならない。
+(DBセット名) は ini で定義されていなければならない。
 名前を省略した場合は、デフォルトのDBセットが使われるが、
 setDefaultSetによってデフォルトが選ばれていない場合には例外を発生させる。
 
-CGIの中でトランザクションを開始し、終了せずにMain関数を抜けた場合は、自動的に
-rollbackされる。
+CGIの中でトランザクションを開始し、終了せずに Main 関数を抜けた場合は、自動的に
+C<rollback>される。
 
 トランザクション実行中にこのメソッドを呼んだ場合には、例外を発生させる。
 1度に開始出来るトランザクションは、1つのDBグループにつき1つだけとなる。
@@ -2100,15 +2139,15 @@ rollbackされる。
 
 デフォルトのDBセットを選択する。ここで設定されたDBセットは、引数無しのbegin()
 や、beginせずに行ったexecuteの際に使われる。このメソッドは
-L<Main関数|Tripletail/"Main関数"> の先頭で呼ばれる事を想定している。
+L<Main 関数|Tripletail/"Main 関数"> の先頭で呼ばれる事を想定している。
 
 =item C<< execute >>
 
   $DB->execute($sql, $param...)
   $DB->execute(\'SET_W_Trans' => $sql, $param...)
 
-SELECT/UPDATE/DELETEなどのSQL文を実行する。
-第1引数にSQL、第2引数以降にプレースホルダの引数を渡す。
+C<SELECT>/C<UPDATE>/C<DELETE>などの SQL 文を実行する。
+第1引数に SQL 、第2引数以降にプレースホルダの引数を渡す。
 ただし、第1引数にリファレンスでDBセットを渡すことにより、
 トランザクション外での実行時にDBセットを指定することが可能。
 
@@ -2116,16 +2155,16 @@ SELECT/UPDATE/DELETEなどのSQL文を実行する。
 L</"拡張プレースホルダ詳細"> を参照。
 
 既にトランザクションが実行されていれば、そのトランザクションの
-DBセットでSQLが実行される。
+DBセットで SQL が実行される。
 
 トランザクションが開始されておらず、かつ L</"lock"> により
-テーブルがロックされていれば、ロックをかけているDBセットでSQLが実行される。
+テーブルがロックされていれば、ロックをかけているDBセットで SQL が実行される。
 
 いずれの場合でもない場合は、L</"setDefaultSet"> で指定された
 トランザクションが使用される。
 L</"setDefaultSet"> による設定がされていない場合は、例外を発生させる。
 
-このメソッドを使用して、LOCK/UNLOCK/BEGIN/COMMITといったSQL文を
+このメソッドを使用して、C<LOCK>/C<UNLOCK>/C<BEGIN>/C<COMMIT>といった SQL 文を
 実行してはならない。実行しようとした場合は例外を発生させる。
 代わりに専用のメソッドを使用する事。
 
@@ -2161,7 +2200,7 @@ SELECT結果を配列の配列へのリファレンスで返す。
   $DB->selectRowHash(\'SET_W_Trans' => $sql, $param...)
 
 SELECT結果の最初の１行をハッシュへのリファレンスで返す。
-実行後、内部でfinishする。
+実行後、内部でC<finish>する。
 データがない場合は undef が返る。
 
   my $hash = $DB->selectRowHash($sql, $param...);
@@ -2173,7 +2212,7 @@ SELECT結果の最初の１行をハッシュへのリファレンスで返す�
   $DB->selectRowArray(\'SET_W_Trans' => $sql, $param...)
 
 SELECT結果の最初の１行を配列へのリファレンスで返す。
-実行後、内部でfinishする。
+実行後、内部でC<finish>する。
 データがない場合は undef が返る。
 
   my $array = $DB->selectRowArray($sql, $param...);
@@ -2183,19 +2222,23 @@ SELECT結果の最初の１行を配列へのリファレンスで返す。
 
   $DB->lock(set => 'SET_W_Trans', read => ['A', 'B'], write => 'C')
 
-指定されたDBセットに対してLOCK TABLESを実行する。setが省略された場合はデフォルト
-のDBセットが選ばれる。CGIの中でロックした場合は、 L<Main関数|Tripletail/"Main関数">
-を抜けた時点で自動的にunlockされる。
+指定されたDBセットに対してC<LOCK TABLES>を実行する。C<set>が省略された場合はデフォルト
+のDBセットが選ばれる。 CGI の中でロックした場合は、 L<Main 関数|Tripletail/"Main 関数">
+を抜けた時点で自動的に unlock される。
 
 ロック実行中にこのメソッドを呼んだ場合には、例外を発生させる。
 1度に開始出来るロックは、1つのDBグループにつき1つだけとなる。
+
+現在 mysql でのみ使用可能.
 
 =item C<< unlock >>
 
   $DB->unlock
 
-UNLOCK TABLES を実行する。
+C<UNLOCK TABLES> を実行する。
 ロックがかかっていない場合は例外を発生させる。
+
+現在 mysql でのみ使用可能.
 
 =item C<< setBufferSize >>
 
@@ -2211,26 +2254,26 @@ C<< 0 >> または C<< undef >> をセットすると、制限が解除される
 
 文字列を識別子としてクォートする。
 
-mysqlの場合は C<< `a b c` >> となり、それ以外の場合は C<< "a b c" >> となる。
+mysql の場合は C<< `a b c` >> となり、それ以外の場合は C<< "a b c" >> となる。
 
-=item getType
+=item C<getType>
 
   $DB->getType;
 
 DBのタイプを返す。C<< (mysql, pgsql, ...) >>
 
-=item getDbh
+=item C<getDbh>
 
   $dbh = $DB->getDbh
   $dbh = $DB->getDbh('SET_W_Trans')
 
 DBセット内のDBハンドルを返す。
-返されるオブジェクトは L<DBI> ネイティブのdbhである。
+返されるオブジェクトは L<DBI> ネイティブのC<dbh>である。
 
 ネイティブのDBハンドルを使用してクエリを発行した場合、デバッグ機能（プロファイリング等）の機能は使用できません。
 また、トランザクションやロック状態の管理もフレームワークで行えなくなるため、注意して使用する必要があります。
 
-=item getLastInsertId
+=item C<getLastInsertId>
 
   $id = $DB->getLastInsertId()
 
@@ -2264,13 +2307,13 @@ DBセット内のDBハンドルを返す。
 
   $sth->rows
 
-DBIと同様。
+DBI と同様。
 
 =item C<< finish >>
 
   $sth->finish
 
-DBIと同様。
+DBI と同様。
 
 =item C<< nameArray >>
 
@@ -2365,7 +2408,7 @@ DB名を設定する。
   host = localhost
 
 DBのアドレスを設定する。
-デフォルトはlocalhost。
+デフォルトはC<localhost>。
 
 =item C<< user >>
 
@@ -2403,7 +2446,7 @@ DBD::ODBC と, Linux であれば unixODBC + freetds で, Windows であれば
  # freetds経由の時は, そちらのServernameも指定.
  tdsname=tds_test
 
-freetdsでの接続文字コードの設定は F<freetds.conf> で
+freetds での接続文字コードの設定は F<freetds.conf> で
 設定します. 
 
  ;; <freetds.conf>
@@ -2421,7 +2464,7 @@ L<Tripletail>
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

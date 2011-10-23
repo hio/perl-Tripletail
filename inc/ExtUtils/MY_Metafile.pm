@@ -5,7 +5,7 @@
 #
 # Copyright 2006-2008 YAMASHINA Hio
 # -----------------------------------------------------------------------------
-# $Id: MY_Metafile.pm,v c9a2058c839e 2008/09/06 06:01:04 hio $
+# $Id$
 # -----------------------------------------------------------------------------
 package ExtUtils::MY_Metafile;
 use strict;
@@ -537,7 +537,7 @@ L<http://search.cpan.org/dist/ExtUtils-MY_Metafile>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006-2008 YAMASHINA Hio, all rights reserved.
+Copyright 2006-2008 YAMASHINA Hio,
 
 
 This program is free software; you can redistribute it and/or modify it

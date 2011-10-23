@@ -51,7 +51,7 @@ foreach my $filterName (@correctFilterNames) {
 			$argList = '()';
 			$argAssign = '';
 		}
-		$methodName =~ s/^[A-Z]/lc($&)/e;
+		$methodName =~ s/^([A-Z])/lc($1)/e;
 	}else{
 		die "invalid filter name Tripletail::Validator::Filter::$filterName.";
 		next;
@@ -349,8 +349,30 @@ sub doFilter {
 	my $this   = shift;
 	my $values = shift;
 
+	if( @$values == 0 )
+	{
+		return \"accept";
+	}
+	foreach my $value (@$values)
+	{
+		if( !$TL->newValue($value)->isEmpty() )
+		{
+			# continue.
+			return undef;
+		}
+	}
+	# all empty.
+	return \"accept";
 	my $notempty = grep {! $TL->newValue($_)->isEmpty() } @$values;
-	(@$values != 0 && $notempty) ? undef : [];
+	if( @$values != 0 && $notempty )
+	{
+		# continue;
+		return undef;
+	}else
+	{
+		# accept.
+		\"accept";
+	}
 }
 
 # -----------------------------------------------------------------------------
@@ -420,8 +442,10 @@ use base qw{Tripletail::Validator::Filter};
 sub doFilter {
 	my $this   = shift;
 	my $values = shift;
+	my $args = shift;
 
-	return grep { !$TL->newValue($_)->isPassword() } @$values;
+	my @spec = defined($args) ? split(',', $args) : ();
+	return grep { !$TL->newValue($_)->isPassword(@spec) } @$values;
 }
 
 # -----------------------------------------------------------------------------
@@ -669,7 +693,7 @@ sub doFilter {
 		return undef;
 	}else
 	{
-		return "failure";
+		return "reject";
 	}
 }
 
@@ -693,16 +717,30 @@ sub doFilter {
 	my ( $min, $max ) = split(',', $args);
 	defined($min)    or die "Validator#MultiValues, arguments required (引数を指定してください)\n";
 	$min =~ /^\d+\z/ or die "Validator#MultiValues, invalid min argument [$min]: (min 引数の値が無効です)";
-	!$max || $max =~ /^\d*\z/ or die "Validator#MultiValues, invalid max argument [$max]: (max 引数の値が無効です)";
-	!$max || $min <= $max or die "Validator#MultiValues, min is greather than max [$max,$max]: (min の値が max の値より大きくなっています)\n";
 
-	if( @$values >= $min && (!$max || @$values <= $max) )
+	if( $max )
+	{
+		$max =~ /^\d*\z/ or die "Validator#MultiValues, invalid max argument [$max]: (max 引数の値が無効です)";
+		$min <= $max     or die "Validator#MultiValues, min [$min] is greather than max [$max]: (min の値が max の値より大きくなっています)\n";
+	}
+
+	if( @$values < $min )
+	{
+		return "reject, lower bound";
+	}
+	if( $max && @$values > $max )
+	{
+		return "reject, upper bound";
+	}
+
+	if( @$values == 0 )
+	{
+		# special case.
+		return \"accept, no values";
+	}else
 	{
 		# continue.
 		return undef;
-	}else
-	{
-		return "failure";
 	}
 }
 
@@ -711,6 +749,11 @@ sub doFilter {
 __END__
 
 =encoding utf-8
+
+=for stopwords
+	YMIRLINK
+	doFilter
+	isCorrectFilter
 
 =head1 NAME
 
@@ -743,7 +786,7 @@ L<Tripletail::Validator> 参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

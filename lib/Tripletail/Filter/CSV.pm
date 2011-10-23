@@ -117,9 +117,17 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	CSV
+	YMIRLINK
+	addHeader
+	contenttype
+	linebreak
+	setHeader
+
 =head1 NAME
 
-Tripletail::Filter::CSV - CSV出力フィルタ
+Tripletail::Filter::CSV - CSV 出力フィルタ
 
 =head1 SYNOPSIS
 
@@ -134,7 +142,7 @@ Tripletail::Filter::CSV - CSV出力フィルタ
 
 =head1 DESCRIPTION
 
-CSVの出力を支援する。
+CSV の出力を支援する。
 
 ファイル名の指定で Content-Disposition を出力可能。
 
@@ -161,7 +169,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
   $TL->setContentFilter('Tripletail::Filter::CSV', contenttype => 'text/html; charset=sjis');
 
-Content-Typeを指定する。省略可能。
+C<Content-Type> を指定する。省略可能。
 
 デフォルトはtext/csv; charset=（charasetで指定された文字コード）。
 
@@ -234,7 +242,7 @@ L<Tripletail::Filter>参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

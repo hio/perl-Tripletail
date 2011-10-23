@@ -1,4 +1,7 @@
-use Test::More tests => 122;
+use Test::More tests =>
+  +122
+  +10 # getFileName returns basename.
+  ;
 use Test::Exception;
 use strict;
 use warnings;
@@ -184,4 +187,32 @@ is($f1->get('aaa'), undef , 'remove check');
 	dies_ok {$form->set(a=>[\1])} 'set-error: array-ref of scalar-ref';
 	dies_ok {$form->set(a=>[{}])} 'set-error: array-ref of hash-ref';
 	dies_ok {$form->set(a=>[[]])} 'set-error: array-ref of array-ref';
+}
+
+{
+  my $form = $TL->newForm();
+
+  is($form->getFileName('file'), undef, "getFileName for noent");
+
+  my $fh = \local(*FH);
+  $form->setFile('file', $fh);
+  pass("setFile");
+
+  $form->setFileName('file', "a/b/c.dat");
+  pass("setFileName (unix)");
+  is($form->getFileName('file'), "c.dat", "getFileName returns basename (unix)");
+  is($form->getFullFileName('file'), "a/b/c.dat", "getFullFileName returns fullpath (unix)");
+  {
+  local($TL->{INI}{ini}{TL}{compat_form_getfilename_returns_fullpath}) = 1;
+  is($form->getFileName('file'), "a/b/c.dat", "getFileName+compat returns fullpath (unix)");
+  }
+
+  $form->setFileName('file', "a:\\b\\c.dat");
+  pass("setFileName (win)");
+  is($form->getFileName('file'), "c.dat", "getFileName returns basename (win)");
+  is($form->getFullFileName('file'), "a:\\b\\c.dat", "getFullFileName returns fullpath (win)");
+  {
+  local($TL->{INI}{ini}{TL}{compat_form_getfilename_returns_fullpath}) = 1;
+  is($form->getFileName('file'), "a:\\b\\c.dat", "getFileName+compat returns fullpath (win)");
+  }
 }

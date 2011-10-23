@@ -119,9 +119,16 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	MemCached
+	YMIRLINK
+	cachedata
+	formcharset
+
+
 =head1 NAME
 
-Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフィルタ
+Tripletail::Filter::MemCached - MemCached を使用するときに使用するフィルタ
 
 =head1 SYNOPSIS
 
@@ -129,7 +136,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 
 =head1 DESCRIPTION
 
-MemCachedの使用を支援する。
+MemCached の使用を支援する。
 このフィルタを使用する場合、最後に使用しなければならない。
 
 =head2 METHODS
@@ -156,15 +163,15 @@ L<Tripletail::Filter>参照
 
 =item key
 
-MemCachedで使用するkeyを設定する。
+MemCached で使用する key を設定する。
 
 =item mode
 
-MemCachedへの書き込みか、MemCachedからの読み込みかを選択する。
+MemCached への書き込みか、 MemCached からの読み込みかを選択する。
 
-writeで書き込み、pass-throughで読み込み。省略可能。
+C<write> で書き込み、C<pass-through>で読み込み。省略可能。
 
-デフォルトはwrite。
+デフォルトはC<write>。
 
 =item form
 
@@ -182,8 +189,8 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 =item cachedata
 
-pass-through時のみに使用される。
-出力するMemCachedのデータを渡す。
+C<pass-through>時のみに使用される。
+出力する MemCached のデータを渡す。
 直接出力されるため、ヘッダや文字コードに注意する必要がある。
 
 =back
@@ -204,7 +211,7 @@ pass-through時のみに使用される。
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

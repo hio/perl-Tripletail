@@ -346,6 +346,9 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	YMIRLINK
+
 =head1 NAME
 
 Tripletail::Debug::Watch - $TL->watch用内部クラス
@@ -368,7 +371,7 @@ L<Tripletail>
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

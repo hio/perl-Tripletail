@@ -334,11 +334,36 @@ sub isPassword {
 		return undef;
 	}
 
-	($this->isPrintableAscii &&
-		$this->{value} =~ m/[a-z]/ &&
-		$this->{value} =~ m/[A-Z]/ &&
-		$this->{value} =~ m/[0-9]/ &&
-		$this->{value} =~ m/[\x20-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]/) ? 1 : undef;
+	if(!$this->isPrintableAscii() )
+	{
+		return undef;
+	}
+
+	my $deftypes = ['alpha', 'ALPHA', 'digit', 'symbol'];
+	my $matcher = {
+		alpha  => qr/[a-z]/,
+		ALPHA  => qr/[A-Z]/,
+		digit  => qr/[0-9]/,
+		symbol => qr/[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]/,
+		# ! " # $ % & ' ( ) * + ' - . /
+		# : ; < = > ? @   [ \ ] ^ _ `  { | } ~
+	};
+	my $tokens = @_ ? [@_] : $deftypes;
+	my $tmp = $this->{value};
+	foreach my $token (@$tokens)
+	{
+		my $re = $matcher->{$token};
+		if( !$re && ref($token) eq 'ARRAY' )
+		{
+			$re = join('|', @$token);
+		}
+		$re or die __PACKAGE__."#isPassword: invalid argument. [$token] (無効な値です)\n";
+		if( $tmp !~ s/$re//g )
+		{
+			return undef;
+		}
+	}
+	1; # accepted.
 }
 
 sub isZipCode {
@@ -1611,9 +1636,23 @@ numberwide
 =item isPassword
 
   $bool = $val->isPassword
+  $bool = $val->isPassword(@spec)
 
-文字列が半角の数字、アルファベット大文字、小文字、記号を全て最低1ずつ含んでいるなら1。
-そうでなければundefを返す。
+文字列がC<isPrintableAscii>を満たして且つ指定された要素を含んでいれば真を,
+そうでなければ偽を返す.
+
+指定された文字以外が入っていることに関しては考慮しない.
+
+C<@spec> に指定できるのは, C<alpha>, C<ALPHA>, C<digit>, C<symbol> の
+いずれかの文字列若しくは文字を含んだ配列リファレンス.
+指定しなかった場合のデフォルト値は, C<qw(alpha ALPHA digit symbol)> となる.
+
+記号に含まれるものは以下の32文字.
+(0.44以前では空白文字も含めた33文字でした)
+
+     ! " # $ % & ' ( ) * + ' - . /
+     : ; < = > ? @   [ \ ] ^ _ `  { | } ~
+
 
 =item isZipCode
 
@@ -2039,7 +2078,7 @@ L<Tripletail>
 
 =head1 AUTHOR INFORMATION
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

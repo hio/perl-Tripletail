@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v c533de1af141 2008/09/16 07:28:32 hio $
+# $Id$
 package Tripletail;
 use 5.008_000;
 use strict;
@@ -14,7 +14,9 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
+our $XS_VERSION = $VERSION;
+$VERSION = eval $VERSION;
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -205,7 +207,7 @@ sub __new {
 
 	$this->{encode_is_available} = undef; # undef: 不明  0: Encode利用不可  1: Encode利用可
 
-    $this->{fcgi_request} = undef; # FCGI または undef
+    $this->{ fcgi_request} = undef; # FCGI または undef
 
 	$this;
 }
@@ -264,6 +266,14 @@ sub fork {
     }
 
     return $pid;
+}
+
+sub eval {
+    my $this = shift;
+    my $sub  = shift;
+
+    local $SIG{__DIE__} = 'DEFAULT';
+    return CORE::eval { $sub->() };
 }
 
 sub escapeTag {
@@ -365,6 +375,8 @@ sub escapeJs {
 	$str =~ s/(['"\\])/\\$1/g;
 	$str =~ s/\r/\\r/g;
 	$str =~ s/\n/\\n/g;
+	$str =~ s/</\\x3c/g;
+	$str =~ s/>/\\x3e/g;
 
 	$str;
 }
@@ -383,9 +395,11 @@ sub unescapeJs {
 	  "'" => "'",
 	  '"' => '"',
 	  "\\" => "\\",
+	  "x3c" => "<",
+	  "x3e" => ">",
 	};
 	$str = "$str"; # stringify.
-	$str =~ s/\\([rn'"\\])/$map->{$1}/ge;
+	$str =~ s/\\([rn'"\\]|x3[ce])/$map->{$1}/ge;
 
 	$str;
 }
@@ -470,7 +484,7 @@ sub startCgi {
 	$this->{outputbuffering} = $this->INI->get(TL => 'outputbuffering', 0);
 
 	my $main_err;
-	eval {
+	CORE::eval {
 		# trap = diewithprint の場合はエラーハンドラを付け替える
 		# そうしないと Content-Type: text/plain が出力されてしまう。
 		if($this->{trap} eq 'diewithprint') {
@@ -527,7 +541,7 @@ sub startCgi {
 			do {
 				local $SIG{__DIE__} = 'DEFAULT';
 				#no warnings;
-				eval 'use FCGI';
+				CORE::eval 'use FCGI';
 			};
 			if($@) {
 				die __PACKAGE__."#startCgi: failed to load FCGI.pm [$@] (FCGI.pmがロードできません)\n";
@@ -562,7 +576,7 @@ sub startCgi {
 			}
 
 			while(1) {
-				my $accepted = eval {
+				my $accepted = CORE::eval {
 					#no warnings;
 					local $SIG{__DIE__} = 'DEFAULT';
 					local $SIG{USR1} = sub {
@@ -697,7 +711,7 @@ sub _call_fault_handler
 			if( !$INC{$pmname} )
 			{
 				local($@);
-				eval "require $modname; 1;";
+				CORE::eval "require $modname; 1;";
 				if( $@ )
 				{
 					$TL->log("fault_handler: failed to load module [$modname]: $@");
@@ -718,7 +732,7 @@ sub _call_fault_handler
 		}
 		
 		local($@);
-		eval{
+		CORE::eval{
 			$modname->$sub($err);
 		};
 		if( $@ )
@@ -748,7 +762,7 @@ sub trapError {
 	my $param = { @_ };
 
 	my $main_err;
-	eval {
+	CORE::eval {
 		# trap = diewithprint の場合はエラーハンドラを付け替える
 		# そうしないと Content-Type: text/plain が出力されてしまう。
 		local($SIG{__DIE__}) = 'DEFAULT';
@@ -778,7 +792,7 @@ sub trapError {
 		$this->__executeHook('preRequest');
 		$this->_saveContentFilter;
 
-		eval {
+		CORE::eval {
 			$param->{'-main'}();
 		};
 		$main_err = $@;
@@ -833,7 +847,7 @@ sub dispatch {
 		if(!defined($param->{'onerror'})) {
 			die __PACKAGE__."#dispatch: arg[1] must start with upper case character. (第1引数は大文字から始まる必要があります)\n";
 		} else {
-			eval {
+			CORE::eval {
 				$param->{'onerror'}();
 			};
 			if($@) {
@@ -860,7 +874,7 @@ sub dispatch {
 		if(!defined($param->{'onerror'})) {
 			undef;
 		} else {
-			eval {
+			CORE::eval {
 				$param->{'onerror'}();
 			};
 			if($@) {
@@ -1009,7 +1023,7 @@ sub _log {
 		$this->{cacheLogFh} = $fh;
 		$this->{cacheLogInode} = $newstat[1];
 		local($@);
-		eval
+		CORE::eval
 		{
 			my $rel_to_logfile = sprintf('%04d%02d/%02d-%02d.log', @localtime[5,4,3,2]);
 			local($SIG{__DIE__}) = 'DEFAULT';
@@ -1140,7 +1154,7 @@ sub setContentFilter {
 
 	do {
 		local $SIG{__DIE__} = 'DEFAULT';
-		eval "require $classname";
+		CORE::eval "require $classname";
 	};
 	if($@) {
 		die $@;
@@ -1203,7 +1217,7 @@ sub setInputFilter {
 
 	do {
 		local $SIG{__DIE__} = 'DEFAULT';
-		eval "require $classname";
+		CORE::eval "require $classname";
 	};
 	if($@) {
 		die $@;
@@ -1321,7 +1335,7 @@ sub sendError {
 		push @lines, "[ENV:$key] $ENV{$key}";
 	}
 
-	eval {
+	CORE::eval {
 		my $mail = $this->newMail->setHeader(
 				From    => $rcpt,
 				To      => $rcpt,
@@ -1668,7 +1682,7 @@ sub newTemplate {
 	my $err;
 	{
 		local($@);
-		eval{ require Tripletail::Template; };
+		CORE::eval{ require Tripletail::Template; };
 		$err = $@;
 	}
 	$err and die $err;
@@ -1708,7 +1722,7 @@ sub newError {
 	if( !Tripletail::Error->can("_new") )
 	{
 		local($@);
-		eval {
+		CORE::eval {
 			require Tripletail::Error;
 		};
 		if ($@) {
@@ -2156,7 +2170,7 @@ sub _getRunMode
 		{
 			local($@);
 			local $SIG{__DIE__} = 'DEFAULT';
-			eval 'use FCGI';
+			CORE::eval 'use FCGI';
 			if( $@ )
 			{
 				$IS_FCGI_WIN32 = 0;
@@ -2282,7 +2296,7 @@ sub __dispError {
 		$http_headers .= "\r\n";
 	}
     else {
-		my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
+		my $popup = $TL->getDebug->_implant_disperror_popup;
 		$html = $err->toHtml;
 		$html =~ s|</html>$|$popup</html>|;
 
@@ -2302,7 +2316,7 @@ sub __dispError {
 		$this->log(__PACKAGE__, "$err");
 	}
 	if($errorlog > 1) {
-		$Tripletail::Debug::_INSTANCE->__log_request;
+		$TL->getDebug->__log_request;
 	}
 }
 
@@ -2315,7 +2329,7 @@ sub __executeCgi {
 	$this->__executeHook('initRequest');
 	
 	# ここで$CGIを作り、constにする。
-	$this->{CGIORIG} = eval { $this->__decodeCgi->const };
+	$this->{CGIORIG} = CORE::eval { $this->__decodeCgi->const };
 	if ($@) {
 		die $@ if not (
 			ref($@)
@@ -2351,7 +2365,7 @@ sub __executeCgi {
 		$this->__executeHook('preRequest');
 		$this->_saveContentFilter;
 
-		eval {
+		CORE::eval {
 			$mainfunc->();
 		};
 		if($@) {
@@ -2466,6 +2480,57 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	YAMASHINA
+	Hio
+	ACKNOWLEDGEMENTS
+	AnnoCPAN
+	CPAN
+	RT
+	AU
+	CGI
+	FCGI
+	fcgi
+	FastCGI
+	Ki
+	Mi
+	Gi
+	Ti
+	Pi
+	Ei
+	TL
+	UTF-8
+	Shift_JIS
+	EUC-JP
+	ISO-2022-JP
+	Unicode
+	YMIRLINK
+	const
+	diewithprint
+	init
+	ini
+	inigroup
+	errorlog
+	errormail
+	errormailtype
+	errortemplate
+	errortemplatecharset
+	escapeJs
+	escapeJsString
+	PadWalker
+	MemCached
+	memcached
+	mon
+	fcgilog
+	filelog
+	imode
+	sjis-imode
+	ja
+	printCacheUnlessModified
+	setContentFilter
+	startCgi
+
+
 =head1 NAME
 
 Tripletail - Tripletail, Framework for Japanese Web Application
@@ -2492,7 +2557,7 @@ Tripletail - Tripletail, 日本語向けウェブアプリケーションフレ�
 
 =head2 C<use>
 
-tlでは、ライブラリの各種設定は L<Ini|Tripletail::Ini> ファイルに置かれる。
+Tripletail では、ライブラリの各種設定は L<Ini|Tripletail::Ini> ファイルに置かれる。
 
 実行が開始されるスクリプトの先頭で、次のように引数として L<Ini|Tripletail::Ini>
 ファイルの位置を渡す。するとグローバル変数 C<$TL> がエクスポートされる。
@@ -2504,7 +2569,7 @@ L<Ini|Tripletail::Ini> ファイル指定は必須である。
 C<use Tripletail;> のように引数無しで C<use> する。二度目以降の C<use> で
 L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合はエラーとなる。
 
-設定ファイルの設定値のうち、一部の値を特定のCGIで変更したい場合は、
+設定ファイルの設定値のうち、一部の値を特定の CGI で変更したい場合は、
 次のように2つめ以降引数に特化指定をすることが出来る。
 
   use Tripletail qw(/home/www/ini/tl.ini golduser);
@@ -2513,13 +2578,13 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
 まず「グループ名 + ":" + 特化指定値」のグループで検索を行う。
 結果がなかった場合は、通常のグループ名の指定値が使用される。
 
-また、サーバのIPやリモートのIPにより使用するグループを変更することも出来る。それぞれ
+また、サーバの IP やリモートの IP により使用するグループを変更することも出来る。それぞれ
 「グループ名 + "@sever" + 使用するサーバのマスク値」
 「グループ名 + "@remote" + 使用するリモートのマスク値」
 といった書式となる。
 
-但し、スクリプトで起動した場合、リモートのIP指定している項目は全て無視される。
-サーバのIP指定している項目の場合、hostname -iで取得した値でマッチされる。
+但し、スクリプトで起動した場合、リモートの IP 指定している項目は全て無視される。
+サーバの IP 指定している項目の場合、 C<hostname -i> で取得した値でマッチされる。
 
 使用するサーバのマスク値と、リモートのマスク値に関しては、Ini中の[HOST]グループに設定する。例えば次のようになる。
 
@@ -2559,13 +2624,13 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
   [Debug@remote:Testuser]
   enable_debug=1
 
-というtl.iniが存在している場合に
+という F<tl.ini> が存在している場合に
 
   use Tripletail qw(/home/www/ini/tl.ini register);
 
 で、起動した場合、次のような動作になる。
 
-プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
+プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50である場合
 
   [TL]
   logdir = /home/tl/logs/register/debug
@@ -2573,7 +2638,7 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
   [Debug]
   enable_debug=1
 
-プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50では無い場合
+プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50では無い場合
 
   [TL]
   logdir = /home/tl/logs/register
@@ -2584,7 +2649,7 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
 
 で、起動した場合、次のような動作になる。
 
-プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
+プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50である場合
 
   [TL]
   logdir = /home/tl/logs/debug
@@ -2592,7 +2657,7 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
   [Debug]
   enable_debug=1
 
-プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50では無い場合
+プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50では無い場合
 
   [TL]
   logdir = /home/tl/logs
@@ -2620,15 +2685,15 @@ L<Tripletail::Filter::MobileHTML> 出力フィルタを利用することで、
       $t->flush;
   }
 
-入力された絵文字は、Unicode のプライベート領域にマップされる。
-この文字は、UTF-8 で4バイトの長さとなるため、DBに保存する場合などには
+入力された絵文字は、 Unicode のプライベート領域にマップされる。
+この文字は、 UTF-8 で4バイトの長さとなるため、DBに保存する場合などには
 注意が必要となる。BLOB型など、バイナリ形式で保存すると安全である。
 
 絵文字は出力時に各端末にあわせて変換される。
 同じ携帯キャリアであれば元の絵文字に戻され、
 他のキャリアであれば Unicode::Japanese の変換マップに従い変換されて出力される。
 
-変換マップで該当する絵文字が無い場合や、PC向けに出力した場合は「?」に変換される。
+変換マップで該当する絵文字が無い場合や、PC 向けに出力した場合は「?」に変換される。
 
 テンプレートファイルで絵文字を使う場合は、絵文字コードをバイナリで
 埋め込む必要がある。
@@ -2639,11 +2704,11 @@ sjis-imode (DoCoMo)、sjis-jsky (Softbank)、sjis-au (AU) などが利用でき�
 
 =head2 キャッシュの利用
 
-Cache::Memcachedがインストールされ、memcachedサーバがある場合に、キャッシュが利用可能となる。
+Cache::Memcachedがインストールされ、 memcached サーバがある場合に、キャッシュが利用可能となる。
 
 具体例は次の通り
 
-INIファイルにて、memcachedが動いているサーバを指定する。
+INI ファイルにて、 memcached が動いているサーバを指定する。
 [MemCached]
 servers = localhost:11211
 
@@ -2728,33 +2793,33 @@ servers = localhost:11211
 
 =over 4
 
-=item CGIモード
+=item CGI モード
 
-CGIとしてプログラムを動作させるモード。このモードでは C<< $TL->print >>
+CGI としてプログラムを動作させるモード。このモードでは C<< $TL->print >>
 メソッドや L</"出力フィルタ"> 、 L</"入力フィルタ"> が利用可能になる。
 
-このモードでは L<< $TL->startCgi|/"startCgi" >> メソッドで L</"Main関数"> を呼ぶ。
+このモードでは L<< $TL->startCgi|/"startCgi" >> メソッドで L</"Main 関数"> を呼ぶ。
 
-=item FastCGIモード
+=item FastCGI モード
 
-FastCGIとしてプログラムを動作させるモード。httpdからfcgiスクリプトとして起動
+FastCGI としてプログラムを動作させるモード。httpd から fcgi スクリプトとして起動
 しようとすると、自動的に選ばれる。このモードではプロセスのメモリ使用量を
 監視し、起動後にある一定の大きさを越えてメモリ使用量が増大すると、メモリリーク
 が発生しているとして自動的に終了する。また、 L<Ini|Tripletail::Ini> パラメータ付きで
 C<use Tripletail> したスクリプトファイルや、その L<Ini|Tripletail::Ini> ファイルの最終更新時刻
 も監視し、更新されていたら自動的に終了する。
 
-このモードでは L<< $TL->startCgi|/"startCgi" >> メソッドで L</"Main関数"> を呼ぶ。
+このモードでは L<< $TL->startCgi|/"startCgi" >> メソッドで L</"Main 関数"> を呼ぶ。
 
-FastCGIモードでは fork が正しく動作しない事に注意。代わりに
+FastCGI モードでは fork が正しく動作しない事に注意。代わりに
 L<< $TL->fork|/"fork" >> メソッドを使用する。
 
 =item 一般スクリプトモード
 
-CGIでない一般のスクリプトとしてプログラムを動作させるモード。
-CGIモード特有の機能は利用出来ない。
+CGI でない一般のスクリプトとしてプログラムを動作させるモード。
+CGI モード特有の機能は利用出来ない。
 
-このモードでは L<< $TL->trapError|/"trapError" >> メソッドで L</"Main関数"> を呼ぶ。
+このモードでは L<< $TL->trapError|/"trapError" >> メソッドで L</"Main 関数"> を呼ぶ。
 
 =back
 
@@ -2762,21 +2827,21 @@ CGIモード特有の機能は利用出来ない。
 =head2 出力フィルタ
 
 L<< $TL->print|/"print" >> や L<< $template->flush|Tripletail::Template/"flush" >>
-で出力される内容は、 L<Tripletail::Filter> によって加工される。出力の先頭にHTTPヘッダを
+で出力される内容は、 L<Tripletail::Filter> によって加工される。出力の先頭に HTTP ヘッダを
 付加するのも出力フィルタである。
 
 
 =head2 入力フィルタ
 
-C<< $ENV{QUERY_STRING} >> その他のCGIのリクエスト情報は、 L<Tripletail::InputFilter>
+C<< $ENV{QUERY_STRING} >> その他の CGI のリクエスト情報は、 L<Tripletail::InputFilter>
 が読み取り、 L<Tripletail::Form> オブジェクトを生成する。得られたリクエスト情報は
-$CGI オブジェクトか L<< $TL->CGI|/"CGI" >> メソッドで取得出来る。
+C<$CGI> オブジェクトか L<< $TL->CGI|/"CGI" >> メソッドで取得出来る。
 
 
-=head2 Main関数
+=head2 Main 関数
 
-リクエスト一回毎に呼ばれる関数。この関数の中でCGIプログラムは入出力を行う。
-L</"FastCGIモード"> 以外では一度のプロセスの起動で一度しか呼ばれない。
+リクエスト一回毎に呼ばれる関数。この関数の中で CGI プログラムは入出力を行う。
+L</"FastCGI モード"> 以外では一度のプロセスの起動で一度しか呼ばれない。
 
 
 =head2 フック
@@ -2785,39 +2850,39 @@ L<< $TL->setHook|/"setHook" >> メソッドを用いてフックを掛ける事�
 
 =over 4
 
-=item init
+=item C<init>
 
-L</"startCgi"> もしくは L</"trapError"> が呼ばれ、最初に L</"Main関数"> が
-呼ばれる前。FastCGIの場合は最初の1回だけ呼ばれる。
+L</"startCgi"> もしくは L</"trapError"> が呼ばれ、最初に L</"Main 関数"> が
+呼ばれる前。 FastCGI の場合は最初の1回だけ呼ばれる。
 
-=item initRequest
+=item C<initRequest>
 
 L</"startCgi"> 利用時は、リクエストを受け取った直後、フォームがデコードされる前に呼ばれる。
 リクエストごとに呼び出される。
 
 L</"trapError"> 利用時は L</"postRequest"> フックの前に呼び出される。
 
-=item preRequest
+=item C<preRequest>
 
-L</"startCgi"> 利用時は、フォームをデコードした後、L</"Main関数"> が呼ばれる前に呼ばれる。
+L</"startCgi"> 利用時は、フォームをデコードした後、L</"Main 関数"> が呼ばれる前に呼ばれる。
 リクエストごとに呼び出される。
 ただし、フォームのデコード処理に失敗した場合、L<"/preRequest"> は実行されずにリクエスト処理が終了する。
 
-L</"trapError"> 利用時は L</"initRequest"> フックの後、L</"Main関数"> が呼ばれる前に呼ばれる。
+L</"trapError"> 利用時は L</"initRequest"> フックの後、L</"Main 関数"> が呼ばれる前に呼ばれる。
 
-=item postRequest
+=item C<postRequest>
 
-L</"startCgi"> 利用時は、L</"Main関数"> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
+L</"startCgi"> 利用時は、L</"Main 関数"> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
 リクエストごとに呼び出される。
 ただし、フォームのデコード処理に失敗した場合、L</"postRequest"> は実行されずにリクエスト処理が終了する。
 
-L</"trapError"> 利用時は L</"Main関数"> が呼ばれた後に呼び出される。
+L</"trapError"> 利用時は L</"Main 関数"> が呼ばれた後に呼び出される。
 
-=item term
+=item C<term>
 
-最後に L</"Main関数"> が呼ばれた後。termフック呼出し後に L</"startCgi">
+最後に L</"Main 関数"> が呼ばれた後。C<term>フック呼出し後に L</"startCgi">
 もしくは L</"trapError"> が終了する。
-FastCGIの場合は最後の1回だけ呼ばれる。
+FastCGI の場合は最後の1回だけ呼ばれる。
 
 =back
 
@@ -2834,8 +2899,8 @@ FastCGIの場合は最後の1回だけ呼ばれる。
     -Session => 'Session',     # Sessionを使う場合、iniのグループ名を指定
   );
 
-CGIを実行する為の環境を整えた上で、 L</"Main関数"> を実行する。
-L</"Main関数"> がdieした場合は、エラー表示HTMLが出力される。
+CGI を実行する為の環境を整えた上で、 L</"Main 関数"> を実行する。
+L</"Main 関数"> がdie した場合は、エラー表示 HTML が出力される。
 
 C<DB> は、次のように配列へのリファレンスを渡す事で、複数指定可能。
 
@@ -2862,7 +2927,7 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
 リクエストを受け取った L<Tripletail::Form> オブジェクトを返す。
 また、このオブジェクトは startCgi メソッドの呼び出し元パッケージに export される。
 
-このメソッドがundefでない値を返すのは、 L</"preRequest"> フックが呼ばれる
+このメソッドがC<undef>でない値を返すのは、 L</"preRequest"> フックが呼ばれる
 直前から L</"postRequest"> フックが呼ばれた直後までである。
 
 =head4 C<< dispatch >>
@@ -2874,16 +2939,16 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
   $params{args}    = \@args.
 
 'Do' と $value を繋げた関数名の関数を呼び出す。
-$valueがundefの場合、defaultを指定していた場合、defaultに設定される。
+$valueがC<undef>の場合、 default を指定していた場合、default に設定される。
 $value は大文字で始まらなければならない。
 
 args 引数が指定されていた場合、関数にその内容を渡す。
 指定されていなければ関数は引数なしで呼び出される。
 (0.44以降)
 
-onerrorが未設定で関数が存在しなければ undef、存在すれば1を返す。
+C<onerror> が未設定で関数が存在しなければ C<undef>、存在すれば1を返す。
 
-onerrorが設定されていた場合、関数が存在しなければ onerrorで設定された関数が呼び出される。
+C<onerror> が設定されていた場合、関数が存在しなければ C<onerror> で設定された関数が呼び出される。
 
   例:
   package Foo;
@@ -2905,7 +2970,7 @@ onerrorが設定されていた場合、関数が存在しなければ onerror�
 
   $TL->print($str)
 
-コンテンツデータを出力する。L</"startCgi"> から呼ばれた L</"Main関数"> 内
+コンテンツデータを出力する。L</"startCgi"> から呼ばれた L</"Main 関数"> 内
 のみで使用できる。ヘッダは出力できない。
 
 フィルタによってはバッファリングされる場合もあるが、
@@ -2915,11 +2980,25 @@ onerrorが設定されていた場合、関数が存在しなければ onerror�
 
   $TL->location('http://example.org/')
 
-CGIモードの時、指定されたURLへリダイレクトする。
+CGI モードの時、指定されたURLへリダイレクトする。
 このメソッドはあらゆる出力の前に呼ばなくてはならない。 
 
 また、出力フィルタが L<Tripletail::Filter::HTML> か L<Tripletail::Filter::MobileHTML>
 の場合のみ利用できる。
+
+=head4 C<< eval >>
+
+  $TL->eval(sub {
+                # Statements which may throw...
+              });
+  if ($@) {
+      ....
+  }
+
+引数として与えられたサブルーチンを実行するが、その実行中は Tripletail
+によるエラー処理を無効にする。サブルーチンが正常な動作の範囲内として
+die する事が判っている場合に、エラー処理のコストを減らし、且つ C<< $@
+>> が書き換えられる事を防ぐために使用する。
 
 =head3 変換処理
 
@@ -3006,7 +3085,7 @@ URLエンコードを解除し元に戻した文字列を返す。
 C<$from> が省略された場合は C<'auto'> に、
 C<$to> が省略された場合は C<'UTF-8'> になる。
 
-指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
+指定できる文字コードは、 UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
 L<Unicode::Japanese>、L<Encode> がサポートしているものが使用できる。
 
 =head4 C<< parsePeriod >>
@@ -3132,8 +3211,8 @@ C<< use Tripletail qw(filename.ini); >> で読み込まれた L<Tripletail::Ini>
     -DB   => 'DB',   # DBを使う場合，iniのグループ名を指定
   );
 
-環境を整え、 L</"Main関数"> を実行する。
-L</"Main関数"> がdieした場合は、エラー内容が標準エラーへ出力される。
+環境を整え、 L</"Main 関数"> を実行する。
+L</"Main 関数"> がdie した場合は、エラー内容が標準エラーへ出力される。
 
 L</"startCgi"> と同様に、C<DB> には配列へのリファレンスを渡す事も出来る。
 
@@ -3146,10 +3225,10 @@ L</"startCgi"> と同様に、C<DB> には配列へのリファレンスを渡�
       # child
   }
 
-FastCGI 環境を考慮しながら fork を実行する。FastCGI 環境でない場合は通
+FastCGI 環境を考慮しながら fork を実行する。 FastCGI 環境でない場合は通
 常通りに fork する。fork に失敗した場合は die する。
 
-通常は perl 組込み関数である fork を使用しても問題無いが、FastCGI 環境
+通常は perl 組込み関数である fork を使用しても問題無いが、 FastCGI 環境
 では正常に動作しない為、Tripletail アプリケーションは常に fork でなく
 C<< $TL->fork >> を使用する事が推奨される。
 
@@ -3162,7 +3241,7 @@ C<< $TL->fork >> を使用する事が推奨される。
 第一引数のグループは省略可能。
 ログデータがリファレンスだったときは Data::Dumper によってダンプされる。
 
-ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
+ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセス ID の16進数4桁表現 FastCGI のリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
 
 =head4 C<< setContentFilter >>
 
@@ -3182,7 +3261,7 @@ L</"出力フィルタ"> を設定する。
 返される値は、指定された L<Tripletail::Filter> のサブクラスのインスタンスである。
 
 設定したフィルタは、L</"preRequest"> 実行後のタイミングで保存され、
-L</"postRequest"> のタイミングで元に戻される。従って、L</"Main関数">内
+L</"postRequest"> のタイミングで元に戻される。従って、L</"Main 関数">内
 で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
 されない。
 
@@ -3204,7 +3283,7 @@ L</"postRequest"> のタイミングで元に戻される。従って、L</"Main
   my $logid = $TL->getLogHeader
 
 ログを記録するときのヘッダと同じ形式の文字列を生成する。
-「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現」の形の文字列が返される。
+「時刻(epoch値の16進数8桁表現) プロセス ID の16進数4桁表現 FastCGI のリクエスト回数の16進数4桁表現」の形の文字列が返される。
 
 =head4 C<< setHook >>
 
@@ -3214,7 +3293,7 @@ L</"postRequest"> のタイミングで元に戻される。従って、L</"Main
 既に同一タイプで同一プライオリティのフックが設定されていた場合、
 古いフックの設定は解除される。
 
-typeは、L</"init">, L</"term">, L</"initRequest">, L</"preRequest">, L</"postRequest">
+C<type> は、L</"init">, L</"term">, L</"initRequest">, L</"preRequest">, L</"postRequest">
 の４種類が存在する。
 
 なお、1万の整数倍のプライオリティは Tripletail 内部で使用される。アプリ
@@ -3263,7 +3342,7 @@ L<ini|Tripletail::Ini> で指定されたアドレスにエラーメールを送
 
   $data = $TL->readTextFile($fpath, $coding);
 
-ファイルを読み込み、UTF-8に変換する。
+ファイルを読み込み、 UTF-8 に変換する。
 ファイルロック処理は行わないので、使用の際には注意が必要。
 
 C<$coding> が省略された場合は C<'auto'> となる。
@@ -3284,7 +3363,7 @@ C<$fmode> が1ならば、追加モード。
 
   $TL->writeTextFile($fpath, $fdata, $fmode, $coding);
 
-ファイルにデータを書き込む。C<$fdata> をUTF-8と見なし、指定された文字コードへ変換を行う。
+ファイルにデータを書き込む。C<$fdata> を UTF-8 と見なし、指定された文字コードへ変換を行う。
 ファイルロック処理は行わないので、使用の際には注意が必要。
 
 C<$fmode> が0ならば、上書きモード。
@@ -3292,7 +3371,7 @@ C<$fmode> が1ならば、追加モード。
 
 省略された場合は上書きモードとなる。
 
-C<$coding> が省略された場合、UTF-8として扱う。
+C<$coding> が省略された場合、 UTF-8 として扱う。
 
 =head4 C<< watch >>
 
@@ -3338,11 +3417,11 @@ L</printCacheUnlessModified> と L</setCache> を利用する際に使用する�
 L<Tripletail::Form>オブジェクトの代わりにハッシュのリファレンスを渡すことも出来る。
 ハッシュのリファレンスを渡した場合は、$TL->newForm($hashref) した結果のフォームオブジェクトを追加する。
 
-第2引数は、第1引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
+第2引数は、第1引数で指定した文字列を UTF-8 から変換する際の文字コードを指定する。
 省略可能。
 
 使用可能なコードは次の通り。
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
+UTF-8 ，Shift_JIS，EUC-JP，ISO-2022-JP
 
 デフォルトはShift_JIS。
 
@@ -3351,7 +3430,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
   $bool = $TL->printCacheUnlessModified($key, $status)
 
 第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
-利用するには、memcached が必須となる。
+利用するには、 memcached が必須となる。
 
 第2引数が304の場合、304レスポンスを送る動作を行う。200の場合、200レスポンスを送る動作を行う。
 省略可能。
@@ -3360,16 +3439,16 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 この関数は次のような動作を行っている。
 
-1.memcachedからキーに割り当てられたキャッシュデータを読み込む。
+1. memcached からキーに割り当てられたキャッシュデータを読み込む。
 データが無ければ、1を返す。
 
 2.キャッシュデータの保存された時間と前回アクセスされた時間を比較し、
-キャッシュデータが新しければキャッシュデータを出力し、undefを返す。
+キャッシュデータが新しければキャッシュデータを出力し、C<undef>を返す。
 
-3.アクセスされた時間が新しければ、304レスポンスを出力し、undefを返す。
+3.アクセスされた時間が新しければ、304レスポンスを出力し、C<undef>を返す。
 （第2引数が304の場合。200の場合はキャッシュデータを出力する）
 
-この関数からundefを返された場合、以後出力を行う操作を行ってはならない。
+この関数からC<undef>を返された場合、以後出力を行う操作を行ってはならない。
 
 =head4 C<< setCache >>
 
@@ -3377,9 +3456,9 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 
 第1引数で割り当てられたキーに対して出力される内容をメモリ上にキャッシュする。
-また、Last-Modifiedヘッダを出力する。
-printCacheUnlessModifiedより後で実行する必要がある。
-利用するには、memcached が必須となる。
+また、Last-Modified ヘッダを出力する。
+printCacheUnlessModified より後で実行する必要がある。
+利用するには、 memcached が必須となる。
 
 第2引数には、L<Tripletail::Filter::MemCached>への優先度を記述する。省略可能。
 デフォルトは1500。
@@ -3392,7 +3471,7 @@ Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるた
   $TL->deleteCache($key)
 
 第1引数で割り当てられたキーのキャッシュを削除する。
-利用するには、memcached が必須となる。
+利用するには、 memcached が必須となる。
 
 なお、setCacheの後にdeleteCacheを実行しても、setCacheでのメモリへの書き込みは、
 処理の最後に行われるので、deleteCacheは反映されない。
@@ -3421,21 +3500,21 @@ Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるた
 
 =over 4
 
-=item maxrequestsize
+=item C<maxrequestsize>
 
   maxrequestsize = 16M 500K
 
 最大リクエストサイズ。但しファイルアップロードの分を除く。デフォルトは8M。
 
-=item maxfilesize
+=item C<maxfilesize>
 
   maxfilesize = 100M
 
 一回のPOSTでアップロード可能なファイルサイズの合計。デフォルトは8M。ファ
-イルのサイズは maxrequestsize とは別にカウントされ、ファイルでないもの
-については maxrequestsize の値が使われる。
+イルのサイズは C<maxrequestsize> とは別にカウントされ、ファイルでないもの
+については C<maxrequestsize> の値が使われる。
 
-=item fault_handler
+=item C<fault_handler>
 
   fault_handler = Name::Of::Handler
 
@@ -3462,13 +3541,13 @@ startCgi での最大リクエストサイズ若しくは
 
 (C<http_status_line> は 0.42 以降でサポート)
 
-=item logdir
+=item C<logdir>
 
   logdir = /home/www/cgilog/
 
 ログの出力ディレクトリ。
 
-=item tempdir
+=item C<tempdir>
 
   tempdir = /tmp
 
@@ -3479,16 +3558,16 @@ startCgi での最大リクエストサイズ若しくは
 ハンドルを閉じたりプロセスを終了したりすると、作られた一時ファイルは直
 ちに自動で削除される。
 
-=item errormail
+=item C<errormail>
 
   errormail = null@example.org%Sendmail
 
 sendErrorや、エラー発生時にメールを送る先を指定する。
-アカウント名@ドメイン名%inigroup、の形式で指定する。
-inigroupに。 L<Tripletail::Sendmail> クラスで使用するinigroupを指定する。
-inigroupが省略されると C<'Sendmail'> が使われる。
+C<アカウント名@ドメイン名%inigroup> 、の形式で指定する。
+inigroup に  L<Tripletail::Sendmail> クラスで使用する inigroup を指定する。
+inigroup が省略されると C<'Sendmail'> が使われる。
 
-=item errormailtype
+=item C<errormailtype>
 
   errormailtype = error file-update memory-leak
 
@@ -3498,35 +3577,35 @@ inigroupが省略されると C<'Sendmail'> が使われる。
 
 =over 4
 
-=item error
+=item C<error>
 
 エラーが発生した時にメールを送る。
 メールの内容にはスタックトレース等が含まれる。
 
-=item file-update
+=item C<file-update>
 
 L<Tripletail::FileSentinel> が監視対象のファイルの更新を検出した時にメールを送る。
 メールの内容には更新されたファイルやその更新時刻が含まれる。
 
-=item memory-leak
+=item C<memory-leak>
 
 L<Tripletail::MemorySentinel> がメモリリークの可能性を検出した時にメールを送る。
 メールの内容にはメモリの使用状況が含まれる。
 
 =back
 
-=item errorlog
+=item C<errorlog>
 
   errorlog = 1
 
 エラー発生時にログに情報を残すかどうかを指定する。
 1 が指定されればエラー情報を残す。
-2 が指定されれば、エラー情報に加え、CGIのリクエスト内容も残す（startCgi内でのエラーのみ）。
-3 が指定されれば、ローカル変数内容を含んだ詳細なエラー情報に加えて（但し PadWalker が必要）、CGIのリクエスト内容も残す。
+2 が指定されれば、エラー情報に加え、 CGI のリクエスト内容も残す（startCgi内でのエラーのみ）。
+3 が指定されれば、ローカル変数内容を含んだ詳細なエラー情報に加えて（但し PadWalker が必要）、 CGI のリクエスト内容も残す。
 0 であれば情報を残さない。
 デフォルトは 1。
 
-=item fcgilog
+=item C<fcgilog>
 
   fcgilog = 1
 
@@ -3535,7 +3614,7 @@ FCGI 関連の動作をログに記録するかどうかを指定する。
 0 であれば記録しない。
 デフォルトは 0。
 
-=item memorylog
+=item C<memorylog>
 
   memorylog = full
 
@@ -3543,90 +3622,90 @@ FCGI 関連の動作をログに記録するかどうかを指定する。
 'leak', 'full' のどちらかから選ぶ。
 'leak' の場合は、メモリリークが検出された場合のみログに残す。
 'full' の場合は、メモリリークの検出とは無関係に、リクエスト毎にログに残す。
-デフォルトは 'leak'。
+デフォルトは 'leak' 。
 
-=item filelog
+=item C<filelog>
 
   filelog = full
 
 ファイルの更新の監視状況をログに残すかどうかを指定する。
-'update', 'full' のどちらかから選ぶ。
-'update' の場合は、ファイルが更新された場合のみログに残す。
-'full' の場合は、ファイルの監視を開始した際にもログに残す。
-デフォルトは 'update'。
+'C<update>', 'C<full>' のどちらかから選ぶ。
+'C<update>' の場合は、ファイルが更新された場合のみログに残す。
+'C<full>' の場合は、ファイルの監視を開始した際にもログに残す。
+デフォルトは 'C<update>'。
 
-=item trap
+=item C<trap>
 
   trap = die
 
-エラー処理の種類。'none', 'die'，'diewithprint' から選ぶ。デフォルトは'die'。
+エラー処理の種類。'C<none>', 'C<die>'，'C<diewithprint>' から選ぶ。デフォルトは'C<die>'。
 
 =over 4
 
-=item none
+=item C<none>
 
 エラートラップを一切しない。
 
-=item die
+=item C<die>
 
-L</"Main関数"> がdieした場合にエラー表示。それ以外の場所ではトラップしない。warnは見逃す。
+L</"Main 関数"> がdie した場合にエラー表示。それ以外の場所ではトラップしない。warnは見逃す。
 
-=item diewithprint
+=item C<diewithprint>
 
-L</"Main関数"> がdieした場合にエラー表示。L</"Main関数"> 以外でdieした場合は、ヘッダと共にエラー内容をテキストで表示する。warnは見逃す。
+L</"Main 関数"> がdie した場合にエラー表示。L</"Main 関数"> 以外でdie した場合は、ヘッダと共にエラー内容をテキストで表示する。warnは見逃す。
 
 =back
 
-=item stacktrace
+=item C<stacktrace>
 
   stacktrace = full
 
 エラー発生時に表示するスタックトレースの種類。'none' の場合は、スタック
-トレースを一切表示しない。'onlystack' の場合は、スタックトレースのみを
+トレースを一切表示しない。'C<onlystack>' の場合は、スタックトレースのみを
 表示する。'full' の場合は、スタックトレースに加えてソースコード本体並び
 に各フレームに於けるローカル変数の一覧をも表示する。デフォルトは
- 'onlystack'。
+ 'C<onlystack>'。
 
 但しローカル変数一覧を表示するには L<PadWalker> がインストールされてい
 なければならない。
 
-注意: 'full' の状態では、stackallow で許された全てのユーザーが、
+注意: 'full' の状態では、C<stackallow> で許された全てのユーザーが、
 ブラウザから全てのソースコード及び ini
 ファイルの中身を読む事が出来る点に注意すること。
 
-=item stackallow
+=item C<stackallow>
 
   stackallow = 192.168.0.0/24
 
-stacktrace の値が 'none' でない場合であっても、stackallow で指定された
+C<stacktrace> の値が 'none' でない場合であっても、C<stackallow> で指定された
 ネットマスクに該当しない IP からの接続である場合には、スタックトレース
 を表示しない。マスクは空白で区切って複数個指定する事が可能。
 デフォルトは全て禁止。
 
-=item maxrequestcount
+=item C<maxrequestcount>
 
   maxrequestcount = 100
 
-FastCGIモード時に、1つのプロセスで何回まで処理を行うかを設定する。
+FastCGI モード時に、1つのプロセスで何回まで処理を行うかを設定する。
 0を設定すれば回数によってプロセスが終了することはない。
 デフォルトは0。
 
-=item errortemplate
+=item C<errortemplate>
 
   errortemplate = /home/www/error.html
 
 エラー発生時に、通常のエラー表示ではなく、指定された
 テンプレートファイルを表示する。
 
-=item errortemplatecharset
+=item C<errortemplatecharset>
 
   errortemplatecharset = Shift_JIS
 
 errortemplate指定時に、エラーメッセージを返す際の charset を指定する。
 
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP が指定できる。デフォルトは UTF-8。
+UTF-8 ， Shift_JIS ， EUC-JP ， ISO-2022-JP が指定できる。デフォルトは UTF-8 。
 
-=item outputbuffering
+=item C<outputbuffering>
 
   outputbuffering = 0
 
@@ -3640,30 +3719,41 @@ startCgi メソッド中で出力をバッファリングするかどうか。
 バッファリングを行った場合、print した内容はリクエスト終了時まで表示されないが、処理中にエラーが発生した場合、出力内容は破棄され、エラーテンプレートの内容に差し替えられる。
 また、Content-Length ヘッダが付与される。
 
-L<Tripletail::Filter::MobileHTML> を利用した場合、outputbuffering は1にセットされる。
+L<Tripletail::Filter::MobileHTML> を利用した場合、C<outputbuffering> は1にセットされる。
 
 =for COMMENT
   有効にすると Content-Filter への中継も行われなくなる.
-  この際, CGI終了時に１つのデータでprintされ, 続けてflushされる.
+  この際, CGI 終了時に１つのデータでprintされ, 続けてflushされる.
 
-=item allow_mutable_input_cgi_object
+=item C<allow_mutable_input_cgi_object>
 
   allow_mutable_input_cgi_object = 1
 
 非推奨. 互換のためのパラメータ. (0.40以降)
 
-$TL->CGI で返される CGI 入力値を保持しているオブジェクトの
+C<$TL->CGI> で返される CGI 入力値を保持しているオブジェクトの
 const 化を行わないようにする.
 
-=item compat_no_trap_for_cgi_internal_error
+=item C<compat_no_trap_for_cgi_internal_error>
 
   compat_no_trap_for_cgi_internal_error = 1
 
 互換のためのパラメータ. (0.42以降)
 
-CGIモード動作時の startCgi 外のエラーに対する
+CGI モード動作時の startCgi 外のエラーに対する
 エラー画面の表示を抑制する.
-(httpdによる通常の Internal Server Error 画面になります)
+(httpd による通常の Internal Server Error 画面になります)
+
+=item C<compat_form_getfilename_returns_fullpath>
+
+互換のためのパラメータ. (0.45以降)
+
+1 (真)を設定することで L<$form->getFileName|Tripletail::Form/getFileName> が
+フルパスを返す振る舞いに戻す。
+デフォルト値は偽で, getFileName はベース名部分のみを返す.
+
+新しいコードではフルパスが欲しいときには
+L<$form->getFullFileName|Tripletail::Form/getFullFileName> を推奨。
 
 =back
 
@@ -3896,7 +3986,7 @@ CGIモード動作時の startCgi 外のエラーに対する
 
 =item L<Tripletail::Debug>
 
-CGI向けデバッグ機能。
+CGI 向けデバッグ機能。
 
 リクエストや応答のログ記録、デバッグ情報のポップアップ表示、他。
 
@@ -3942,13 +4032,13 @@ CGI向けデバッグ機能。
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 
 このフレームワークはフリーソフトウェアです。あなたは Perl と同じライセンスの 元で再配布及び変更を行うことが出来ます。
 
-Address bug reports and comments to: tl@tripletail.jp
+Address bug reports and comments to: C<tl@tripletail.jp>
 
 HP : http://tripletail.jp/
 

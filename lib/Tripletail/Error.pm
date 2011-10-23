@@ -1002,7 +1002,7 @@ sub __load_default_error_template
               var pre = pres[i];
 
               if (pre.className == "limit-size") {
-                  if (pre.offsetHeight >= limit) {
+                  if (limit < pre.offsetHeight) {
                       pre.style.height = limit + "px";
                   }
 
@@ -1500,7 +1500,7 @@ L<Tripletail>
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

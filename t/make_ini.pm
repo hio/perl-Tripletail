@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: make_ini.pm,v c9a2058c839e 2008/09/06 06:01:04 hio $
+# $Id$
 # -----------------------------------------------------------------------------
 package t::make_ini;
 use strict;
@@ -286,7 +286,7 @@ sub new
 		{
 			@$status_array==1 or die "too many Status: lines found ";
 			my $status = $status_array->[0];
-			my $code = $status =~ /^(\d+)(\s|$)/ or die "invalid status line [$status]";
+			my ($code) = $status =~ /^(\d+)(\s|$)/ or die "invalid status line [$status]";
 			$this->{status_line} = $status;
 			$this->{status_code} = $code;
 			if( int($code/100)!=2 )

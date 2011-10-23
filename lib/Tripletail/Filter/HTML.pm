@@ -419,9 +419,22 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	CGI
+	XHTML
+	YMIRLINK
+	addHeader
+	contenttype
+	getSaveForm
+	html
+	http
+	https
+	setHeader
+
+
 =head1 NAME
 
-Tripletail::Filter::HTML - 通常HTML用出力フィルタ
+Tripletail::Filter::HTML - 通常 HTML 用出力フィルタ
 
 =head1 SYNOPSIS
 
@@ -431,7 +444,7 @@ Tripletail::Filter::HTML - 通常HTML用出力フィルタ
 
 =head1 DESCRIPTION
 
-HTMLに対して以下の処理を行う。
+HTML に対して以下の処理を行う。
 
 =over 4
 
@@ -441,11 +454,11 @@ HTMLに対して以下の処理を行う。
 
 =item *
 
-HTTPヘッダの管理
+HTTP ヘッダの管理
 
 =item *
 
-E<lt>form action=""E<gt> が空欄の場合、自分自身のCGI名を埋める
+E<lt>form action=""E<gt> が空欄の場合、自分自身の CGI 名を埋める
 
 =item *
 
@@ -459,8 +472,8 @@ E<lt>form action=""E<gt> が空欄の場合、自分自身のCGI名を埋める
 
 =head2 セッション
 
-セッションを利用している場合、http領域用のセッション情報は C<"SID + セッショングループ名">、
-https領域用のセッション情報は C<"SIDS + セッショングループ名"> という名称のクッキーに保存する。
+セッションを利用している場合、 http 領域用のセッション情報は C<"SID + セッショングループ名">、
+https 領域用のセッション情報は C<"SIDS + セッショングループ名"> という名称のクッキーに保存する。
 
 =head2 フィルタパラメータ
 
@@ -481,21 +494,21 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
   $TL->setContentFilter('Tripletail::Filter::HTML', contenttype => 'text/html; charset=sjis');
 
-Content-Typeを指定する。省略可能。
+C<Content-Type> を指定する。省略可能。
 
-デフォルトはtext/html; charset=（charasetで指定された文字コード）。
+デフォルトは C<text/html; charset=（charasetで指定された文字コード）>。
 
 =item type
 
   $TL->setContentFilter('Tripletail::Filter::HTML', type => 'xhtml');
 
-'html' もしくは 'xhtml' を利用可能。省略可能。
+'C<html>' もしくは 'C<xhtml>' を利用可能。省略可能。
 
-フィルタがHTMLを書換える際の動作を調整する為のオプション。
-XHTMLを出力する際に、このパラメータをhtmlのままにした場合、
-不正なXHTMLが出力される事がある。
+フィルタが HTML を書換える際の動作を調整する為のオプション。
+XHTML を出力する際に、このパラメータを html のままにした場合、
+不正な XHTML が出力される事がある。
 
-デフォルトは 'html'。
+デフォルトは 'C<html>'。
 
 =back
 
@@ -559,7 +572,7 @@ L<Tripletail::Filter>参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

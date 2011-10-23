@@ -100,8 +100,7 @@ Tripletail::Value - 値の検証や変換
 <!-- =encoding utf-8 -->
 
 <hr />
-<h1><a id="NAME">
-<span class="pod_lang">NAME
+<h1><a id="NAME"><span class="pod_lang">NAME
 
 </span></a></h1>
 
@@ -113,8 +112,7 @@ Tripletail::Value - 値の検証や変換
 
 
 <hr />
-<h1><a id="SYNOPSIS">
-<span class="pod_lang">SYNOPSIS
+<h1><a id="SYNOPSIS"><span class="pod_lang">SYNOPSIS
 
 </span></a></h1>
 
@@ -129,8 +127,7 @@ Tripletail::Value - 値の検証や変換
 
 
 <hr />
-<h1><a id="DESCRIPTION">
-<span class="pod_lang">DESCRIPTION
+<h1><a id="DESCRIPTION"><span class="pod_lang">DESCRIPTION
 
 </span></a></h1>
 
@@ -146,18 +143,16 @@ Tripletail::Value - 値の検証や変換
 </span>
 </p>
 
-<h2><a id="METHODS">
-<span class="pod_lang">METHODS
+<h2><a id="METHODS"><span class="pod_lang">METHODS
 
 </span></a></h2>
 
-<h3><a id="Xe4Xb8X80Xe8X88Xac">
-<span class="pod_lang">一般
+<h3><a id="Xe4Xb8X80Xe8X88Xac"><span class="pod_lang">一般
 
 </span></a></h3>
 
 <dl>
-<dt><a id="X$TL->newValue"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newValue</code>
+<dt><a id="X24TL-X3enewValue"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newValue</code>
 
 </span></a></dt>
 <dd>
@@ -200,8 +195,7 @@ Tripletail::Value - 値の検証や変換
 </dd>
 </dl>
 
-<h3><a id="setXe7Xb3Xbb">
-<span class="pod_lang">set系
+<h3><a id="setXe7Xb3Xbb"><span class="pod_lang">set系
 
 </span></a></h3>
 
@@ -252,8 +246,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </dd>
 </dl>
 
-<h3><a id="getXe7Xb3Xbb">
-<span class="pod_lang">get系
+<h3><a id="getXe7Xb3Xbb"><span class="pod_lang">get系
 
 </span></a></h3>
 
@@ -362,8 +355,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </dd>
 </dl>
 
-<h3><a id="isXe7Xb3Xbb">
-<span class="pod_lang">is系
+<h3><a id="isXe7Xb3Xbb"><span class="pod_lang">is系
 
 </span></a></h3>
 
@@ -442,14 +434,39 @@ $min、$secは省略でき、省略時は0が使用される。
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPassword</code></pre>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPassword
+  $bool = $val-&gt;isPassword(@spec)</code></pre>
 
 <p>
-<span class="pod_lang">文字列が半角の数字、アルファベット大文字、小文字、記号を全て最低1ずつ含んでいるなら1。
-そうでなければundefを返す。
+<span class="pod_lang">文字列が<code class="pod_iseq_C">isPrintableAscii</code>を満たして且つ指定された要素を含んでいれば真を,
+そうでなければ偽を返す.
 
 </span>
 </p>
+
+<p>
+<span class="pod_lang">指定された文字以外が入っていることに関しては考慮しない.
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><code class="pod_iseq_C">@spec</code> に指定できるのは, <code class="pod_iseq_C">alpha</code>, <code class="pod_iseq_C">ALPHA</code>, <code class="pod_iseq_C">digit</code>, <code class="pod_iseq_C">symbol</code> の
+いずれかの文字列若しくは文字を含んだ配列リファレンス.
+指定しなかった場合のデフォルト値は, <code class="pod_iseq_C">qw(alpha ALPHA digit symbol)</code> となる.
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">記号に含まれるものは以下の32文字.
+(0.44以前では空白文字も含めた33文字でした)
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>     ! &quot; # $ % &amp; ' ( ) * + ' - . /
+     : ; &lt; = &gt; ? @   [ \ ] ^ _ `  { | } ~</code></pre>
 
 </dd>
 <dt><a id="isZipCode"><span class="pod_lang">isZipCode
@@ -532,7 +549,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </p>
 
 </dd>
-<dt><a id="isInteger($min,$max)"><span class="pod_lang">isInteger($min,$max)
+<dt><a id="isIntegerX28X24minX2cX24maxX29"><span class="pod_lang">isInteger($min,$max)
 
 </span></a></dt>
 <dd>
@@ -554,7 +571,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </p>
 
 </dd>
-<dt><a id="isReal($min,$max)"><span class="pod_lang">isReal($min,$max)
+<dt><a id="isRealX28X24minX2cX24maxX29"><span class="pod_lang">isReal($min,$max)
 
 </span></a></dt>
 <dd>
@@ -681,7 +698,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </p>
 
 </dd>
-<dt><a id="isLen($min,$max)"><span class="pod_lang">isLen($min,$max)
+<dt><a id="isLenX28X24minX2cX24maxX29"><span class="pod_lang">isLen($min,$max)
 
 </span></a></dt>
 <dd>
@@ -695,7 +712,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </p>
 
 </dd>
-<dt><a id="isSjisLen($min,$max)"><span class="pod_lang">isSjisLen($min,$max)
+<dt><a id="isSjisLenX28X24minX2cX24maxX29"><span class="pod_lang">isSjisLen($min,$max)
 
 </span></a></dt>
 <dd>
@@ -709,7 +726,7 @@ $min、$secは省略でき、省略時は0が使用される。
 </p>
 
 </dd>
-<dt><a id="isCharLen($min,$max)"><span class="pod_lang">isCharLen($min,$max)
+<dt><a id="isCharLenX28X24minX2cX24maxX29"><span class="pod_lang">isCharLen($min,$max)
 
 </span></a></dt>
 <dd>
@@ -861,8 +878,7 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </dd>
 </dl>
 
-<h3><a id="convXe7Xb3Xbb">
-<span class="pod_lang">conv系
+<h3><a id="convXe7Xb3Xbb"><span class="pod_lang">conv系
 
 </span></a></h3>
 
@@ -999,8 +1015,7 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </dd>
 </dl>
 
-<h3><a id="forceXe7Xb3Xbb">
-<span class="pod_lang">force系
+<h3><a id="forceXe7Xb3Xbb"><span class="pod_lang">force系
 
 </span></a></h3>
 
@@ -1044,7 +1059,7 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
-<dt><a id="forceMin($max,$val)"><span class="pod_lang">forceMin($max,$val)
+<dt><a id="forceMinX28X24maxX2cX24valX29"><span class="pod_lang">forceMin($max,$val)
 
 </span></a></dt>
 <dd>
@@ -1057,7 +1072,7 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
-<dt><a id="forceMax($max,$val)"><span class="pod_lang">forceMax($max,$val)
+<dt><a id="forceMaxX28X24maxX2cX24valX29"><span class="pod_lang">forceMax($max,$val)
 
 </span></a></dt>
 <dd>
@@ -1070,7 +1085,7 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
-<dt><a id="forceMaxLen($max)"><span class="pod_lang">forceMaxLen($max)
+<dt><a id="forceMaxLenX28X24maxX29"><span class="pod_lang">forceMaxLen($max)
 
 </span></a></dt>
 <dd>
@@ -1083,7 +1098,7 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
-<dt><a id="forceMaxUtf8Len($max)"><span class="pod_lang">forceMaxUtf8Len($max)
+<dt><a id="forceMaxUtf8LenX28X24maxX29"><span class="pod_lang">forceMaxUtf8Len($max)
 
 </span></a></dt>
 <dd>
@@ -1098,7 +1113,7 @@ UTF-8の文字単位でカットする。
 </p>
 
 </dd>
-<dt><a id="forceMaxSjisLen($max)"><span class="pod_lang">forceMaxSjisLen($max)
+<dt><a id="forceMaxSjisLenX28X24maxX29"><span class="pod_lang">forceMaxSjisLen($max)
 
 </span></a></dt>
 <dd>
@@ -1112,7 +1127,7 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
-<dt><a id="forceMaxCharLen($max)"><span class="pod_lang">forceMaxCharLen($max)
+<dt><a id="forceMaxCharLenX28X24maxX29"><span class="pod_lang">forceMaxCharLen($max)
 
 </span></a></dt>
 <dd>
@@ -1165,8 +1180,7 @@ SJISの文字単位でカットする。
 </dd>
 </dl>
 
-<h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96">
-<span class="pod_lang">その他
+<h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96"><span class="pod_lang">その他
 
 </span></a></h3>
 
@@ -1300,8 +1314,7 @@ undef を返す。
 
 
 <hr />
-<h1><a id="SEE_ALSO">
-<span class="pod_lang">SEE ALSO
+<h1><a id="SEE_ALSO"><span class="pod_lang">SEE ALSO
 
 </span></a></h1>
 
@@ -1313,13 +1326,12 @@ undef を返す。
 
 
 <hr />
-<h1><a id="AUTHOR_INFORMATION">
-<span class="pod_lang">AUTHOR INFORMATION
+<h1><a id="AUTHOR_INFORMATION"><span class="pod_lang">AUTHOR INFORMATION
 
 </span></a></h1>
 
 <p>
-<span class="pod_lang">Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+<span class="pod_lang">Copyright 2006 YMIRLINK Inc.
 
 </span>
 </p>
@@ -1361,7 +1373,7 @@ Tripletail::Value - 値の検証や変換
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#X$TL->newValue">$TL-&gt;newValue</a></li>
+<li><a href="#X24TL-X3enewValue">$TL-&gt;newValue</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#METHODS">METHODS</a></li>
@@ -1383,12 +1395,12 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#detectMobileAgent">detectMobileAgent</a></li>
 <li><a href="#forceHira">forceHira</a></li>
 <li><a href="#forceKata">forceKata</a></li>
-<li><a href="#forceMax($max,$val)">forceMax($max,$val)</a></li>
-<li><a href="#forceMaxCharLen($max)">forceMaxCharLen($max)</a></li>
-<li><a href="#forceMaxLen($max)">forceMaxLen($max)</a></li>
-<li><a href="#forceMaxSjisLen($max)">forceMaxSjisLen($max)</a></li>
-<li><a href="#forceMaxUtf8Len($max)">forceMaxUtf8Len($max)</a></li>
-<li><a href="#forceMin($max,$val)">forceMin($max,$val)</a></li>
+<li><a href="#forceMaxX28X24maxX2cX24valX29">forceMax($max,$val)</a></li>
+<li><a href="#forceMaxCharLenX28X24maxX29">forceMaxCharLen($max)</a></li>
+<li><a href="#forceMaxLenX28X24maxX29">forceMaxLen($max)</a></li>
+<li><a href="#forceMaxSjisLenX28X24maxX29">forceMaxSjisLen($max)</a></li>
+<li><a href="#forceMaxUtf8LenX28X24maxX29">forceMaxUtf8Len($max)</a></li>
+<li><a href="#forceMinX28X24maxX2cX24valX29">forceMin($max,$val)</a></li>
 <li><a href="#forceNumber">forceNumber</a></li>
 <li><a href="#forcePcPortable">forcePcPortable</a></li>
 <li><a href="#forcePortable">forcePortable</a></li>
@@ -1403,7 +1415,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#getXe7Xb3Xbb">get系</a></li>
 <li><a href="#isBlank">isBlank</a></li>
 <li><a href="#isChar">isChar</a></li>
-<li><a href="#isCharLen($min,$max)">isCharLen($min,$max)</a></li>
+<li><a href="#isCharLenX28X24minX2cX24maxX29">isCharLen($min,$max)</a></li>
 <li><a href="#isDateString">isDateString</a></li>
 <li><a href="#isDomainName">isDomainName</a></li>
 <li><a href="#isEmail">isEmail</a></li>
@@ -1413,19 +1425,19 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#isHira">isHira</a></li>
 <li><a href="#isHttpUrl">isHttpUrl</a></li>
 <li><a href="#isHttpsUrl">isHttpsUrl</a></li>
-<li><a href="#isInteger($min,$max)">isInteger($min,$max)</a></li>
+<li><a href="#isIntegerX28X24minX2cX24maxX29">isInteger($min,$max)</a></li>
 <li><a href="#isIpAddress">isIpAddress</a></li>
 <li><a href="#isJpeg">isJpeg</a></li>
 <li><a href="#isKata">isKata</a></li>
-<li><a href="#isLen($min,$max)">isLen($min,$max)</a></li>
+<li><a href="#isLenX28X24minX2cX24maxX29">isLen($min,$max)</a></li>
 <li><a href="#isMobileEmail">isMobileEmail</a></li>
 <li><a href="#isPassword">isPassword</a></li>
 <li><a href="#isPcPortable">isPcPortable</a></li>
 <li><a href="#isPng">isPng</a></li>
 <li><a href="#isPortable">isPortable</a></li>
 <li><a href="#isPrintableAscii">isPrintableAscii</a></li>
-<li><a href="#isReal($min,$max)">isReal($min,$max)</a></li>
-<li><a href="#isSjisLen($min,$max)">isSjisLen($min,$max)</a></li>
+<li><a href="#isRealX28X24minX2cX24maxX29">isReal($min,$max)</a></li>
+<li><a href="#isSjisLenX28X24minX2cX24maxX29">isSjisLen($min,$max)</a></li>
 <li><a href="#isTelNumber">isTelNumber</a></li>
 <li><a href="#isWhitespace">isWhitespace</a></li>
 <li><a href="#isWide">isWide</a></li>

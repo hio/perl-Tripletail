@@ -3,9 +3,9 @@ use strict;
 use warnings;
 use Test::Exception;
 use Test::More tests =>
-  151
+  154
   +3  # Char filter.
-  +18 # MultiValues filter.
+  +21 # MultiValues filter.
 ;
 
 use lib '.';
@@ -174,6 +174,15 @@ sub toHash {
       false  => 'Password',
   }), 'addFilter');
   $form->set(true => '1Aa]', false => '1Aa');
+  $error = $validator->check($form);
+  is($error->{true}, undef, 'check');
+  is($error->{false}, 'Password', 'check');
+
+  ok($validator->addFilter({
+      true  => 'Password(alpha,ALPHA,digit)',
+      false  => 'Password(alpha,ALPHA,digit)',
+  }), 'addFilter');
+  $form->set(true => '1Aa', false => '1AB');
   $error = $validator->check($form);
   is($error->{true}, undef, 'check');
   is($error->{false}, 'Password', 'check');
@@ -564,7 +573,7 @@ SKIP:
   } ": MultiValues exists" or $exists = 0;
   if( !$exists )
   {
-    skip "NoValues/SingleValue/MultiValues not exists", 18-4;
+    skip "NoValues/SingleValue/MultiValues not exists", 21-4;
   }
 
   # NoValues.
@@ -644,5 +653,22 @@ SKIP:
     three => 'MultiValues(1,2)',
   });
   is_deeply($vtor->check($form), {three=>'MultiValues'}, ": MultiValues(1,2) ng [1,2,3]");
+
+  # none/MultiValues(0,)
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'SingleValue',
+  });
+  is_deeply($vtor->check($form), {none=>'SingleValue'}, ": none / SingleValue ng");
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'NoValues;SingleValue',
+  });
+  is_deeply($vtor->check($form), undef, ": none / NoValues;SingleValue accepted");
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'MultiValues(0,);SingleValue',
+  });
+  is_deeply($vtor->check($form), undef, ": none / MultiValues(0,);SingleValue accepted");
 }
 

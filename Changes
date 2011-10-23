@@ -1,5 +1,15 @@
 Revision history for Tripletail
 
+0.45
+	- Validator MultiValues で 0 件は受理するように修正.
+	- $TL->eval() を追加
+	- [[重要:非互換な仕様変更]]
+	　- $TL->escapeJS 及び $TL->unescapeJS が"<"及び">"をそれぞれ"\x3c"及び
+	　  "\x3e" と変換するように変更.
+	　- Form#getFileName() はベース名部分のみを返すように変更.
+	- Value#isPassword() でパラメータ指定をできるように変更.
+	- Pager#setToLink() メソッドの追加.
+
 0.44 Tue Sep 16 16:27:52 JST 2008
 	- outputbuffering 使用時に自動で追加されるContent-Lengthが, ユーザが任意のヘッダを追加してる場合に狂うバグの修正.
 	- TL#dispatchで、第1引数が小文字ではじまる場合にエラーになるケースで、

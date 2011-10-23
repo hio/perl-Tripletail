@@ -261,6 +261,9 @@ is($info->{rows},30,'rows');
   ok($pager->setFormParam($TL->newForm(ddd => 666)), 'setFormKey');
   ok($pager->setFormParam({ddd => 666}), 'setFormKey');
 
+  dies_ok {$pager->setToLink(\123)} 'setToLink die';
+  ok($pager->setToLink('PAGE'), 'setToLink');
+
   dies_ok {$pager->setPagingType} 'setPagingType die';
   dies_ok {$pager->setPagingType(\123)} 'setPagingType die';
   dies_ok {$pager->setPagingType('aaa')} 'setPagingType die';

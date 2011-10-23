@@ -372,9 +372,15 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	YMIRLINK
+	setTimeout
+	ini
+	Ini
+
 =head1 NAME
 
-Tripletail::Sendmail::Smtp - SMTPメール送信
+Tripletail::Sendmail::Smtp - SMTP メール送信
 
 =head1 DESCRIPTION
 
@@ -406,8 +412,8 @@ L<Tripletail::Sendmail> 参照。
 
 メール送信先に接続を行い、sendメソッドの準備を整える。
 
-$host が指定されなかった場合は、ini ファイルの設定が使用される。
-ini ファイルにも設定がない場合は、localhost となる。
+$host が指定されなかった場合は、 ini ファイルの設定が使用される。
+ini ファイルにも設定がない場合は、 localhost となる。
 
 
 =back
@@ -422,14 +428,14 @@ ini ファイルにも設定がない場合は、localhost となる。
   timeout = 1 min
 
 タイムアウト秒数。L<度量衡|Tripletail/"度量衡"> 参照。省略可能。
-デフォルトは300sec。
+デフォルトは C<300 sec>。
 
 =item host
 
   host = localhost
 
 接続先ホスト。省略可能。
-デフォルトはlocalhost。
+デフォルトは localhost 。
 
 =back
 
@@ -448,7 +454,7 @@ ini ファイルにも設定がない場合は、localhost となる。
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

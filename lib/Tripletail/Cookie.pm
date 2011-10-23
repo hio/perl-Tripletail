@@ -90,6 +90,12 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	Ini
+	YMIRLINK
+	httponly
+	ini
+
 =head1 NAME
 
 Tripletail::Cookie - 独自のクッキー管理を行う
@@ -123,7 +129,7 @@ L<Tripletail::Form> クラスのインスタンスをクッキーに保存し、
   $cookie = $TL->getCookie('Cookie')
 
 Tripletail::Cookie オブジェクトを取得。
-引数にはIniで設定したグループ名を渡す。
+引数には Ini で設定したグループ名を渡す。
 引数省略時は 'Cookie' グループが使用される。
 
 =item C<< get >>
@@ -181,20 +187,20 @@ L<Tripletail::Form> クラスのインスタンスの内容を、指定された
 
   secure = 1
 
-secureフラグの有無。省略可能。
-1の場合、secureフラグを付ける。
-0の場合、secureフラグを付けない。
+C<secure>フラグの有無。省略可能。
+1の場合、C<secure>フラグを付ける。
+0の場合、C<secure>フラグを付けない。
 デフォルトは0。
 
 =item httponly
 
   httponly = 1
 
-httponlyフラグの有無。省略可能。
-1の場合、httponlyフラグを付ける。
-0の場合、httponlyフラグを付けない。
+C<httponly>フラグの有無。省略可能。
+1の場合、C<httponly>フラグを付ける。
+0の場合、C<httponly>フラグを付けない。
 デフォルトは0。
-現状ではIEでしか意味が無い。
+現状では IE でしか意味が無い。
 
 =back
 
@@ -217,7 +223,7 @@ L<Tripletail::Form> でなく生の文字列を扱うクッキークラス。
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

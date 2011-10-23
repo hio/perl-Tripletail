@@ -48,6 +48,12 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	YMIRLINK
+	addHeader
+	contenttype
+	setHeader
+
 =head1 NAME
 
 Tripletail::Filter::Binary - 内容に変更を加えない出力フィルタ
@@ -68,7 +74,7 @@ Tripletail::Filter::Binary - 内容に変更を加えない出力フィルタ
 
 =item contenttype
 
-Content-Typeを指定する。省略可能。
+C<Content-Type> を指定する。省略可能。
 
 =back
 
@@ -110,7 +116,7 @@ L<Tripletail::Filter>参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

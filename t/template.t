@@ -262,7 +262,7 @@ is($t->setTemplate(q{<&DATA>})->setAttr({DATA => 'plain'})->expand({DATA => qq{<
 is($t->setTemplate(q{<&DATA>})->setAttr(DATA => 'raw')->expand(DATA => qq{<!>"'})->toStr,
    q{<!>"'}, q{attr (raw)});
 is($t->setTemplate(q{<&DATA>})->setAttr(DATA => 'js')->expand(DATA => qq{<!>\n\r"'})->toStr,
-   q{<!>\n\r\"\'}, q{attr (js)});
+   q{\x3c!\x3e\n\r\"\'}, q{attr (js)});
 is($t->setTemplate(q{<&DATA>})->setAttr(DATA => 'br')->expand(DATA => qq{<!>\n<>"'})->toStr,
    qq{&lt;!&gt;<br>\n&lt;&gt;&quot;&#39;}, q{attr (br)});
 is($t->setTemplate(q{<?xml version="1.0" encoding="UTF-8" ?><&DATA>})->setAttr(DATA => 'br')->expand(DATA => qq{<!>\n<>"'})->toStr,

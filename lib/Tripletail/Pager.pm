@@ -20,6 +20,7 @@ sub _new {
 	$this->{formkey} = 'pageid';
 	$this->{formparam} = undef;
 	$this->{pagingtype} = 0;
+	$this->{tolink} = undef;
 
     #結果群
 	$this->{maxpages} = undef;
@@ -31,6 +32,18 @@ sub _new {
 	
 
 	$this->setFormParam(undef);
+	$this;
+}
+
+sub setToLink {
+	my $this = shift;
+	my $tolink = shift;
+
+	if(ref($tolink)) {
+		die __PACKAGE__."#setToLinkp: arg[1] is a reference. [$tolink] (第1引数がリファレンスです)\n";
+	}
+
+	$this->{tolink} = $tolink;
 	$this;
 }
 
@@ -301,7 +314,7 @@ sub _paging {
 		$node->node('PrevLink')->add(
 			PREVLINK => $this->{formparam}->set(
 					$this->{formkey} => $this->{current} - 1
-				)->toLink,
+				)->toLink($this->{tolink}),
 		);
 	}
 
@@ -311,7 +324,7 @@ sub _paging {
 		$node->node('NextLink')->add(
 			NEXTLINK => $this->{formparam}->set(
 					$this->{formkey} => $this->{current} + 1
-				)->toLink,
+				)->toLink($this->{tolink}),
 		);
 	}
 
@@ -344,7 +357,7 @@ sub _paging {
                 $node->node('PageNumLinks')->node('OtherPage')->add(
                     PAGELINK => $this->{formparam}->set(
 						$this->{formkey} => $i,
-                       )->toLink,
+                       )->toLink($this->{tolink}),
                     PAGENUM  => $i,
                    );
             }
@@ -532,6 +545,12 @@ DBのグループ名を渡すこともできるが、この指定方法は今後
 
 ページ移動リンクに追加されるフォームを指定する。デフォルトでは何も追加されない。
 
+=item setToLink
+
+  $pager->setToLink($url)
+
+ページ移動リンクに使用されるURLを指定する。デフォルトでは自分自身へのリンクを使用する。
+
 =item setPagingType
 
   $pager->setPagingType($type)
@@ -667,7 +686,7 @@ Row ノードは展開せずに、ページング対象のデータをハッシ�
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

@@ -77,9 +77,18 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	CGI
+	MySQL
+	Unicode
+	UTF
+	UTF-8
+	YMIRLINK
+	decodeCgi
+
 =head1 NAME
 
-Tripletail::InputFilter::MobileHTML - 携帯電話向けHTML用CGIクエリ読み取り
+Tripletail::InputFilter::MobileHTML - 携帯電話向け HTML 用 CGI クエリ読み取り
 
 =head1 SYNOPSIS
 
@@ -108,11 +117,11 @@ Tripletail::InputFilter::MobileHTML - 携帯電話向けHTML用CGIクエリ読�
 
 絵文字は Unicode のプライベート領域にマップされる。
 
-プライベート領域の文字は、UTF-8 にしたときは１文字４バイトとなるので、
+プライベート領域の文字は、 UTF-8 にしたときは１文字４バイトとなるので、
 DB 等に格納する際はサイズに注意する必要がある。
 また、DB の Unicode 対応の範囲外となっている場合、文字化け等することが
-あるので、UTF-8 文字列をバイナリとして DB に保存することを推奨する。
-（MySQL であれば、tinyblob/blob/mediumblob/longblob 型を利用する。）
+あるので、 UTF-8 文字列をバイナリとして DB に保存することを推奨する。
+（ MySQL であれば、tinyblob/blob/mediumblob/longblob 型を利用する。）
 
 
 =item L<セッション|Tripletail::Session>
@@ -147,7 +156,7 @@ DB 等に格納する際はサイズに注意する必要がある。
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

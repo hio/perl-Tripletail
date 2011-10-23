@@ -324,6 +324,19 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	Ini
+	TripletaiL
+	YMIRLINK
+	erroraddr
+	errorlog
+	mailqueue
+	mailqueue-process
+	mailqueue-recover
+	queuedir
+	setTimeout
+	smtp
+
 =head1 NAME
 
 Tripletail::Sendmail::MailQueue - 独自のメールキューを使用するメール送信
@@ -340,7 +353,7 @@ Tripletail::Sendmail::MailQueue - 独自のメールキューを使用するメ�
 
 =head1 DESCRIPTION
 
-送信要求されたメールを、TripletaiL のメールキューに保存する．
+送信要求されたメールを、 TripletaiL のメールキューに保存する．
 
 キュー内に保存されたメールは、L</"process"> 呼び出し時に一括して配送される。
 
@@ -398,8 +411,8 @@ L<Tripletail::Sendmail::Smtp> 参照
 
 配信エラー時にエラーメールを送るなら、その送信先を指定。
 
-C<< null@example.org%localhost >> のように使用するsmtpサーバーを指定する。
-%以降は省略可能で、省略された場合はlocalhostとなる。
+C<< null@example.org%localhost >> のように使用する smtp サーバーを指定する。
+C<%> 以降は省略可能で、省略された場合は C<localhost> となる。
 
 =item errorlog
 
@@ -433,7 +446,7 @@ queue へ rename(2) する。ファイル名は、時刻、プロセスID等を�
 =item 配信時 (mailqueue-process)
 
 メールを処理するときは，outgoing に rename してから処理を行い、終わったら
-rm する。rename(2) する際、ファイル名の末尾に「.」とプロセスIDを記述する。
+C<rm> する。C<rename(2)> する際、ファイル名の末尾に「.」とプロセスIDを記述する。
 
 メールを定期的に調査し、設定されたMTAへSMTPで送信を行う。failure の場合は
 指定アドレスにメールを送るか、ログに書き込む（設定で変更可能）。deferral
@@ -463,7 +476,7 @@ queue ディレクトリにrename(2) で戻す。末尾の .$pid は削除する
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

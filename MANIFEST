@@ -156,6 +156,7 @@ t/csv2.t
 t/datetime.t
 t/db-mssql.t
 t/db-mysql.t
+t/db-pgsql.t
 t/db-sqlite.t
 t/db.t
 t/FaultHandler.pm

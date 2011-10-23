@@ -470,9 +470,20 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	CCC
+	TL
+	YMIRLINK
+	decodeCgi
+	decodeURL
+	CGI
+	Ini
+	UTF
+	UTF-8
+
 =head1 NAME
 
-Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
+Tripletail::InputFilter::HTML - 通常 HTML 向け CGI クエリ読み取り
 
 =head1 SYNOPSIS
 
@@ -501,24 +512,24 @@ application/x-www-form-urlencoded を読み取る。
 =item C<< STDIN >>
 
 application/x-www-form-urlencoded または multipart/form-data を読み取る。
-multipartでファイルがアップロードされた場合は、そのファイル名とIOハンド
-ルハンドルが L<Form|Tripletail::Form> に格納される。詳しくは L<Tripletail> のIniパラメー
-タを参照。
+multipartでファイルがアップロードされた場合は、そのファイル名と
+IO ハンドルが L<Form|Tripletail::Form> に格納される。
+詳しくは L<Tripletail> の Ini パラメータを参照。
 
 =back
 
 また、 L<Tripletail::Session> が有効になっている場合は、セッションデータを
 L<クッキー|Tripletail::Cookie> から読み出す。
 
-クエリの文字コードは自動判別され、文字コード変換にはEncodeが優先される。
-Encodeが利用可能でない場合はUnicode::Japaneseが用いられる。
+クエリの文字コードは自動判別され、文字コード変換には Encode が優先される。
+Encode が利用可能でない場合はUnicode::Japaneseが用いられる。
 
 文字コードの判別は、フォームの中の CCC キーに含まれる「愛」という文字列によって行われる。
-通常、TL から出力された HTML には、自動的にこの情報が追加されるが、
+通常、 TL から出力された HTML には、自動的にこの情報が追加されるが、
 外部の静的な HTML や FLASH コンテンツ等からフォームデータを渡す場合は、
 追加する必要がある。
 
-例えば、UTF-8 コードで、name キーに「名前」の文字列を渡す場合は、
+例えば、 UTF-8 コードで、name キーに「名前」の文字列を渡す場合は、
 CCC=%e6%84%9b&name=%E5%90%8D%E5%89%8D
 をフォームデータとして渡す。
 
@@ -552,7 +563,7 @@ CCC=%e6%84%9b&name=%E5%90%8D%E5%89%8D
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

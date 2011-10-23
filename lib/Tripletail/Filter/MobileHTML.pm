@@ -117,9 +117,33 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	ASTEL
+	AU
+	CGI
+	DoCoMo
+	HDML
+	Softbank
+	TripletaiL
+	UTF
+	UTF-8
+	Vodafone
+	Willcom
+	XHTML
+	YMIRLINK
+	addHeader
+	contenttype
+	getSaveForm
+	http
+	https
+	setHeader
+	toExtLink
+	toLink
+
+
 =head1 NAME
 
-Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
+Tripletail::Filter::MobileHTML - 携帯電話向け HTML 出力用フィルタ
 
 =head1 SYNOPSIS
 
@@ -129,7 +153,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 
 =head1 DESCRIPTION
 
-HTMLに対して以下の処理を行う。
+HTML に対して以下の処理を行う。
 
 =over 4
 
@@ -143,7 +167,7 @@ HTTPヘッダの管理。TLのIni設定のoutputbufferingを強制的に1にセ�
 
 =item *
 
-E<lt>form action=""E<gt> が空欄の場合、自分自身のCGI名を埋める
+E<lt>form action=""E<gt> が空欄の場合、自分自身の CGI 名を埋める
 
 =item *
 
@@ -179,15 +203,15 @@ L<Tripletail::Filter::MobileHTML> フィルタは、出力時にリンクやフ�
 
 =item *
 
-リンクの場合は、リンクの中に INT というキーが存在すれば、セッション情報を
-付与し、INT キーを削除する。
-INT キーがなければ、セッション情報は付与されない。
+リンクの場合は、リンクの中に C<INT> というキーが存在すれば、セッション情報を
+付与し、 C<INT> キーを削除する。
+C<INT> キーがなければ、セッション情報は付与されない。
 
  <a href="tl.cgi?INT=1">セッション情報が付与されるリンク</a>
  <a href="tl.cgi">セッション情報が付与されないリンク</a>
 
-INT キーは、Form クラスの toLink メソッドを利用すると自動的に付与される。
-toExtLink メソッドを利用すると、INT キーは付与されない。
+C<INT> キーは、Form クラスの toLink メソッドを利用すると自動的に付与される。
+toExtLink メソッドを利用すると、C<INT> キーは付与されない。
 
  <a href="<&LINKINT>">セッション情報が付与されるリンク</a>
  <a href="<&LINKEXT>">セッション情報が付与されないリンク</a>
@@ -213,24 +237,25 @@ C<EXT="1"> が付与されているフォームに関しては、セッション
 
 =back
 
-セッション情報は、http領域用のセッション情報は C<"SID + セッショングループ名">、
-https領域用のセッション情報は C<"SIDS + セッショングループ名"> という名称で保存する。
+セッション情報は、 http 領域用のセッション情報は C<"SID + セッショングループ名">、
+https 領域用のセッション情報は C<"SIDS + セッショングループ名"> という名称で保存する。
 
 =head2 絵文字変換
 
-USER_AGENT文字列を元に、DoCoMo、Softbank（Vodafone、J-PHONE）、AU、ASTEL を自動判別し、
+USER_AGENT 文字列を元に、 DoCoMo 、 Softbank （ Vodafone 、 J-PHONE ）、
+AU 、 ASTEL を自動判別し、
 それぞれの端末用に出力します。
 文字コードは Softbank 3G 以外は Shift_JIS ＋ 各キャリアの絵文字コード、
-Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとなります。
+Softbank 3G の場合は UTF-8 ＋ Softbank 絵文字コードとなります。
 
-それ以外の端末（WillcomやPC）の場合は、Shift_JIS コードで出力します。
+それ以外の端末（ Willcom や PC ）の場合は、Shift_JIS コードで出力します。
 
-携帯から送信されたフォームデータは、DoCoMo、Softbank 2G 以前（J-PHONE）、AU、ASTEL の場合は
-Shift_JIS ＋ 各キャリアの絵文字コード、Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとして
+携帯から送信されたフォームデータは、 DoCoMo 、 Softbank 2G 以前（ J-PHONE ）、 AU 、 ASTEL の場合は
+Shift_JIS ＋ 各キャリアの絵文字コード、 Softbank 3G の場合は UTF-8 ＋ Softbank 絵文字コードとして
 解析します。
 
-それ以外の端末（WillcomやPC）の場合は、L<Tripletail::InputFilter::HTML> と同様に
-CCC による文字コード判別を行います。
+それ以外の端末（ Willcom や PC ）の場合は、L<Tripletail::InputFilter::HTML> と同様に
+C<CCC> による文字コード判別を行います。
 
 
 絵文字は、入力時に UTF-8 のプライベート領域にマップされ、出力時に絵文字に戻されます。
@@ -249,13 +274,13 @@ CCC による文字コード判別を行います。
 
   $TL->setContentFilter('Tripletail::Filter::MobileHTML', type => 'xhtml');
 
-'html' もしくは 'xhtml' を利用可能。省略可能。
+'C<html>' もしくは 'C<xhtml>' を利用可能。省略可能。
 
-フィルタがHTMLを書換える際の動作を調整する為のオプション。
-XHTMLを出力する際に、このパラメータをhtmlのままにした場合、
-不正なXHTMLが出力される事がある。
+フィルタが HTML を書換える際の動作を調整する為のオプション。
+XHTML を出力する際に、このパラメータを C<html> のままにした場合、
+不正な XHTML が出力される事がある。
 
-デフォルトは 'html'。
+デフォルトは 'C<html>'。
 
 =item contenttype
 
@@ -325,7 +350,7 @@ L<Tripletail::Filter>参照
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

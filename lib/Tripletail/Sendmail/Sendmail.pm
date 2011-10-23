@@ -43,9 +43,14 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	Ini
+	YMIRLINK
+	commandline
+
 =head1 NAME
 
-Tripletail::Sendmail::Sendmail - Sendmailメール送信
+Tripletail::Sendmail::Sendmail - Sendmail メール送信
 
 =head1 DESCRIPTION
 
@@ -62,7 +67,7 @@ sendmailコマンドを利用してメールを送信する。
   $smail->send(-data => $data)
   $smail->send(-data => $data)
 
-宛先は-dataのヘッダからsendmailが抽出し、送信する。
+宛先は C<-data> のヘッダから sendmail が抽出し、送信する。
 
 =back
 
@@ -75,11 +80,11 @@ sendmailコマンドを利用してメールを送信する。
 
   commandline = /usr/sbin/sendmail -t -i
 
-sendmailコマンドを指定する。オプションも同時に指定する。
+sendmail コマンドを指定する。オプションも同時に指定する。
 
-ヘッダから送信先を取り出す「-t」オプションと、EOFでメールの終端を認識する「-i」オプションの指定は必須となる。
+ヘッダから送信先を取り出す「C<-t>」オプションと、EOFでメールの終端を認識する「C<-i>」オプションの指定は必須となる。
 
-デフォルトは「/usr/sbin/sendmail -t -i」
+デフォルトは「C</usr/sbin/sendmail -t -i>」
 
 =back
 
@@ -98,7 +103,7 @@ sendmailコマンドを指定する。オプションも同時に指定する。
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

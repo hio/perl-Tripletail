@@ -307,7 +307,7 @@ Tripletail で出力される, yyyymm/dd-hh.log 形式の
 
 =over 4
 
-Copyright 2007 YMIRLINK Inc. All Rights Reserved.
+Copyright 2007 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 

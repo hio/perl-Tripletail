@@ -379,6 +379,9 @@ __END__
 
 =encoding utf-8
 
+=for stopwords
+	ja
+
 =head1 NAME
 
 Tripletail::DateTime::JPHoliday - Holiday of Japan (ja)

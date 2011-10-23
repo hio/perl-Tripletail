@@ -28,7 +28,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 </span></a>
 </li>
-<li><a href="#NAME_(ja)">
+<li><a href="#NAME_X28jaX29">
 <span class="pod_lang">NAME (ja)
 
 </span></a>
@@ -78,8 +78,8 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 </span></a>
 </li>
-<li><a href="#MainXe9X96Xa2Xe6X95Xb0">
-<span class="pod_lang">Main関数
+<li><a href="#Main_Xe9X96Xa2Xe6X95Xb0">
+<span class="pod_lang">Main 関数
 
 </span></a>
 </li>
@@ -120,6 +120,11 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </li>
 <li><a href="#location">
 <span class="pod_lang"><code class="pod_iseq_C">location</code>
+
+</span></a>
+</li>
+<li><a href="#eval">
+<span class="pod_lang"><code class="pod_iseq_C">eval</code>
 
 </span></a>
 </li>
@@ -512,8 +517,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <!-- =encoding utf-8 -->
 
 <hr />
-<h1><a id="NAME">
-<span class="pod_lang">NAME
+<h1><a id="NAME"><span class="pod_lang">NAME
 
 </span></a></h1>
 
@@ -525,8 +529,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 
 <hr />
-<h1><a id="NAME_(ja)">
-<span class="pod_lang">NAME (ja)
+<h1><a id="NAME_X28jaX29"><span class="pod_lang">NAME (ja)
 
 </span></a></h1>
 
@@ -538,8 +541,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 
 <hr />
-<h1><a id="SYNOPSIS">
-<span class="pod_lang">SYNOPSIS
+<h1><a id="SYNOPSIS"><span class="pod_lang">SYNOPSIS
 
 </span></a></h1>
 
@@ -557,18 +559,16 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 
 <hr />
-<h1><a id="DESCRIPTION">
-<span class="pod_lang">DESCRIPTION
+<h1><a id="DESCRIPTION"><span class="pod_lang">DESCRIPTION
 
 </span></a></h1>
 
-<h2><a id="use">
-<span class="pod_lang"><code class="pod_iseq_C">use</code>
+<h2><a id="use"><span class="pod_lang"><code class="pod_iseq_C">use</code>
 
 </span></a></h2>
 
 <p>
-<span class="pod_lang">tlでは、ライブラリの各種設定は <a href="././Tripletail/Ini.html">Ini</a> ファイルに置かれる。
+<span class="pod_lang">Tripletail では、ライブラリの各種設定は <a href="././Tripletail/Ini.html">Ini</a> ファイルに置かれる。
 
 </span>
 </p>
@@ -592,7 +592,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <p>
-<span class="pod_lang">設定ファイルの設定値のうち、一部の値を特定のCGIで変更したい場合は、
+<span class="pod_lang">設定ファイルの設定値のうち、一部の値を特定の CGI で変更したい場合は、
 次のように2つめ以降引数に特化指定をすることが出来る。
 
 </span>
@@ -609,7 +609,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <p>
-<span class="pod_lang">また、サーバのIPやリモートのIPにより使用するグループを変更することも出来る。それぞれ
+<span class="pod_lang">また、サーバの IP やリモートの IP により使用するグループを変更することも出来る。それぞれ
 「グループ名 + &quot;@sever&quot; + 使用するサーバのマスク値」
 「グループ名 + &quot;@remote&quot; + 使用するリモートのマスク値」
 といった書式となる。
@@ -618,8 +618,8 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <p>
-<span class="pod_lang">但し、スクリプトで起動した場合、リモートのIP指定している項目は全て無視される。
-サーバのIP指定している項目の場合、hostname -iで取得した値でマッチされる。
+<span class="pod_lang">但し、スクリプトで起動した場合、リモートの IP 指定している項目は全て無視される。
+サーバの IP 指定している項目の場合、 <code class="pod_iseq_C">hostname -i</code> で取得した値でマッチされる。
 
 </span>
 </p>
@@ -663,8 +663,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </span>
 </p>
 
-<h2><a id="Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9a">
-<span class="pod_lang">特化指定
+<h2><a id="Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9a"><span class="pod_lang">特化指定
 
 </span></a></h2>
 
@@ -690,7 +689,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
   enable_debug=1</code></pre>
 
 <p>
-<span class="pod_lang">というtl.iniが存在している場合に
+<span class="pod_lang">という <em class="pod_iseq_F">tl.ini</em> が存在している場合に
 
 </span>
 </p>
@@ -704,7 +703,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <p>
-<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
+<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50である場合
 
 </span>
 </p>
@@ -716,7 +715,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
   enable_debug=1</code></pre>
 
 <p>
-<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50では無い場合
+<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50では無い場合
 
 </span>
 </p>
@@ -739,7 +738,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <p>
-<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
+<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50である場合
 
 </span>
 </p>
@@ -751,7 +750,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
   enable_debug=1</code></pre>
 
 <p>
-<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50では無い場合
+<span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所の IP が192.168.11.5か192.168.11.50では無い場合
 
 </span>
 </p>
@@ -759,8 +758,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <pre class="pod_verbatim"><code>  [TL]
   logdir = /home/tl/logs</code></pre>
 
-<h2><a id="Xe6X90XbaXe5Xb8XafXe5X90X91Xe3X81X91Xe8Xa8XadXe5XaeX9a">
-<span class="pod_lang">携帯向け設定
+<h2><a id="Xe6X90XbaXe5Xb8XafXe5X90X91Xe3X81X91Xe8Xa8XadXe5XaeX9a"><span class="pod_lang">携帯向け設定
 
 </span></a></h2>
 
@@ -789,8 +787,8 @@ Tripletail - Tripletail, Framework for Japanese Web Application
   }</code></pre>
 
 <p>
-<span class="pod_lang">入力された絵文字は、Unicode のプライベート領域にマップされる。
-この文字は、UTF-8 で4バイトの長さとなるため、DBに保存する場合などには
+<span class="pod_lang">入力された絵文字は、 Unicode のプライベート領域にマップされる。
+この文字は、 UTF-8 で4バイトの長さとなるため、DBに保存する場合などには
 注意が必要となる。BLOB型など、バイナリ形式で保存すると安全である。
 
 </span>
@@ -805,7 +803,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <p>
-<span class="pod_lang">変換マップで該当する絵文字が無い場合や、PC向けに出力した場合は「?」に変換される。
+<span class="pod_lang">変換マップで該当する絵文字が無い場合や、PC 向けに出力した場合は「?」に変換される。
 
 </span>
 </p>
@@ -820,13 +818,12 @@ sjis-imode (DoCoMo)、sjis-jsky (Softbank)、sjis-au (AU) などが利用でき�
 </span>
 </p>
 
-<h2><a id="Xe3X82XadXe3X83Xa3Xe3X83X83Xe3X82Xb7Xe3X83Xa5Xe3X81XaeXe5X88Xa9Xe7X94Xa8">
-<span class="pod_lang">キャッシュの利用
+<h2><a id="Xe3X82XadXe3X83Xa3Xe3X83X83Xe3X82Xb7Xe3X83Xa5Xe3X81XaeXe5X88Xa9Xe7X94Xa8"><span class="pod_lang">キャッシュの利用
 
 </span></a></h2>
 
 <p>
-<span class="pod_lang">Cache::Memcachedがインストールされ、memcachedサーバがある場合に、キャッシュが利用可能となる。
+<span class="pod_lang">Cache::Memcachedがインストールされ、 memcached サーバがある場合に、キャッシュが利用可能となる。
 
 </span>
 </p>
@@ -838,7 +835,7 @@ sjis-imode (DoCoMo)、sjis-jsky (Softbank)、sjis-au (AU) などが利用でき�
 </p>
 
 <p>
-<span class="pod_lang">INIファイルにて、memcachedが動いているサーバを指定する。
+<span class="pod_lang">INI ファイルにて、 memcached が動いているサーバを指定する。
 [MemCached]
 servers = localhost:11211
 
@@ -930,8 +927,7 @@ servers = localhost:11211
 </dd>
 </dl>
 
-<h2><a id="Xe5XaeX9fXe8Xa1X8cXe3X83Xa2Xe3X83XbcXe3X83X89">
-<span class="pod_lang">実行モード
+<h2><a id="Xe5XaeX9fXe8Xa1X8cXe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">実行モード
 
 </span></a></h2>
 
@@ -942,30 +938,30 @@ servers = localhost:11211
 </p>
 
 <dl>
-<dt><a id="CGIXe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">CGIモード
+<dt><a id="CGI_Xe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">CGI モード
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">CGIとしてプログラムを動作させるモード。このモードでは <code class="pod_iseq_C">$TL-&gt;print</code>
+<span class="pod_lang">CGI としてプログラムを動作させるモード。このモードでは <code class="pod_iseq_C">$TL-&gt;print</code>
 メソッドや <a href="#Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">&quot;出力フィルタ&quot;</a> 、 <a href="#Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">&quot;入力フィルタ&quot;</a> が利用可能になる。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">このモードでは <a href="#startCgi">$TL-&gt;startCgi</a> メソッドで <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を呼ぶ。
+<span class="pod_lang">このモードでは <a href="#startCgi">$TL-&gt;startCgi</a> メソッドで <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> を呼ぶ。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="FastCGIXe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">FastCGIモード
+<dt><a id="FastCGI_Xe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">FastCGI モード
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">FastCGIとしてプログラムを動作させるモード。httpdからfcgiスクリプトとして起動
+<span class="pod_lang">FastCGI としてプログラムを動作させるモード。httpd から fcgi スクリプトとして起動
 しようとすると、自動的に選ばれる。このモードではプロセスのメモリ使用量を
 監視し、起動後にある一定の大きさを越えてメモリ使用量が増大すると、メモリリーク
 が発生しているとして自動的に終了する。また、 <a href="././Tripletail/Ini.html">Ini</a> パラメータ付きで
@@ -976,13 +972,13 @@ servers = localhost:11211
 </p>
 
 <p>
-<span class="pod_lang">このモードでは <a href="#startCgi">$TL-&gt;startCgi</a> メソッドで <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を呼ぶ。
+<span class="pod_lang">このモードでは <a href="#startCgi">$TL-&gt;startCgi</a> メソッドで <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> を呼ぶ。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">FastCGIモードでは fork が正しく動作しない事に注意。代わりに
+<span class="pod_lang">FastCGI モードでは fork が正しく動作しない事に注意。代わりに
 <a href="#fork">$TL-&gt;fork</a> メソッドを使用する。
 
 </span>
@@ -994,14 +990,14 @@ servers = localhost:11211
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">CGIでない一般のスクリプトとしてプログラムを動作させるモード。
-CGIモード特有の機能は利用出来ない。
+<span class="pod_lang">CGI でない一般のスクリプトとしてプログラムを動作させるモード。
+CGI モード特有の機能は利用出来ない。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">このモードでは <a href="#trapError">$TL-&gt;trapError</a> メソッドで <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を呼ぶ。
+<span class="pod_lang">このモードでは <a href="#trapError">$TL-&gt;trapError</a> メソッドで <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> を呼ぶ。
 
 </span>
 </p>
@@ -1009,46 +1005,42 @@ CGIモード特有の機能は利用出来ない。
 </dd>
 </dl>
 
-<h2><a id="Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
-<span class="pod_lang">出力フィルタ
+<h2><a id="Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf"><span class="pod_lang">出力フィルタ
 
 </span></a></h2>
 
 <p>
 <span class="pod_lang"><a href="#print">$TL-&gt;print</a> や <a href="././Tripletail/Template.html#flush">$template-&gt;flush</a>
-で出力される内容は、 <a href="././Tripletail/Filter.html">Tripletail::Filter</a> によって加工される。出力の先頭にHTTPヘッダを
+で出力される内容は、 <a href="././Tripletail/Filter.html">Tripletail::Filter</a> によって加工される。出力の先頭に HTTP ヘッダを
 付加するのも出力フィルタである。
 
 </span>
 </p>
 
-<h2><a id="Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
-<span class="pod_lang">入力フィルタ
+<h2><a id="Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf"><span class="pod_lang">入力フィルタ
 
 </span></a></h2>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">$ENV{QUERY_STRING}</code> その他のCGIのリクエスト情報は、 <a href="././Tripletail/InputFilter.html">Tripletail::InputFilter</a>
+<span class="pod_lang"><code class="pod_iseq_C">$ENV{QUERY_STRING}</code> その他の CGI のリクエスト情報は、 <a href="././Tripletail/InputFilter.html">Tripletail::InputFilter</a>
 が読み取り、 <a href="././Tripletail/Form.html">Tripletail::Form</a> オブジェクトを生成する。得られたリクエスト情報は
-$CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得出来る。
+<code class="pod_iseq_C">$CGI</code> オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得出来る。
 
 </span>
 </p>
 
-<h2><a id="MainXe9X96Xa2Xe6X95Xb0">
-<span class="pod_lang">Main関数
+<h2><a id="Main_Xe9X96Xa2Xe6X95Xb0"><span class="pod_lang">Main 関数
 
 </span></a></h2>
 
 <p>
-<span class="pod_lang">リクエスト一回毎に呼ばれる関数。この関数の中でCGIプログラムは入出力を行う。
-<a href="#FastCGIXe3X83Xa2Xe3X83XbcXe3X83X89">&quot;FastCGIモード&quot;</a> 以外では一度のプロセスの起動で一度しか呼ばれない。
+<span class="pod_lang">リクエスト一回毎に呼ばれる関数。この関数の中で CGI プログラムは入出力を行う。
+<a href="#FastCGI_Xe3X83Xa2Xe3X83XbcXe3X83X89">&quot;FastCGI モード&quot;</a> 以外では一度のプロセスの起動で一度しか呼ばれない。
 
 </span>
 </p>
 
-<h2><a id="Xe3X83X95Xe3X83X83Xe3X82Xaf">
-<span class="pod_lang">フック
+<h2><a id="Xe3X83X95Xe3X83X83Xe3X82Xaf"><span class="pod_lang">フック
 
 </span></a></h2>
 
@@ -1059,19 +1051,19 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 </p>
 
 <dl>
-<dt><a id="init"><span class="pod_lang">init
+<dt><a id="init"><span class="pod_lang"><code class="pod_iseq_C">init</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> もしくは <a href="#trapError">&quot;trapError&quot;</a> が呼ばれ、最初に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が
-呼ばれる前。FastCGIの場合は最初の1回だけ呼ばれる。
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> もしくは <a href="#trapError">&quot;trapError&quot;</a> が呼ばれ、最初に <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> が
+呼ばれる前。 FastCGI の場合は最初の1回だけ呼ばれる。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="initRequest"><span class="pod_lang">initRequest
+<dt><a id="initRequest"><span class="pod_lang"><code class="pod_iseq_C">initRequest</code>
 
 </span></a></dt>
 <dd>
@@ -1089,31 +1081,31 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 </p>
 
 </dd>
-<dt><a id="preRequest"><span class="pod_lang">preRequest
+<dt><a id="preRequest"><span class="pod_lang"><code class="pod_iseq_C">preRequest</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、フォームをデコードした後、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれる前に呼ばれる。
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、フォームをデコードした後、<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> が呼ばれる前に呼ばれる。
 リクエストごとに呼び出される。
-ただし、フォームのデコード処理に失敗した場合、<a href="#X/preRequest">&quot;/preRequest&quot;</a> は実行されずにリクエスト処理が終了する。
+ただし、フォームのデコード処理に失敗した場合、<a href="#X2fpreRequest">&quot;/preRequest&quot;</a> は実行されずにリクエスト処理が終了する。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#initRequest">&quot;initRequest&quot;</a> フックの後、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれる前に呼ばれる。
+<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#initRequest">&quot;initRequest&quot;</a> フックの後、<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> が呼ばれる前に呼ばれる。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="postRequest"><span class="pod_lang">postRequest
+<dt><a id="postRequest"><span class="pod_lang"><code class="pod_iseq_C">postRequest</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
 リクエストごとに呼び出される。
 ただし、フォームのデコード処理に失敗した場合、<a href="#postRequest">&quot;postRequest&quot;</a> は実行されずにリクエスト処理が終了する。
 
@@ -1121,20 +1113,20 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 </p>
 
 <p>
-<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれた後に呼び出される。
+<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> が呼ばれた後に呼び出される。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="term"><span class="pod_lang">term
+<dt><a id="term"><span class="pod_lang"><code class="pod_iseq_C">term</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">最後に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれた後。termフック呼出し後に <a href="#startCgi">&quot;startCgi&quot;</a>
+<span class="pod_lang">最後に <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> が呼ばれた後。<code class="pod_iseq_C">term</code>フック呼出し後に <a href="#startCgi">&quot;startCgi&quot;</a>
 もしくは <a href="#trapError">&quot;trapError&quot;</a> が終了する。
-FastCGIの場合は最後の1回だけ呼ばれる。
+FastCGI の場合は最後の1回だけ呼ばれる。
 
 </span>
 </p>
@@ -1142,18 +1134,15 @@ FastCGIの場合は最後の1回だけ呼ばれる。
 </dd>
 </dl>
 
-<h2><a id="METHODS">
-<span class="pod_lang">METHODS
+<h2><a id="METHODS"><span class="pod_lang">METHODS
 
 </span></a></h2>
 
-<h3><a id="Xe3X82X88Xe3X81X8fXe4XbdXbfXe3X81X86Xe3X82X82Xe3X81Xae">
-<span class="pod_lang">よく使うもの
+<h3><a id="Xe3X82X88Xe3X81X8fXe4XbdXbfXe3X81X86Xe3X82X82Xe3X81Xae"><span class="pod_lang">よく使うもの
 
 </span></a></h3>
 
-<h4><a id="startCgi">
-<span class="pod_lang"><code class="pod_iseq_C">startCgi</code>
+<h4><a id="startCgi"><span class="pod_lang"><code class="pod_iseq_C">startCgi</code>
 
 </span></a></h4>
 
@@ -1164,8 +1153,8 @@ FastCGIの場合は最後の1回だけ呼ばれる。
   );</code></pre>
 
 <p>
-<span class="pod_lang">CGIを実行する為の環境を整えた上で、 <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を実行する。
-<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> がdieした場合は、エラー表示HTMLが出力される。
+<span class="pod_lang">CGI を実行する為の環境を整えた上で、 <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> を実行する。
+<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> がdie した場合は、エラー表示 HTML が出力される。
 
 </span>
 </p>
@@ -1199,8 +1188,7 @@ FastCGIの場合は最後の1回だけ呼ばれる。
 </span>
 </p>
 
-<h4><a id="CGI">
-<span class="pod_lang"><code class="pod_iseq_C">CGI</code>
+<h4><a id="CGI"><span class="pod_lang"><code class="pod_iseq_C">CGI</code>
 
 </span></a></h4>
 
@@ -1215,14 +1203,13 @@ FastCGIの場合は最後の1回だけ呼ばれる。
 </p>
 
 <p>
-<span class="pod_lang">このメソッドがundefでない値を返すのは、 <a href="#preRequest">&quot;preRequest&quot;</a> フックが呼ばれる
+<span class="pod_lang">このメソッドが<code class="pod_iseq_C">undef</code>でない値を返すのは、 <a href="#preRequest">&quot;preRequest&quot;</a> フックが呼ばれる
 直前から <a href="#postRequest">&quot;postRequest&quot;</a> フックが呼ばれた直後までである。
 
 </span>
 </p>
 
-<h4><a id="dispatch">
-<span class="pod_lang"><code class="pod_iseq_C">dispatch</code>
+<h4><a id="dispatch"><span class="pod_lang"><code class="pod_iseq_C">dispatch</code>
 
 </span></a></h4>
 
@@ -1234,7 +1221,7 @@ FastCGIの場合は最後の1回だけ呼ばれる。
 
 <p>
 <span class="pod_lang">'Do' と $value を繋げた関数名の関数を呼び出す。
-$valueがundefの場合、defaultを指定していた場合、defaultに設定される。
+$valueが<code class="pod_iseq_C">undef</code>の場合、 default を指定していた場合、default に設定される。
 $value は大文字で始まらなければならない。
 
 </span>
@@ -1249,13 +1236,13 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">onerrorが未設定で関数が存在しなければ undef、存在すれば1を返す。
+<span class="pod_lang"><code class="pod_iseq_C">onerror</code> が未設定で関数が存在しなければ <code class="pod_iseq_C">undef</code>、存在すれば1を返す。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">onerrorが設定されていた場合、関数が存在しなければ onerrorで設定された関数が呼び出される。
+<span class="pod_lang"><code class="pod_iseq_C">onerror</code> が設定されていた場合、関数が存在しなければ <code class="pod_iseq_C">onerror</code> で設定された関数が呼び出される。
 
 </span>
 </p>
@@ -1276,15 +1263,14 @@ $value は大文字で始まらなければならない。
       ...
   }</code></pre>
 
-<h4><a id="print">
-<span class="pod_lang"><code class="pod_iseq_C">print</code>
+<h4><a id="print"><span class="pod_lang"><code class="pod_iseq_C">print</code>
 
 </span></a></h4>
 
 <pre class="pod_verbatim"><code>  $TL-&gt;print($str)</code></pre>
 
 <p>
-<span class="pod_lang">コンテンツデータを出力する。<a href="#startCgi">&quot;startCgi&quot;</a> から呼ばれた <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> 内
+<span class="pod_lang">コンテンツデータを出力する。<a href="#startCgi">&quot;startCgi&quot;</a> から呼ばれた <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> 内
 のみで使用できる。ヘッダは出力できない。
 
 </span>
@@ -1297,15 +1283,14 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="location">
-<span class="pod_lang"><code class="pod_iseq_C">location</code>
+<h4><a id="location"><span class="pod_lang"><code class="pod_iseq_C">location</code>
 
 </span></a></h4>
 
 <pre class="pod_verbatim"><code>  $TL-&gt;location('http://example.org/')</code></pre>
 
 <p>
-<span class="pod_lang">CGIモードの時、指定されたURLへリダイレクトする。
+<span class="pod_lang">CGI モードの時、指定されたURLへリダイレクトする。
 このメソッドはあらゆる出力の前に呼ばなくてはならない。 
 
 </span>
@@ -1318,13 +1303,30 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h3><a id="Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86">
-<span class="pod_lang">変換処理
+<h4><a id="eval"><span class="pod_lang"><code class="pod_iseq_C">eval</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;eval(sub {
+                # Statements which may throw...
+              });
+  if ($@) {
+      ....
+  }</code></pre>
+
+<p>
+<span class="pod_lang">引数として与えられたサブルーチンを実行するが、その実行中は Tripletail
+によるエラー処理を無効にする。サブルーチンが正常な動作の範囲内として
+die する事が判っている場合に、エラー処理のコストを減らし、且つ <code class="pod_iseq_C">$@</code> が書き換えられる事を防ぐために使用する。
+
+</span>
+</p>
+
+<h3><a id="Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86"><span class="pod_lang">変換処理
 
 </span></a></h3>
 
-<h4><a id="escapeTag">
-<span class="pod_lang"><code class="pod_iseq_C">escapeTag</code>
+<h4><a id="escapeTag"><span class="pod_lang"><code class="pod_iseq_C">escapeTag</code>
 
 </span></a></h4>
 
@@ -1336,8 +1338,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="unescapeTag">
-<span class="pod_lang"><code class="pod_iseq_C">unescapeTag</code>
+<h4><a id="unescapeTag"><span class="pod_lang"><code class="pod_iseq_C">unescapeTag</code>
 
 </span></a></h4>
 
@@ -1349,8 +1350,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="escapeJs">
-<span class="pod_lang"><code class="pod_iseq_C">escapeJs</code>
+<h4><a id="escapeJs"><span class="pod_lang"><code class="pod_iseq_C">escapeJs</code>
 
 </span></a></h4>
 
@@ -1362,8 +1362,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="unescapeJs">
-<span class="pod_lang"><code class="pod_iseq_C">unescapeJs</code>
+<h4><a id="unescapeJs"><span class="pod_lang"><code class="pod_iseq_C">unescapeJs</code>
 
 </span></a></h4>
 
@@ -1375,8 +1374,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="escapeJsString">
-<span class="pod_lang"><code class="pod_iseq_C">escapeJsString</code>
+<h4><a id="escapeJsString"><span class="pod_lang"><code class="pod_iseq_C">escapeJsString</code>
 
 </span></a></h4>
 
@@ -1406,8 +1404,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="unescapeJsString">
-<span class="pod_lang"><code class="pod_iseq_C">unescapeJsString</code>
+<h4><a id="unescapeJsString"><span class="pod_lang"><code class="pod_iseq_C">unescapeJsString</code>
 
 </span></a></h4>
 
@@ -1419,8 +1416,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="encodeURL">
-<span class="pod_lang"><code class="pod_iseq_C">encodeURL</code>
+<h4><a id="encodeURL"><span class="pod_lang"><code class="pod_iseq_C">encodeURL</code>
 
 </span></a></h4>
 
@@ -1432,8 +1428,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="decodeURL">
-<span class="pod_lang"><code class="pod_iseq_C">decodeURL</code>
+<h4><a id="decodeURL"><span class="pod_lang"><code class="pod_iseq_C">decodeURL</code>
 
 </span></a></h4>
 
@@ -1445,8 +1440,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="escapeSqlLike">
-<span class="pod_lang"><code class="pod_iseq_C">escapeSqlLike</code>
+<h4><a id="escapeSqlLike"><span class="pod_lang"><code class="pod_iseq_C">escapeSqlLike</code>
 
 </span></a></h4>
 
@@ -1458,8 +1452,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="unescapeSqlLike">
-<span class="pod_lang"><code class="pod_iseq_C">unescapeSqlLike</code>
+<h4><a id="unescapeSqlLike"><span class="pod_lang"><code class="pod_iseq_C">unescapeSqlLike</code>
 
 </span></a></h4>
 
@@ -1471,8 +1464,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="charconv">
-<span class="pod_lang"><code class="pod_iseq_C">charconv</code>
+<h4><a id="charconv"><span class="pod_lang"><code class="pod_iseq_C">charconv</code>
 
 </span></a></h4>
 
@@ -1496,14 +1488,13 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
+<span class="pod_lang">指定できる文字コードは、 UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
 <a href="http://search.cpan.org/perldoc/Unicode::Japanese">Unicode::Japanese</a>、<a href="http://search.cpan.org/perldoc/Encode">Encode</a> がサポートしているものが使用できる。
 
 </span>
 </p>
 
-<h4><a id="parsePeriod">
-<span class="pod_lang"><code class="pod_iseq_C">parsePeriod</code>
+<h4><a id="parsePeriod"><span class="pod_lang"><code class="pod_iseq_C">parsePeriod</code>
 
 </span></a></h4>
 
@@ -1516,8 +1507,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="parseQuantity">
-<span class="pod_lang"><code class="pod_iseq_C">parseQuantity</code>
+<h4><a id="parseQuantity"><span class="pod_lang"><code class="pod_iseq_C">parseQuantity</code>
 
 </span></a></h4>
 
@@ -1530,13 +1520,11 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h3><a id="Xe3X82Xa4Xe3X83Xb3Xe3X82Xb9Xe3X82XbfXe3X83Xb3Xe3X82Xb9Xe7X94X9fXe6X88X90Xe5X8fX96Xe5XbeX97">
-<span class="pod_lang">インスタンス生成取得
+<h3><a id="Xe3X82Xa4Xe3X83Xb3Xe3X82Xb9Xe3X82XbfXe3X83Xb3Xe3X82Xb9Xe7X94X9fXe6X88X90Xe5X8fX96Xe5XbeX97"><span class="pod_lang">インスタンス生成取得
 
 </span></a></h3>
 
-<h4><a id="getDB">
-<span class="pod_lang"><code class="pod_iseq_C">getDB</code>
+<h4><a id="getDB"><span class="pod_lang"><code class="pod_iseq_C">getDB</code>
 
 </span></a></h4>
 
@@ -1548,8 +1536,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newDB">
-<span class="pod_lang"><code class="pod_iseq_C">newDB</code>
+<h4><a id="newDB"><span class="pod_lang"><code class="pod_iseq_C">newDB</code>
 
 </span></a></h4>
 
@@ -1561,8 +1548,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newForm">
-<span class="pod_lang"><code class="pod_iseq_C">newForm</code>
+<h4><a id="newForm"><span class="pod_lang"><code class="pod_iseq_C">newForm</code>
 
 </span></a></h4>
 
@@ -1572,8 +1558,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newTemplate">
-<span class="pod_lang"><code class="pod_iseq_C">newTemplate</code>
+<h4><a id="newTemplate"><span class="pod_lang"><code class="pod_iseq_C">newTemplate</code>
 
 </span></a></h4>
 
@@ -1583,8 +1568,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getSession">
-<span class="pod_lang"><code class="pod_iseq_C">getSession</code>
+<h4><a id="getSession"><span class="pod_lang"><code class="pod_iseq_C">getSession</code>
 
 </span></a></h4>
 
@@ -1594,8 +1578,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newValidator">
-<span class="pod_lang"><code class="pod_iseq_C">newValidator</code>
+<h4><a id="newValidator"><span class="pod_lang"><code class="pod_iseq_C">newValidator</code>
 
 </span></a></h4>
 
@@ -1605,8 +1588,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newValue">
-<span class="pod_lang"><code class="pod_iseq_C">newValue</code>
+<h4><a id="newValue"><span class="pod_lang"><code class="pod_iseq_C">newValue</code>
 
 </span></a></h4>
 
@@ -1616,8 +1598,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newDateTime">
-<span class="pod_lang"><code class="pod_iseq_C">newDateTime</code>
+<h4><a id="newDateTime"><span class="pod_lang"><code class="pod_iseq_C">newDateTime</code>
 
 </span></a></h4>
 
@@ -1627,8 +1608,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newPager">
-<span class="pod_lang"><code class="pod_iseq_C">newPager</code>
+<h4><a id="newPager"><span class="pod_lang"><code class="pod_iseq_C">newPager</code>
 
 </span></a></h4>
 
@@ -1638,8 +1618,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getCsv">
-<span class="pod_lang"><code class="pod_iseq_C">getCsv</code>
+<h4><a id="getCsv"><span class="pod_lang"><code class="pod_iseq_C">getCsv</code>
 
 </span></a></h4>
 
@@ -1649,8 +1628,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newTagCheck">
-<span class="pod_lang"><code class="pod_iseq_C">newTagCheck</code>
+<h4><a id="newTagCheck"><span class="pod_lang"><code class="pod_iseq_C">newTagCheck</code>
 
 </span></a></h4>
 
@@ -1660,8 +1638,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newHtmlFilter">
-<span class="pod_lang"><code class="pod_iseq_C">newHtmlFilter</code>
+<h4><a id="newHtmlFilter"><span class="pod_lang"><code class="pod_iseq_C">newHtmlFilter</code>
 
 </span></a></h4>
 
@@ -1671,8 +1648,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newHtmlMail">
-<span class="pod_lang"><code class="pod_iseq_C">newHtmlMail</code>
+<h4><a id="newHtmlMail"><span class="pod_lang"><code class="pod_iseq_C">newHtmlMail</code>
 
 </span></a></h4>
 
@@ -1682,8 +1658,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newMail">
-<span class="pod_lang"><code class="pod_iseq_C">newMail</code>
+<h4><a id="newMail"><span class="pod_lang"><code class="pod_iseq_C">newMail</code>
 
 </span></a></h4>
 
@@ -1693,8 +1668,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newIni">
-<span class="pod_lang"><code class="pod_iseq_C">newIni</code>
+<h4><a id="newIni"><span class="pod_lang"><code class="pod_iseq_C">newIni</code>
 
 </span></a></h4>
 
@@ -1704,8 +1678,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getCookie">
-<span class="pod_lang"><code class="pod_iseq_C">getCookie</code>
+<h4><a id="getCookie"><span class="pod_lang"><code class="pod_iseq_C">getCookie</code>
 
 </span></a></h4>
 
@@ -1715,8 +1688,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getRawCookie">
-<span class="pod_lang"><code class="pod_iseq_C">getRawCookie</code>
+<h4><a id="getRawCookie"><span class="pod_lang"><code class="pod_iseq_C">getRawCookie</code>
 
 </span></a></h4>
 
@@ -1726,8 +1698,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newSendmail">
-<span class="pod_lang"><code class="pod_iseq_C">newSendmail</code>
+<h4><a id="newSendmail"><span class="pod_lang"><code class="pod_iseq_C">newSendmail</code>
 
 </span></a></h4>
 
@@ -1737,8 +1708,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newSMIME">
-<span class="pod_lang"><code class="pod_iseq_C">newSMIME</code>
+<h4><a id="newSMIME"><span class="pod_lang"><code class="pod_iseq_C">newSMIME</code>
 
 </span></a></h4>
 
@@ -1748,8 +1718,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getFileSentinel">
-<span class="pod_lang"><code class="pod_iseq_C">getFileSentinel</code>
+<h4><a id="getFileSentinel"><span class="pod_lang"><code class="pod_iseq_C">getFileSentinel</code>
 
 </span></a></h4>
 
@@ -1759,8 +1728,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getMemorySentinel">
-<span class="pod_lang"><code class="pod_iseq_C">getMemorySentinel</code>
+<h4><a id="getMemorySentinel"><span class="pod_lang"><code class="pod_iseq_C">getMemorySentinel</code>
 
 </span></a></h4>
 
@@ -1770,8 +1738,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="newMemCached">
-<span class="pod_lang"><code class="pod_iseq_C">newMemCached</code>
+<h4><a id="newMemCached"><span class="pod_lang"><code class="pod_iseq_C">newMemCached</code>
 
 </span></a></h4>
 
@@ -1781,13 +1748,11 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96">
-<span class="pod_lang">その他
+<h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96"><span class="pod_lang">その他
 
 </span></a></h3>
 
-<h4><a id="INI">
-<span class="pod_lang"><code class="pod_iseq_C">INI</code>
+<h4><a id="INI"><span class="pod_lang"><code class="pod_iseq_C">INI</code>
 
 </span></a></h4>
 
@@ -1799,8 +1764,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="trapError">
-<span class="pod_lang"><code class="pod_iseq_C">trapError</code>
+<h4><a id="trapError"><span class="pod_lang"><code class="pod_iseq_C">trapError</code>
 
 </span></a></h4>
 
@@ -1810,8 +1774,8 @@ $value は大文字で始まらなければならない。
   );</code></pre>
 
 <p>
-<span class="pod_lang">環境を整え、 <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を実行する。
-<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> がdieした場合は、エラー内容が標準エラーへ出力される。
+<span class="pod_lang">環境を整え、 <a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> を実行する。
+<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> がdie した場合は、エラー内容が標準エラーへ出力される。
 
 </span>
 </p>
@@ -1822,8 +1786,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="fork">
-<span class="pod_lang"><code class="pod_iseq_C">fork</code>
+<h4><a id="fork"><span class="pod_lang"><code class="pod_iseq_C">fork</code>
 
 </span></a></h4>
 
@@ -1835,22 +1798,21 @@ $value は大文字で始まらなければならない。
   }</code></pre>
 
 <p>
-<span class="pod_lang">FastCGI 環境を考慮しながら fork を実行する。FastCGI 環境でない場合は通
+<span class="pod_lang">FastCGI 環境を考慮しながら fork を実行する。 FastCGI 環境でない場合は通
 常通りに fork する。fork に失敗した場合は die する。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">通常は perl 組込み関数である fork を使用しても問題無いが、FastCGI 環境
+<span class="pod_lang">通常は perl 組込み関数である fork を使用しても問題無いが、 FastCGI 環境
 では正常に動作しない為、Tripletail アプリケーションは常に fork でなく
 <code class="pod_iseq_C">$TL-&gt;fork</code> を使用する事が推奨される。
 
 </span>
 </p>
 
-<h4><a id="log">
-<span class="pod_lang"><code class="pod_iseq_C">log</code>
+<h4><a id="log"><span class="pod_lang"><code class="pod_iseq_C">log</code>
 
 </span></a></h4>
 
@@ -1870,13 +1832,12 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
+<span class="pod_lang">ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセス ID の16進数4桁表現 FastCGI のリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
 
 </span>
 </p>
 
-<h4><a id="setContentFilter">
-<span class="pod_lang"><code class="pod_iseq_C">setContentFilter</code>
+<h4><a id="setContentFilter"><span class="pod_lang"><code class="pod_iseq_C">setContentFilter</code>
 
 </span></a></h4>
 
@@ -1905,15 +1866,14 @@ $value は大文字で始まらなければならない。
 
 <p>
 <span class="pod_lang">設定したフィルタは、<a href="#preRequest">&quot;preRequest&quot;</a> 実行後のタイミングで保存され、
-<a href="#postRequest">&quot;postRequest&quot;</a> のタイミングで元に戻される。従って、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a>内
+<a href="#postRequest">&quot;postRequest&quot;</a> のタイミングで元に戻される。従って、<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a>内
 で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
 されない。
 
 </span>
 </p>
 
-<h4><a id="getContentFilter">
-<span class="pod_lang"><code class="pod_iseq_C">getContentFilter</code>
+<h4><a id="getContentFilter"><span class="pod_lang"><code class="pod_iseq_C">getContentFilter</code>
 
 </span></a></h4>
 
@@ -1925,8 +1885,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="removeContentFilter">
-<span class="pod_lang"><code class="pod_iseq_C">removeContentFilter</code>
+<h4><a id="removeContentFilter"><span class="pod_lang"><code class="pod_iseq_C">removeContentFilter</code>
 
 </span></a></h4>
 
@@ -1939,8 +1898,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getLogHeader">
-<span class="pod_lang"><code class="pod_iseq_C">getLogHeader</code>
+<h4><a id="getLogHeader"><span class="pod_lang"><code class="pod_iseq_C">getLogHeader</code>
 
 </span></a></h4>
 
@@ -1948,13 +1906,12 @@ $value は大文字で始まらなければならない。
 
 <p>
 <span class="pod_lang">ログを記録するときのヘッダと同じ形式の文字列を生成する。
-「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現」の形の文字列が返される。
+「時刻(epoch値の16進数8桁表現) プロセス ID の16進数4桁表現 FastCGI のリクエスト回数の16進数4桁表現」の形の文字列が返される。
 
 </span>
 </p>
 
-<h4><a id="setHook">
-<span class="pod_lang"><code class="pod_iseq_C">setHook</code>
+<h4><a id="setHook"><span class="pod_lang"><code class="pod_iseq_C">setHook</code>
 
 </span></a></h4>
 
@@ -1969,7 +1926,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">typeは、<a href="#init">&quot;init&quot;</a>, <a href="#term">&quot;term&quot;</a>, <a href="#initRequest">&quot;initRequest&quot;</a>, <a href="#preRequest">&quot;preRequest&quot;</a>, <a href="#postRequest">&quot;postRequest&quot;</a>
+<span class="pod_lang"><code class="pod_iseq_C">type</code> は、<a href="#init">&quot;init&quot;</a>, <a href="#term">&quot;term&quot;</a>, <a href="#initRequest">&quot;initRequest&quot;</a>, <a href="#preRequest">&quot;preRequest&quot;</a>, <a href="#postRequest">&quot;postRequest&quot;</a>
 の４種類が存在する。
 
 </span>
@@ -1983,8 +1940,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="removeHook">
-<span class="pod_lang"><code class="pod_iseq_C">removeHook</code>
+<h4><a id="removeHook"><span class="pod_lang"><code class="pod_iseq_C">removeHook</code>
 
 </span></a></h4>
 
@@ -1996,8 +1952,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="setInputFilter">
-<span class="pod_lang"><code class="pod_iseq_C">setInputFilter</code>
+<h4><a id="setInputFilter"><span class="pod_lang"><code class="pod_iseq_C">setInputFilter</code>
 
 </span></a></h4>
 
@@ -2017,22 +1972,19 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="getInputFilter">
-<span class="pod_lang"><code class="pod_iseq_C">getInputFilter</code>
+<h4><a id="getInputFilter"><span class="pod_lang"><code class="pod_iseq_C">getInputFilter</code>
 
 </span></a></h4>
 
 <pre class="pod_verbatim"><code>  $TL-&gt;getInputFilter($priority)</code></pre>
 
-<h4><a id="removeInputFilter">
-<span class="pod_lang"><code class="pod_iseq_C">removeInputFilter</code>
+<h4><a id="removeInputFilter"><span class="pod_lang"><code class="pod_iseq_C">removeInputFilter</code>
 
 </span></a></h4>
 
 <pre class="pod_verbatim"><code>  $TL-&gt;removeInputFilter($priority)</code></pre>
 
-<h4><a id="sendError">
-<span class="pod_lang"><code class="pod_iseq_C">sendError</code>
+<h4><a id="sendError"><span class="pod_lang"><code class="pod_iseq_C">sendError</code>
 
 </span></a></h4>
 
@@ -2045,8 +1997,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="readFile">
-<span class="pod_lang"><code class="pod_iseq_C">readFile</code>
+<h4><a id="readFile"><span class="pod_lang"><code class="pod_iseq_C">readFile</code>
 
 </span></a></h4>
 
@@ -2059,15 +2010,14 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="readTextFile">
-<span class="pod_lang"><code class="pod_iseq_C">readTextFile</code>
+<h4><a id="readTextFile"><span class="pod_lang"><code class="pod_iseq_C">readTextFile</code>
 
 </span></a></h4>
 
 <pre class="pod_verbatim"><code>  $data = $TL-&gt;readTextFile($fpath, $coding);</code></pre>
 
 <p>
-<span class="pod_lang">ファイルを読み込み、UTF-8に変換する。
+<span class="pod_lang">ファイルを読み込み、 UTF-8 に変換する。
 ファイルロック処理は行わないので、使用の際には注意が必要。
 
 </span>
@@ -2079,8 +2029,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="writeFile">
-<span class="pod_lang"><code class="pod_iseq_C">writeFile</code>
+<h4><a id="writeFile"><span class="pod_lang"><code class="pod_iseq_C">writeFile</code>
 
 </span></a></h4>
 
@@ -2106,15 +2055,14 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="writeTextFile">
-<span class="pod_lang"><code class="pod_iseq_C">writeTextFile</code>
+<h4><a id="writeTextFile"><span class="pod_lang"><code class="pod_iseq_C">writeTextFile</code>
 
 </span></a></h4>
 
 <pre class="pod_verbatim"><code>  $TL-&gt;writeTextFile($fpath, $fdata, $fmode, $coding);</code></pre>
 
 <p>
-<span class="pod_lang">ファイルにデータを書き込む。<code class="pod_iseq_C">$fdata</code> をUTF-8と見なし、指定された文字コードへ変換を行う。
+<span class="pod_lang">ファイルにデータを書き込む。<code class="pod_iseq_C">$fdata</code> を UTF-8 と見なし、指定された文字コードへ変換を行う。
 ファイルロック処理は行わないので、使用の際には注意が必要。
 
 </span>
@@ -2134,13 +2082,12 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合、UTF-8として扱う。
+<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合、 UTF-8 として扱う。
 
 </span>
 </p>
 
-<h4><a id="watch">
-<span class="pod_lang"><code class="pod_iseq_C">watch</code>
+<h4><a id="watch"><span class="pod_lang"><code class="pod_iseq_C">watch</code>
 
 </span></a></h4>
 
@@ -2174,8 +2121,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="dump">
-<span class="pod_lang"><code class="pod_iseq_C">dump</code>
+<h4><a id="dump"><span class="pod_lang"><code class="pod_iseq_C">dump</code>
 
 </span></a></h4>
 
@@ -2204,8 +2150,7 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="setCacheFilter">
-<span class="pod_lang"><code class="pod_iseq_C">setCacheFilter</code>
+<h4><a id="setCacheFilter"><span class="pod_lang"><code class="pod_iseq_C">setCacheFilter</code>
 
 </span></a></h4>
 
@@ -2229,7 +2174,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">第2引数は、第1引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
+<span class="pod_lang">第2引数は、第1引数で指定した文字列を UTF-8 から変換する際の文字コードを指定する。
 省略可能。
 
 </span>
@@ -2237,7 +2182,7 @@ $value は大文字で始まらなければならない。
 
 <p>
 <span class="pod_lang">使用可能なコードは次の通り。
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
+UTF-8 ，Shift_JIS，EUC-JP，ISO-2022-JP
 
 </span>
 </p>
@@ -2248,8 +2193,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </span>
 </p>
 
-<h4><a id="printCacheUnlessModified">
-<span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
+<h4><a id="printCacheUnlessModified"><span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
 
 </span></a></h4>
 
@@ -2257,7 +2201,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <p>
 <span class="pod_lang">第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
-利用するには、memcached が必須となる。
+利用するには、 memcached が必須となる。
 
 </span>
 </p>
@@ -2282,7 +2226,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </p>
 
 <p>
-<span class="pod_lang">1.memcachedからキーに割り当てられたキャッシュデータを読み込む。
+<span class="pod_lang">1. memcached からキーに割り当てられたキャッシュデータを読み込む。
 データが無ければ、1を返す。
 
 </span>
@@ -2290,26 +2234,25 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <p>
 <span class="pod_lang">2.キャッシュデータの保存された時間と前回アクセスされた時間を比較し、
-キャッシュデータが新しければキャッシュデータを出力し、undefを返す。
+キャッシュデータが新しければキャッシュデータを出力し、<code class="pod_iseq_C">undef</code>を返す。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">3.アクセスされた時間が新しければ、304レスポンスを出力し、undefを返す。
+<span class="pod_lang">3.アクセスされた時間が新しければ、304レスポンスを出力し、<code class="pod_iseq_C">undef</code>を返す。
 （第2引数が304の場合。200の場合はキャッシュデータを出力する）
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">この関数からundefを返された場合、以後出力を行う操作を行ってはならない。
+<span class="pod_lang">この関数から<code class="pod_iseq_C">undef</code>を返された場合、以後出力を行う操作を行ってはならない。
 
 </span>
 </p>
 
-<h4><a id="setCache">
-<span class="pod_lang"><code class="pod_iseq_C">setCache</code>
+<h4><a id="setCache"><span class="pod_lang"><code class="pod_iseq_C">setCache</code>
 
 </span></a></h4>
 
@@ -2317,9 +2260,9 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <p>
 <span class="pod_lang">第1引数で割り当てられたキーに対して出力される内容をメモリ上にキャッシュする。
-また、Last-Modifiedヘッダを出力する。
-printCacheUnlessModifiedより後で実行する必要がある。
-利用するには、memcached が必須となる。
+また、Last-Modified ヘッダを出力する。
+printCacheUnlessModified より後で実行する必要がある。
+利用するには、 memcached が必須となる。
 
 </span>
 </p>
@@ -2338,8 +2281,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </span>
 </p>
 
-<h4><a id="deleteCache">
-<span class="pod_lang"><code class="pod_iseq_C">deleteCache</code>
+<h4><a id="deleteCache"><span class="pod_lang"><code class="pod_iseq_C">deleteCache</code>
 
 </span></a></h4>
 
@@ -2347,7 +2289,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 
 <p>
 <span class="pod_lang">第1引数で割り当てられたキーのキャッシュを削除する。
-利用するには、memcached が必須となる。
+利用するには、 memcached が必須となる。
 
 </span>
 </p>
@@ -2367,13 +2309,11 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </span>
 </p>
 
-<h4><a id="getDebug">
-<span class="pod_lang"><code class="pod_iseq_C">getDebug</code>
+<h4><a id="getDebug"><span class="pod_lang"><code class="pod_iseq_C">getDebug</code>
 
 </span></a></h4>
 
-<h4><a id="newError">
-<span class="pod_lang"><code class="pod_iseq_C">newError</code>
+<h4><a id="newError"><span class="pod_lang"><code class="pod_iseq_C">newError</code>
 
 </span></a></h4>
 
@@ -2383,8 +2323,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </span>
 </p>
 
-<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
-<span class="pod_lang">Ini パラメータ
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf"><span class="pod_lang">Ini パラメータ
 
 </span></a></h2>
 
@@ -2406,7 +2345,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
   errortemplatecharset = Shift_JIS</code></pre>
 
 <dl>
-<dt><a id="maxrequestsize"><span class="pod_lang">maxrequestsize
+<dt><a id="maxrequestsize"><span class="pod_lang"><code class="pod_iseq_C">maxrequestsize</code>
 
 </span></a></dt>
 <dd>
@@ -2419,7 +2358,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </p>
 
 </dd>
-<dt><a id="maxfilesize"><span class="pod_lang">maxfilesize
+<dt><a id="maxfilesize"><span class="pod_lang"><code class="pod_iseq_C">maxfilesize</code>
 
 </span></a></dt>
 <dd>
@@ -2427,14 +2366,14 @@ printCacheUnlessModifiedより後で実行する必要がある。
 
 <p>
 <span class="pod_lang">一回のPOSTでアップロード可能なファイルサイズの合計。デフォルトは8M。ファ
-イルのサイズは maxrequestsize とは別にカウントされ、ファイルでないもの
-については maxrequestsize の値が使われる。
+イルのサイズは <code class="pod_iseq_C">maxrequestsize</code> とは別にカウントされ、ファイルでないもの
+については <code class="pod_iseq_C">maxrequestsize</code> の値が使われる。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="fault_handler"><span class="pod_lang">fault_handler
+<dt><a id="fault_handler"><span class="pod_lang"><code class="pod_iseq_C">fault_handler</code>
 
 </span></a></dt>
 <dd>
@@ -2472,7 +2411,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </p>
 
 </dd>
-<dt><a id="logdir"><span class="pod_lang">logdir
+<dt><a id="logdir"><span class="pod_lang"><code class="pod_iseq_C">logdir</code>
 
 </span></a></dt>
 <dd>
@@ -2485,7 +2424,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </p>
 
 </dd>
-<dt><a id="tempdir"><span class="pod_lang">tempdir
+<dt><a id="tempdir"><span class="pod_lang"><code class="pod_iseq_C">tempdir</code>
 
 </span></a></dt>
 <dd>
@@ -2503,7 +2442,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </p>
 
 </dd>
-<dt><a id="errormail"><span class="pod_lang">errormail
+<dt><a id="errormail"><span class="pod_lang"><code class="pod_iseq_C">errormail</code>
 
 </span></a></dt>
 <dd>
@@ -2511,15 +2450,15 @@ printCacheUnlessModifiedより後で実行する必要がある。
 
 <p>
 <span class="pod_lang">sendErrorや、エラー発生時にメールを送る先を指定する。
-アカウント名@ドメイン名%inigroup、の形式で指定する。
-inigroupに。 <a href="././Tripletail/Sendmail.html">Tripletail::Sendmail</a> クラスで使用するinigroupを指定する。
-inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使われる。
+<code class="pod_iseq_C">アカウント名@ドメイン名%inigroup</code> 、の形式で指定する。
+inigroup に  <a href="././Tripletail/Sendmail.html">Tripletail::Sendmail</a> クラスで使用する inigroup を指定する。
+inigroup が省略されると <code class="pod_iseq_C">'Sendmail'</code> が使われる。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="errormailtype"><span class="pod_lang">errormailtype
+<dt><a id="errormailtype"><span class="pod_lang"><code class="pod_iseq_C">errormailtype</code>
 
 </span></a></dt>
 <dd>
@@ -2534,7 +2473,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <dl>
-<dt><a id="error"><span class="pod_lang">error
+<dt><a id="error"><span class="pod_lang"><code class="pod_iseq_C">error</code>
 
 </span></a></dt>
 <dd>
@@ -2546,7 +2485,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="file-update"><span class="pod_lang">file-update
+<dt><a id="file-update"><span class="pod_lang"><code class="pod_iseq_C">file-update</code>
 
 </span></a></dt>
 <dd>
@@ -2558,7 +2497,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="memory-leak"><span class="pod_lang">memory-leak
+<dt><a id="memory-leak"><span class="pod_lang"><code class="pod_iseq_C">memory-leak</code>
 
 </span></a></dt>
 <dd>
@@ -2573,7 +2512,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </dl>
 
 </dd>
-<dt><a id="errorlog"><span class="pod_lang">errorlog
+<dt><a id="errorlog"><span class="pod_lang"><code class="pod_iseq_C">errorlog</code>
 
 </span></a></dt>
 <dd>
@@ -2582,8 +2521,8 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 <p>
 <span class="pod_lang">エラー発生時にログに情報を残すかどうかを指定する。
 1 が指定されればエラー情報を残す。
-2 が指定されれば、エラー情報に加え、CGIのリクエスト内容も残す（startCgi内でのエラーのみ）。
-3 が指定されれば、ローカル変数内容を含んだ詳細なエラー情報に加えて（但し PadWalker が必要）、CGIのリクエスト内容も残す。
+2 が指定されれば、エラー情報に加え、 CGI のリクエスト内容も残す（startCgi内でのエラーのみ）。
+3 が指定されれば、ローカル変数内容を含んだ詳細なエラー情報に加えて（但し PadWalker が必要）、 CGI のリクエスト内容も残す。
 0 であれば情報を残さない。
 デフォルトは 1。
 
@@ -2591,7 +2530,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="fcgilog"><span class="pod_lang">fcgilog
+<dt><a id="fcgilog"><span class="pod_lang"><code class="pod_iseq_C">fcgilog</code>
 
 </span></a></dt>
 <dd>
@@ -2607,7 +2546,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="memorylog"><span class="pod_lang">memorylog
+<dt><a id="memorylog"><span class="pod_lang"><code class="pod_iseq_C">memorylog</code>
 
 </span></a></dt>
 <dd>
@@ -2618,13 +2557,13 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 'leak', 'full' のどちらかから選ぶ。
 'leak' の場合は、メモリリークが検出された場合のみログに残す。
 'full' の場合は、メモリリークの検出とは無関係に、リクエスト毎にログに残す。
-デフォルトは 'leak'。
+デフォルトは 'leak' 。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="filelog"><span class="pod_lang">filelog
+<dt><a id="filelog"><span class="pod_lang"><code class="pod_iseq_C">filelog</code>
 
 </span></a></dt>
 <dd>
@@ -2632,29 +2571,29 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 
 <p>
 <span class="pod_lang">ファイルの更新の監視状況をログに残すかどうかを指定する。
-'update', 'full' のどちらかから選ぶ。
-'update' の場合は、ファイルが更新された場合のみログに残す。
-'full' の場合は、ファイルの監視を開始した際にもログに残す。
-デフォルトは 'update'。
+'<code class="pod_iseq_C">update</code>', '<code class="pod_iseq_C">full</code>' のどちらかから選ぶ。
+'<code class="pod_iseq_C">update</code>' の場合は、ファイルが更新された場合のみログに残す。
+'<code class="pod_iseq_C">full</code>' の場合は、ファイルの監視を開始した際にもログに残す。
+デフォルトは '<code class="pod_iseq_C">update</code>'。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="trap"><span class="pod_lang">trap
+<dt><a id="trap"><span class="pod_lang"><code class="pod_iseq_C">trap</code>
 
 </span></a></dt>
 <dd>
 <pre class="pod_verbatim"><code>  trap = die</code></pre>
 
 <p>
-<span class="pod_lang">エラー処理の種類。'none', 'die'，'diewithprint' から選ぶ。デフォルトは'die'。
+<span class="pod_lang">エラー処理の種類。'<code class="pod_iseq_C">none</code>', '<code class="pod_iseq_C">die</code>'，'<code class="pod_iseq_C">diewithprint</code>' から選ぶ。デフォルトは'<code class="pod_iseq_C">die</code>'。
 
 </span>
 </p>
 
 <dl>
-<dt><a id="none"><span class="pod_lang">none
+<dt><a id="none"><span class="pod_lang"><code class="pod_iseq_C">none</code>
 
 </span></a></dt>
 <dd>
@@ -2665,23 +2604,23 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="die"><span class="pod_lang">die
+<dt><a id="die"><span class="pod_lang"><code class="pod_iseq_C">die</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> がdieした場合にエラー表示。それ以外の場所ではトラップしない。warnは見逃す。
+<span class="pod_lang"><a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> がdie した場合にエラー表示。それ以外の場所ではトラップしない。warnは見逃す。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="diewithprint"><span class="pod_lang">diewithprint
+<dt><a id="diewithprint"><span class="pod_lang"><code class="pod_iseq_C">diewithprint</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> がdieした場合にエラー表示。<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> 以外でdieした場合は、ヘッダと共にエラー内容をテキストで表示する。warnは見逃す。
+<span class="pod_lang"><a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> がdie した場合にエラー表示。<a href="#Main_Xe9X96Xa2Xe6X95Xb0">&quot;Main 関数&quot;</a> 以外でdie した場合は、ヘッダと共にエラー内容をテキストで表示する。warnは見逃す。
 
 </span>
 </p>
@@ -2690,7 +2629,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </dl>
 
 </dd>
-<dt><a id="stacktrace"><span class="pod_lang">stacktrace
+<dt><a id="stacktrace"><span class="pod_lang"><code class="pod_iseq_C">stacktrace</code>
 
 </span></a></dt>
 <dd>
@@ -2698,10 +2637,10 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 
 <p>
 <span class="pod_lang">エラー発生時に表示するスタックトレースの種類。'none' の場合は、スタック
-トレースを一切表示しない。'onlystack' の場合は、スタックトレースのみを
+トレースを一切表示しない。'<code class="pod_iseq_C">onlystack</code>' の場合は、スタックトレースのみを
 表示する。'full' の場合は、スタックトレースに加えてソースコード本体並び
 に各フレームに於けるローカル変数の一覧をも表示する。デフォルトは
- 'onlystack'。
+ '<code class="pod_iseq_C">onlystack</code>'。
 
 </span>
 </p>
@@ -2714,7 +2653,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <p>
-<span class="pod_lang">注意: 'full' の状態では、stackallow で許された全てのユーザーが、
+<span class="pod_lang">注意: 'full' の状態では、<code class="pod_iseq_C">stackallow</code> で許された全てのユーザーが、
 ブラウザから全てのソースコード及び ini
 ファイルの中身を読む事が出来る点に注意すること。
 
@@ -2722,14 +2661,14 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="stackallow"><span class="pod_lang">stackallow
+<dt><a id="stackallow"><span class="pod_lang"><code class="pod_iseq_C">stackallow</code>
 
 </span></a></dt>
 <dd>
 <pre class="pod_verbatim"><code>  stackallow = 192.168.0.0/24</code></pre>
 
 <p>
-<span class="pod_lang">stacktrace の値が 'none' でない場合であっても、stackallow で指定された
+<span class="pod_lang"><code class="pod_iseq_C">stacktrace</code> の値が 'none' でない場合であっても、<code class="pod_iseq_C">stackallow</code> で指定された
 ネットマスクに該当しない IP からの接続である場合には、スタックトレース
 を表示しない。マスクは空白で区切って複数個指定する事が可能。
 デフォルトは全て禁止。
@@ -2738,14 +2677,14 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="maxrequestcount"><span class="pod_lang">maxrequestcount
+<dt><a id="maxrequestcount"><span class="pod_lang"><code class="pod_iseq_C">maxrequestcount</code>
 
 </span></a></dt>
 <dd>
 <pre class="pod_verbatim"><code>  maxrequestcount = 100</code></pre>
 
 <p>
-<span class="pod_lang">FastCGIモード時に、1つのプロセスで何回まで処理を行うかを設定する。
+<span class="pod_lang">FastCGI モード時に、1つのプロセスで何回まで処理を行うかを設定する。
 0を設定すれば回数によってプロセスが終了することはない。
 デフォルトは0。
 
@@ -2753,7 +2692,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="errortemplate"><span class="pod_lang">errortemplate
+<dt><a id="errortemplate"><span class="pod_lang"><code class="pod_iseq_C">errortemplate</code>
 
 </span></a></dt>
 <dd>
@@ -2767,7 +2706,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="errortemplatecharset"><span class="pod_lang">errortemplatecharset
+<dt><a id="errortemplatecharset"><span class="pod_lang"><code class="pod_iseq_C">errortemplatecharset</code>
 
 </span></a></dt>
 <dd>
@@ -2780,13 +2719,13 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <p>
-<span class="pod_lang">UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP が指定できる。デフォルトは UTF-8。
+<span class="pod_lang">UTF-8 ， Shift_JIS ， EUC-JP ， ISO-2022-JP が指定できる。デフォルトは UTF-8 。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="outputbuffering"><span class="pod_lang">outputbuffering
+<dt><a id="outputbuffering"><span class="pod_lang"><code class="pod_iseq_C">outputbuffering</code>
 
 </span></a></dt>
 <dd>
@@ -2815,13 +2754,13 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <p>
-<span class="pod_lang"><a href="././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> を利用した場合、outputbuffering は1にセットされる。
+<span class="pod_lang"><a href="././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> を利用した場合、<code class="pod_iseq_C">outputbuffering</code> は1にセットされる。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="allow_mutable_input_cgi_object"><span class="pod_lang">allow_mutable_input_cgi_object
+<dt><a id="allow_mutable_input_cgi_object"><span class="pod_lang"><code class="pod_iseq_C">allow_mutable_input_cgi_object</code>
 
 </span></a></dt>
 <dd>
@@ -2834,14 +2773,14 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <p>
-<span class="pod_lang">$TL-&gt;CGI で返される CGI 入力値を保持しているオブジェクトの
+<span class="pod_lang"><code class="pod_iseq_C">$TL-</code>CGI&gt; で返される CGI 入力値を保持しているオブジェクトの
 const 化を行わないようにする.
 
 </span>
 </p>
 
 </dd>
-<dt><a id="compat_no_trap_for_cgi_internal_error"><span class="pod_lang">compat_no_trap_for_cgi_internal_error
+<dt><a id="compat_no_trap_for_cgi_internal_error"><span class="pod_lang"><code class="pod_iseq_C">compat_no_trap_for_cgi_internal_error</code>
 
 </span></a></dt>
 <dd>
@@ -2854,9 +2793,9 @@ const 化を行わないようにする.
 </p>
 
 <p>
-<span class="pod_lang">CGIモード動作時の startCgi 外のエラーに対する
+<span class="pod_lang">CGI モード動作時の startCgi 外のエラーに対する
 エラー画面の表示を抑制する.
-(httpdによる通常の Internal Server Error 画面になります)
+(httpd による通常の Internal Server Error 画面になります)
 
 </span>
 </p>
@@ -2864,13 +2803,11 @@ const 化を行わないようにする.
 </dd>
 </dl>
 
-<h2><a id="Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">
-<span class="pod_lang">度量衡
+<h2><a id="Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1"><span class="pod_lang">度量衡
 
 </span></a></h2>
 
-<h3><a id="Xe6X99X82Xe9X96X93Xe6X8cX87Xe5XaeX9a">
-<span class="pod_lang">時間指定
+<h3><a id="Xe6X99X82Xe9X96X93Xe6X8cX87Xe5XaeX9a"><span class="pod_lang">時間指定
 
 </span></a></h3>
 
@@ -2900,7 +2837,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'sec'_or_'second'_or_'seconds'"><span class="pod_lang">数値＋ 'sec' or 'second' or 'seconds'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27secX27_or_X27secondX27_or_X27secondsX27"><span class="pod_lang">数値＋ 'sec' or 'second' or 'seconds'
 
 </span></a></dt>
 <dd>
@@ -2911,7 +2848,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'min'_or_'minute'_or_'minutes'"><span class="pod_lang">数値＋ 'min' or 'minute' or 'minutes'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27minX27_or_X27minuteX27_or_X27minutesX27"><span class="pod_lang">数値＋ 'min' or 'minute' or 'minutes'
 
 </span></a></dt>
 <dd>
@@ -2922,7 +2859,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'hour'_or_'hours'"><span class="pod_lang">数値＋ 'hour' or 'hours'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27hourX27_or_X27hoursX27"><span class="pod_lang">数値＋ 'hour' or 'hours'
 
 </span></a></dt>
 <dd>
@@ -2933,7 +2870,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'day'_or_'days'"><span class="pod_lang">数値＋ 'day' or 'days'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27dayX27_or_X27daysX27"><span class="pod_lang">数値＋ 'day' or 'days'
 
 </span></a></dt>
 <dd>
@@ -2944,7 +2881,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'mon'_or_'month'_or_'months'"><span class="pod_lang">数値＋ 'mon' or 'month' or 'months'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27monX27_or_X27monthX27_or_X27monthsX27"><span class="pod_lang">数値＋ 'mon' or 'month' or 'months'
 
 </span></a></dt>
 <dd>
@@ -2955,7 +2892,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'year'_or_'years'"><span class="pod_lang">数値＋ 'year' or 'years'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27yearX27_or_X27yearsX27"><span class="pod_lang">数値＋ 'year' or 'years'
 
 </span></a></dt>
 <dd>
@@ -2968,8 +2905,7 @@ const 化を行わないようにする.
 </dd>
 </dl>
 
-<h3><a id="Xe9X87X8fXe6X8cX87Xe5XaeX9a">
-<span class="pod_lang">量指定
+<h3><a id="Xe9X87X8fXe6X8cX87Xe5XaeX9a"><span class="pod_lang">量指定
 
 </span></a></h3>
 
@@ -2986,8 +2922,7 @@ const 化を行わないようにする.
 </span>
 </p>
 
-<h4><a id="X10Xe9X80Xb2Xe6X95Xb0Xe7Xb3Xbb">
-<span class="pod_lang">10進数系
+<h4><a id="X10Xe9X80Xb2Xe6X95Xb0Xe7Xb3Xbb"><span class="pod_lang">10進数系
 
 </span></a></h4>
 
@@ -3003,7 +2938,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'k'"><span class="pod_lang">数値＋ 'k'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27kX27"><span class="pod_lang">数値＋ 'k'
 
 </span></a></dt>
 <dd>
@@ -3014,7 +2949,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'m'"><span class="pod_lang">数値＋ 'm'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27mX27"><span class="pod_lang">数値＋ 'm'
 
 </span></a></dt>
 <dd>
@@ -3025,7 +2960,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'g'"><span class="pod_lang">数値＋ 'g'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27gX27"><span class="pod_lang">数値＋ 'g'
 
 </span></a></dt>
 <dd>
@@ -3036,7 +2971,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'t'"><span class="pod_lang">数値＋ 't'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27tX27"><span class="pod_lang">数値＋ 't'
 
 </span></a></dt>
 <dd>
@@ -3047,7 +2982,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'p'"><span class="pod_lang">数値＋ 'p'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27pX27"><span class="pod_lang">数値＋ 'p'
 
 </span></a></dt>
 <dd>
@@ -3058,7 +2993,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'e'"><span class="pod_lang">数値＋ 'e'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27eX27"><span class="pod_lang">数値＋ 'e'
 
 </span></a></dt>
 <dd>
@@ -3071,13 +3006,12 @@ const 化を行わないようにする.
 </dd>
 </dl>
 
-<h4><a id="X2Xe9X80Xb2Xe6X95Xb0Xe7Xb3Xbb">
-<span class="pod_lang">2進数系
+<h4><a id="X2Xe9X80Xb2Xe6X95Xb0Xe7Xb3Xbb"><span class="pod_lang">2進数系
 
 </span></a></h4>
 
 <dl>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ki'"><span class="pod_lang">数値＋ 'Ki'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27KiX27"><span class="pod_lang">数値＋ 'Ki'
 
 </span></a></dt>
 <dd>
@@ -3088,7 +3022,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Mi'"><span class="pod_lang">数値＋ 'Mi'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27MiX27"><span class="pod_lang">数値＋ 'Mi'
 
 </span></a></dt>
 <dd>
@@ -3099,7 +3033,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Gi'"><span class="pod_lang">数値＋ 'Gi'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27GiX27"><span class="pod_lang">数値＋ 'Gi'
 
 </span></a></dt>
 <dd>
@@ -3110,7 +3044,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ti'"><span class="pod_lang">数値＋ 'Ti'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27TiX27"><span class="pod_lang">数値＋ 'Ti'
 
 </span></a></dt>
 <dd>
@@ -3121,7 +3055,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Pi'"><span class="pod_lang">数値＋ 'Pi'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27PiX27"><span class="pod_lang">数値＋ 'Pi'
 
 </span></a></dt>
 <dd>
@@ -3132,7 +3066,7 @@ const 化を行わないようにする.
 </p>
 
 </dd>
-<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ei'"><span class="pod_lang">数値＋ 'Ei'
+<dt><a id="Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27EiX27"><span class="pod_lang">数値＋ 'Ei'
 
 </span></a></dt>
 <dd>
@@ -3147,8 +3081,7 @@ const 化を行わないようにする.
 
 
 <hr />
-<h1><a id="SAMPLE">
-<span class="pod_lang">SAMPLE
+<h1><a id="SAMPLE"><span class="pod_lang">SAMPLE
 
 </span></a></h1>
 
@@ -3257,8 +3190,7 @@ const 化を行わないようにする.
 
 
 <hr />
-<h1><a id="SEE_ALSO">
-<span class="pod_lang">SEE ALSO
+<h1><a id="SEE_ALSO"><span class="pod_lang">SEE ALSO
 
 </span></a></h1>
 
@@ -3278,7 +3210,7 @@ const 化を行わないようにする.
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">CGI向けデバッグ機能。
+<span class="pod_lang">CGI 向けデバッグ機能。
 
 </span>
 </p>
@@ -3384,14 +3316,13 @@ const 化を行わないようにする.
 
 
 <hr />
-<h1><a id="AUTHOR_INFORMATION">
-<span class="pod_lang">AUTHOR INFORMATION
+<h1><a id="AUTHOR_INFORMATION"><span class="pod_lang">AUTHOR INFORMATION
 
 </span></a></h1>
 
 <ul>
 <p>
-<span class="pod_lang">Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+<span class="pod_lang">Copyright 2006 YMIRLINK Inc.
 
 </span>
 </p>
@@ -3409,7 +3340,7 @@ const 化を行わないようにする.
 </p>
 
 <p>
-<span class="pod_lang">Address bug reports and comments to: tl@tripletail.jp
+<span class="pod_lang">Address bug reports and comments to: <code class="pod_iseq_C">tl@tripletail.jp</code>
 
 </span>
 </p>
@@ -3439,16 +3370,16 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#X2Xe9X80Xb2Xe6X95Xb0Xe7Xb3Xbb">2進数系</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#CGI">CGI</a></li>
-<li><a href="#CGIXe3X83Xa2Xe3X83XbcXe3X83X89">CGIモード</a></li>
+<li><a href="#CGI_Xe3X83Xa2Xe3X83XbcXe3X83X89">CGI モード</a></li>
 <li><a href="#X__14">Crypt::SMIME</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
-<li><a href="#FastCGIXe3X83Xa2Xe3X83XbcXe3X83X89">FastCGIモード</a></li>
+<li><a href="#FastCGI_Xe3X83Xa2Xe3X83XbcXe3X83X89">FastCGI モード</a></li>
 <li><a href="#INI">INI</a></li>
 <li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">Ini パラメータ</a></li>
 <li><a href="#METHODS">METHODS</a></li>
-<li><a href="#MainXe9X96Xa2Xe6X95Xb0">Main関数</a></li>
+<li><a href="#Main_Xe9X96Xa2Xe6X95Xb0">Main 関数</a></li>
 <li><a href="#NAME">NAME</a></li>
-<li><a href="#NAME_(ja)">NAME (ja)</a></li>
+<li><a href="#NAME_X28jaX29">NAME (ja)</a></li>
 <li><a href="#SAMPLE">SAMPLE</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
@@ -3492,6 +3423,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#escapeJsString">escapeJsString</a></li>
 <li><a href="#escapeSqlLike">escapeSqlLike</a></li>
 <li><a href="#escapeTag">escapeTag</a></li>
+<li><a href="#eval">eval</a></li>
 <li><a href="#fault_handler">fault_handler</a></li>
 <li><a href="#fcgilog">fcgilog</a></li>
 <li><a href="#file-update">file-update</a></li>
@@ -3581,24 +3513,24 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">度量衡</a></li>
 <li><a href="#Xe6X90XbaXe5Xb8XafXe5X90X91Xe3X81X91Xe8Xa8XadXe5XaeX9a">携帯向け設定</a></li>
 <li><a href="#Xe6X95Xb0Xe5X80Xa4Xe3X81XaeXe3X81Xbf_00">数値のみ</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ei'">数値＋ 'Ei'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Gi'">数値＋ 'Gi'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ki'">数値＋ 'Ki'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Mi'">数値＋ 'Mi'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Pi'">数値＋ 'Pi'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ti'">数値＋ 'Ti'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'day'_or_'days'">数値＋ 'day' or 'days'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'e'">数値＋ 'e'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'g'">数値＋ 'g'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'hour'_or_'hours'">数値＋ 'hour' or 'hours'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'k'">数値＋ 'k'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'m'">数値＋ 'm'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'min'_or_'minute'_or_'minutes'">数値＋ 'min' or 'minute' or 'minutes'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'mon'_or_'month'_or_'months'">数値＋ 'mon' or 'month' or 'months'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'p'">数値＋ 'p'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'sec'_or_'second'_or_'seconds'">数値＋ 'sec' or 'second' or 'seconds'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'t'">数値＋ 't'</a></li>
-<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'year'_or_'years'">数値＋ 'year' or 'years'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27EiX27">数値＋ 'Ei'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27GiX27">数値＋ 'Gi'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27KiX27">数値＋ 'Ki'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27MiX27">数値＋ 'Mi'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27PiX27">数値＋ 'Pi'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27TiX27">数値＋ 'Ti'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27dayX27_or_X27daysX27">数値＋ 'day' or 'days'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27eX27">数値＋ 'e'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27gX27">数値＋ 'g'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27hourX27_or_X27hoursX27">数値＋ 'hour' or 'hours'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27kX27">数値＋ 'k'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27mX27">数値＋ 'm'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27minX27_or_X27minuteX27_or_X27minutesX27">数値＋ 'min' or 'minute' or 'minutes'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27monX27_or_X27monthX27_or_X27monthsX27">数値＋ 'mon' or 'month' or 'months'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27pX27">数値＋ 'p'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27secX27_or_X27secondX27_or_X27secondsX27">数値＋ 'sec' or 'second' or 'seconds'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27tX27">数値＋ 't'</a></li>
+<li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_X27yearX27_or_X27yearsX27">数値＋ 'year' or 'years'</a></li>
 <li><a href="#Xe6X99X82Xe9X96X93Xe6X8cX87Xe5XaeX9a">時間指定</a></li>
 <li><a href="#Xe6X9bXb8Xe3X81X8dXe8XbeXbcXe3X81XbfXe5X81Xb4Xe4XbeX8bXefXbcX88Xe3X83X9aXe3X83XbcXe3X82Xb8Xe5X85Xa8Xe4XbdX93Xe3X82X92Xe3X82XadXe3X83Xa3Xe3X83X83Xe3X82Xb7Xe3X83Xa5XefXbcX89">書き込み側例（ページ全体をキャッシュ）</a></li>
 <li><a href="#Xe6X9bXb8Xe3X81X8dXe8XbeXbcXe3X81XbfXe5X81Xb4Xe4XbeX8bXefXbcX88Xe3X83Xa6Xe3X83XbcXe3X82Xb6Xe3X83XbcXe5X90X8dXe7XadX89Xe4Xb8X80Xe9X83Xa8Xe3X81XabXe5X9bXbaXe6X9cX89Xe3X81XaeXe6X83X85Xe5Xa0Xb1Xe3X82X92Xe5X9fX8bXe3X82X81Xe8XbeXbcXe3X82X93Xe3X81Xa7Xe3X81X84Xe3X82X8bXe5Xa0Xb4Xe5X90X88XefXbcX89">書き込み側例（ユーザー名等一部に固有の情報を埋め込んでいる場合）</a></li>

@@ -545,6 +545,22 @@ sub getFileName {
 		die __PACKAGE__."#getFileName: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
+	my $filename = $this->{filename}{$key};
+	if( defined($filename) && !$TL->INI->get(TL=>'compat_form_getfilename_returns_fullpath') )
+	{
+		$filename =~ s{.*[/\\]}{};
+	}
+	$filename;
+}
+
+sub getFullFileName {
+	my $this = shift;
+	my $key = shift;
+
+	if(ref($key)) {
+		die __PACKAGE__."#getFullFileName: arg[1] is a reference. (第1引数がリファレンスです)\n";
+	}
+
 	$this->{filename}{$key};
 }
 
@@ -1097,6 +1113,18 @@ undef を返す。
 る。ファイルアップロードではなかった場合や、キーが存在しない場合は
 undef を返す。
 
+ファイル名はベース名部分のみを返す(0.45以降)。
+(以前の動作に関しては L<Tripletail/compat_form_getfilename_returns_fullpath> 
+を参照。)
+
+=item getFullFileName
+
+  $filename = $form->getFullFileName($key)
+
+L</getFileName> と同様だが、(提供されている場合)フルパスで返す。
+
+(0.45 以降)
+
 =item setFileName
 
   $form->setFileName($key => $value)
@@ -1183,7 +1211,7 @@ L<Tripletail>
 
 =over 4
 
-Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+Copyright 2006 YMIRLINK Inc.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
 
