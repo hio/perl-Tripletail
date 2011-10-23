@@ -134,6 +134,12 @@ sub test05_upload
 				#maxrequestsize => 1,
 				maxfilesize => 1,
 				fault_handler => '::_test5_fault_handler',
+				logdir => 'logs',
+			},
+			Debug => {
+				enable_debug    => 1,
+				request_logging => 1,
+				content_logging => 1,
 			},
 		},
 		method => 'POST',
@@ -149,7 +155,8 @@ sub test05_upload
 		},
 	});
 	SKIP:{
-		ok(!$ret->is_success, "[test5] fetch failed");
+		ok(!$ret->is_success, "[test5] fetch failed")
+			or diag($ret->{content}),skip('fetch succeeded unexpectedly', 3);
 		like($ret->{content}, qr/we are getting too large file which exceeds the limit./, "[test5] file too big");
 		like($ret->{content}, qr/^test5 handler\n/, "[test5] customized content");
 		unlike($ret->{content}, qr/<html\b/, "[test5] customized content, no html tag");

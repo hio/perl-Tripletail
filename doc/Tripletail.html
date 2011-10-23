@@ -2371,10 +2371,11 @@ printCacheUnlessModifiedより後で実行する必要がある。
  package MyApp;
  sub FaultHandler
  {
+   my $pkg = shift;
    my $err = shift;
    
    print &quot;Status: 413 Request Entity Too Large\r\n&quot;;
-   print &quot;Cotent-Type: text/plain; charset=utf-8\r\n&quot;;
+   print &quot;Content-Type: text/plain; charset=utf-8\r\n&quot;;
    print &quot;\r\n&quot;;
    print &quot;error: $err\n&quot;;
  }</code></pre>

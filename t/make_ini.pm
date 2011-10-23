@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: make_ini.pm 4284 2007-09-13 06:39:18Z hio $
+# $Id: make_ini.pm 4751 2007-10-03 08:58:46Z hio $
 # -----------------------------------------------------------------------------
 package t::make_ini;
 use strict;
@@ -183,10 +183,10 @@ sub tltest
 		my $caller = $opts->{caller} || caller();
 		select((select($chl_w),$|=1)[0]);
 		eval{
-			open(STDIN,  '<&',  $chl_r) or die "dup2(stdin): $!";
-			open(STDOUT, '>>&', $chl_w) or die "dup2(stdout): $!";
-			open(STDERR, '>>&', $chl_w) or die "dup2(stderr): $!";
-			close $chl_r;
+			# dup2 does not works well on MSWin32.
+			local(*STDIN)  = $chl_r;
+			local(*STDOUT) = $chl_w;
+			local(*STDERR) = $chl_w;
 			$| = 1;
 			eval "{package $caller; use Tripletail qw($INI_FILE);1;}";
 			$@ and die "load: $@";

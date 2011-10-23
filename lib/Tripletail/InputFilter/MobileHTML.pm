@@ -52,24 +52,14 @@ sub _getIncode {
 		}
 	}
 
-	if(my $agent = $ENV{HTTP_USER_AGENT}) {
-		if($agent =~ m/^DoCoMo/i) {
-			return 'sjis-imode';
-		} elsif($agent =~ m/^ASTEL/i) {
-			return 'sjis-doti';
-		} elsif($agent =~ m/^(Vodafone|SoftBank|MOT-)/i) {
-			return 'utf8-jsky';
-		} elsif($agent =~ m/^J-PHONE/i) {
-			return 'sjis-jsky';
-		} elsif($agent =~ m/UP\.Browser/i) {
-			# Softbank端末かつUP.Browserを含むものもあるのでSoftbankの後に判別すること
-			return 'sjis-au';
-		}
-	}
+    if (my $charset = $TL->newValue($ENV{HTTP_USER_AGENT})->detectMobileAgent()) {
+        return $charset;
+    }
 
-	if(defined $CCC) {
+	if (defined $CCC) {
 		$this->_getIncodeFromCCC($CCC);
-	} else {
+	}
+    else {
 		'auto';
 	}
 }

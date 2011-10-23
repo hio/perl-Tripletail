@@ -139,7 +139,7 @@ Tripletail::Pager - ページング処理
     &lt;!begin:CurPage&gt;現在&lt;&amp;CURPAGE&gt;ページ目&lt;!end:CurPage&gt;
     ...
     &lt;!begin:Row&gt;
-      &lt;!-- 行データを展開する &lt;&amp;XXX&gt; タグを記述する --&gt;
+      &lt;!-- 行データを展開する ＜＆ＸＸＸ＞ タグを半角で記述する --&gt;
     &lt;!end:Row&gt;
     ...
   &lt;!end:paging&gt;
@@ -204,7 +204,7 @@ Tripletail::Pager - ページング処理
     ...
   &lt;!end:paging&gt;
   &lt;!begin:Row&gt;
-    &lt;!-- 行データを展開する &lt;&amp;XXX&gt; タグを記述する --&gt;
+    &lt;!-- 行データを展開する ＜＆ＸＸＸ＞ タグを半角で記述する --&gt;
   &lt;!end:Row&gt;
   &lt;!-- 以下は Pager クラスの処理とは関係ないため、無くても良い --&gt;
   &lt;!begin:nodata&gt;
@@ -319,7 +319,8 @@ DBオブジェクトを渡す。
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $pager-&gt;setFormParam($CGI)</code></pre>
+<pre class="pod_verbatim"><code>  $pager-&gt;setFormParam($form_obj)
+  $pager-&gt;setFormParam($hashref)</code></pre>
 
 <p>
 <span class="pod_lang">ページ移動リンクに追加されるフォームを指定する。デフォルトでは何も追加されない。

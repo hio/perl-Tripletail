@@ -71,17 +71,17 @@ sub send {
 	my $this = shift;
 	my $data = $this->_getoptSend(@_);
 
-	$this->_sendCommand("RSET");
-	if($this->{status}{resultcode} =~ m/^[45]/) {
-		die __PACKAGE__."#send: RSET command failed. (RSETコマンドが失敗しました)\n";
-	}
+	$this->_reset;
 
 	# send from
 
 	$this->_resetBufferedNum;
 	$this->_sendCommand("MAIL From:<$data->{from}>");
 	if($this->{status}{resultcode} =~ m/^[45]/) {
-		die __PACKAGE__."#send: MAIL From command failed. (MAIL From コマンドが失敗しました)\n";
+		my $message = $this->{status}{resultmessage};
+		$message =~ s/\n$//;
+		$message =~ s,\n, / ,g;
+		die __PACKAGE__."#send: MAIL From command failed. [$this->{status}{resultcode} $message] (MAIL From コマンドが失敗しました)\n";
 	}
 
 	# send rcpt
@@ -101,13 +101,28 @@ sub send {
 
 	$this->_waitReply;
 	if($this->{status}{resultcode} =~ m/^[45]/) {
-		$this->_sendCommand("RSET");
-		die __PACKAGE__."#send: DATA command failed. (DATAコマンドが失敗しました)\n";
+		my $message = $this->{status}{resultmessage};
+		$message =~ s/\n$//;
+		$message =~ s,\n, / ,g;
+		die __PACKAGE__."#send: DATA command failed. [$this->{status}{resultcode} $message] (DATAコマンドが失敗しました)\n";
+		$this->_reset;
 	}
 
 	$this->_sendData($data->{data});
 
 	$this;
+}
+
+sub _reset {
+	my $this = shift;
+	
+	$this->_sendCommand("RSET");
+	if($this->{status}{resultcode} =~ m/^[45]/) {
+		my $message = $this->{status}{resultmessage};
+		$message =~ s/\n$//;
+		$message =~ s,\n, / ,g;
+		die __PACKAGE__."#send: RSET command failed. [$this->{status}{resultcode} $message] (RSETコマンドが失敗しました)\n";
+	}
 }
 
 sub _setLogging {
@@ -256,6 +271,7 @@ sub _sendCommand {
 
 	$SIG{ALRM} = sub { die __PACKAGE__."#_sendCommand: command transfer has timed out: [$command]($nowaitflag) (コマンド送信がタイムアウトしました)\n"; };
 	$this->_log("send>> $command");
+	local($\) = '';
 	alarm($this->{timeout_period});
 	print $sock "$command\r\n";
 	alarm(0);
@@ -281,6 +297,7 @@ sub _sendData {
 
 	$SIG{ALRM} = sub { die __PACKAGE__."#_sendData: data transfer has timed out. (データ送信がタイムアウトしました)\n"; };
 	alarm($this->{timeout_period});
+	local($\) = '';
 
 	foreach my $line (split(/\r?\n/, $data)) {
 		$line =~ s/^\./../;

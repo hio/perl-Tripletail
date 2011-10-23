@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 157 + 6*4+7;
+use Test::More tests => 188;
 
 #---------------------------------- 一般
 my $v;
@@ -126,6 +126,9 @@ ok($v->isSjisLen(0, 6), 'isSjisLen');
 ok(! $v->isSjisLen(0, 5), 'isSjisLen');
 ok($v->isCharLen(0, 3), 'isCharLen');
 ok(! $v->isCharLen(0, 2), 'isCharLen');
+
+ok $v->set('example.org')->isDomainName, 'example.org is a domain name';
+ok !$v->set('-example.org')->isDomainName, '-example.org is not a domain name';
 
 is($v->set("192.168.0.1")->isIpAddress("10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1"), 1, 'isIpAddress');
 is($v->set("255.168.0.1")->isIpAddress("10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1"), undef, 'isIpAddress');
@@ -255,8 +258,7 @@ ok($v->genRandomString(10), "genRandomString, without type");
   my $s = $v->genRandomString($len, $type);
   ok($s, "genRandomString($name)");
   is(length($s), $len, "genRandomString($name).length ($len)");
-  like($s, qr/[A-Z]/, "genRandomString($name) contains ALPHA");
-  like($s, qr/[a-z]/, "genRandomString($name) contains alpha");
-  like($s, qr/[0-9]/, "genRandomString($name) contains num");
-  like($s, qr/_/,     "genRandomString($name) contains '_'");
 }
+
+is($TL->newValue('SoftBank/XXX')->detectMobileAgent, 'utf8-jsky', 'detectMobileAgent(SoftBank/XXX)');
+is($TL->newValue(undef)->detectMobileAgent, undef, 'detectMobileAgent(undef)');

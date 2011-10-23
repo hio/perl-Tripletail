@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 4726 2007-09-27 03:03:28Z mikage $
+# $Id: Tripletail.pm 4755 2007-10-04 09:10:50Z hio $
 package Tripletail;
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -23,6 +23,8 @@ our %_FILE_CACHE;
 my $_FILE_CACHE_MAXSIZE = 10_1024*1024;
 my $_FILE_CACHE_CURSIZE = 150; # variables for caching.
 our $CWD;
+our $IS_FCGI_WIN32;
+our $FCGI_LOADMSG_WIN32;
 
 # 動的スコープにより startCgi 内部である事を表す。
 # 他のパッケージからも参照されるので削除してはならない。
@@ -471,7 +473,7 @@ sub startCgi {
 			local $SIG{USR1} = sub {
 				$this->log("SIGUSR1 received");
 				$exit_requested = 1;
-			};
+			} if( exists($SIG{USR1}) );
 			local $SIG{TERM} = sub {
 				# NB: FCGIモードでは、fastcgiマネージャから
 				#     SIGTERMが送られてくる為、
@@ -497,7 +499,7 @@ sub startCgi {
 					local $SIG{USR1} = sub {
 						$exit_requested = 1;
 						die("SIGUSR1 received\n");
-					};
+					} if( exists($SIG{USR1}) );
 					local $SIG{TERM} = sub {
 						$exit_requested = 1;
 						die("SIGTERM received\n");
@@ -801,6 +803,7 @@ sub log {
         # "呼出し元ファイル名(行数):関数名"
         my ($filename, $line) = (caller 0)[1, 2];
         my $sub = (caller 1)[3];
+        defined($sub) or $sub = '(nosub)';
 
         $group   = sprintf '%s(%d) >> %s', $filename, $line, $sub;
         $message = $stringify->(shift);
@@ -2017,19 +2020,48 @@ sub _gensym {
 	$ref;
 }
 
-sub _getRunMode {
+sub _getRunMode
+{
 	my $this = shift;
 
-    if (!defined(getpeername(STDIN)) and $! == ENOTCONN) {
-        # http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S2.2
-		'FCGI';
+	if( UNIVERSAL::isa(tied(*STDIN), "FCGI::Stream") )
+	{
+		# already in fcgi-request.
+		return 'FCGI';
 	}
-    elsif ($ENV{GATEWAY_INTERFACE}) {
-		'CGI';
+	if( defined(fileno(STDIN)) && !defined(getpeername(STDIN)) and $!{ENOTCONN} ) {
+		# http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S2.2
+		# but win32 says ENOTSOCK.
+		return 'FCGI';
 	}
-    else {
-		'script';
+	if( $ENV{GATEWAY_INTERFACE} )
+	{
+		return 'CGI';
 	}
+	if( $^O eq 'MSWin32' )
+	{
+		if( !defined($IS_FCGI_WIN32) )
+		{
+			local($@);
+			local $SIG{__DIE__} = 'DEFAULT';
+			eval 'use FCGI';
+			if( $@ )
+			{
+				$IS_FCGI_WIN32 = 0;
+				$FCGI_LOADMSG_WIN32 = $@;
+			}else
+			{
+				my $req = FCGI::Request();
+				$IS_FCGI_WIN32 = $req->IsFastCGI();
+				$FCGI_LOADMSG_WIN32 = $IS_FCGI_WIN32 ? '' : 'No FCGI Enviconment';
+			}
+		}
+		if( $IS_FCGI_WIN32 )
+		{
+			return 'FCGI';
+		}
+	}
+	'script';
 }
 
 sub _decodeFromURL {
@@ -2166,7 +2198,7 @@ sub __executeCgi {
 				($@->message =~ /we got EOF while reading from stdin/)
 			)
 		);
-		print "Content-Type: text/plain\r\n\r\nI/O Error\r\n";
+		print "Content-Type: text/plain\r\n\r\nI/O Error\r\n$@";
 	}
 	else {
 		$this->{CGI} = $this->{CGIORIG}->clone->_trace;
@@ -2244,8 +2276,16 @@ sub _secure_env
 {
 	my $this = shift;
 	my $uid = $<;
-	my $username = getpwuid($uid);
-	my $home = (getpwuid($uid))[7];
+	my ($username, $home);
+	if( $^O ne 'MSWin32' )
+	{
+		$username = getpwuid($uid);
+		$home     = (getpwuid($uid))[7];
+	}else
+	{
+		$username = 'anonymous';
+		$home     = 'C:/';
+	}
 	+{
 		LANG => 'C',
 		PATH => '/bin:/usr/bin',
@@ -3210,10 +3250,11 @@ startCgi での最大リクエストサイズ若しくは
  package MyApp;
  sub FaultHandler
  {
+   my $pkg = shift;
    my $err = shift;
    
    print "Status: 413 Request Entity Too Large\r\n";
-   print "Cotent-Type: text/plain; charset=utf-8\r\n";
+   print "Content-Type: text/plain; charset=utf-8\r\n";
    print "\r\n";
    print "error: $err\n";
  }

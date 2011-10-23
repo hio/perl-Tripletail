@@ -552,6 +552,21 @@ sub doFilter {
 }
 
 # -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::DomainName - DomainNameフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::DomainName;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	return grep { !$TL->newValue($_)->isDomainName() } @$values;
+}
+
+# -----------------------------------------------------------------------------
 # Tripletail::Validator::Filter::IpAddress - IpAddressフィルタ
 # -----------------------------------------------------------------------------
 package Tripletail::Validator::Filter::IpAddress;

@@ -55,6 +55,53 @@ my $re_ipv6_addr = qr{^
     [:a-fA-F0-9]{2,39}
 $}x;
 
+# ドメイン
+my $re_domain = do {
+
+    my $letter = qr{
+        [a-zA-Z]
+    }x;
+
+    my $letter_digit = qr{
+        [a-zA-Z0-9]
+    }x;
+
+    my $letter_digit_hyphen = qr{
+        [a-zA-Z0-9\-]
+    }x;
+
+    # RFC ではラベルの先頭に数字が来る事を禁止しているが、実際にはそのようなドメ
+    # インが存在する。
+    my $label = qr{
+        ${letter_digit}
+        ${letter_digit_hyphen}*
+        ${letter_digit}
+    }x;
+    
+    my $domain = qr{^
+        $label (?: \. $label)*
+    $}x;
+
+    $domain;
+};
+
+my @MOBILE_AGENTS = (
+    # [正規表現, UniJP の文字コード名]
+    
+    [qr/^DoCoMo/i    , 'sjis-imode'],
+    [qr/^ASTEL/i     , 'sjis-doti' ],
+    [qr/^Vodafone/i  , 'utf8-jsky' ],
+    [qr/^Vemulator/i , 'utf8-jsky' ],
+    [qr/^SoftBank/i  , 'utf8-jsky' ],
+    [qr/^Semulator/i , 'utf8-jsky' ],
+    [qr/^MOT-/i      , 'utf8-jsky' ],
+    [qr/^J-PHONE/i   , 'sjis-jsky' ],
+    [qr/^J-EMULATOR/i, 'sjis-jsky' ],
+    
+    # Softbank端末かつUP.Browserを含むものもあるのでSoftbankの後に判別すること
+    [qr/UP\.Browser/i, 'sjis-au'   ],
+   );
+
 1;
 
 #---------------------------------- 一般
@@ -582,6 +629,17 @@ sub isPcPortable {
 	
 	
 	return 1;
+}
+
+sub isDomainName {
+    my $this = shift;
+
+    if (defined $this->{value}) {
+        return $this->{value} =~ m/$re_domain/o;
+    }
+    else {
+        return;
+    }
 }
 
 sub isIpAddress {
@@ -1129,6 +1187,20 @@ sub genRandomString {
 	$password;
 }
 
+sub detectMobileAgent {
+    my $this = shift;
+
+    if (defined $this->{value}) {
+        foreach my $candidate (@MOBILE_AGENTS) {
+            if ($this->{value} =~ m/$candidate->[0]/) {
+                return $candidate->[1];
+            }
+        }
+    }
+
+    return;
+}
+
 #---------------------------------- 内部メソッド
 
 sub _isLeapYear {
@@ -1593,6 +1665,12 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 携帯絵文字は、文字コード変換によって Unicode上のプライベート領域（U+FF000～U+FFFFF）に
 マップされます。この領域の文字があるかで判定を行います。
 
+=item isDomainName
+
+  $bool = $val->isDomainName
+
+ドメイン名として正当であれば 1 を返し、そうでなければ undef を返す。
+
 =item isIpAddress
 
   $bool = $val->isIpAddress($checkmask)
@@ -1802,6 +1880,14 @@ C<alpha>、C<ALPHA>、C<num> で指定が可能。
      2 3 4 5 6 7 8  
  a   c d e f g h         m n   p   r   t u v w x y z
  A B C D E F G H   J K L M N   P   R S T U V W X Y Z
+
+=item detectMobileAgent
+
+  $charset = $val->detectMobileAgent()
+
+User-Agent 文字列から携帯電話の文字コード名を判別して返す。返される文字列は
+'sjis-au' のような Unicode::Japanese の文字コード名になる。判別できなかった場合は
+undef を返す。
 
 =back
 

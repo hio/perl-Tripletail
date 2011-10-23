@@ -140,7 +140,7 @@ my $ANS = q{
 <!mark:nodata>
 <!mark:overpage>};
 
-    plan tests => 83;
+    plan tests => 84;
 	$planned = 1;
 
     my $DB;
@@ -259,6 +259,7 @@ is($info->{rows},30,'rows');
 
   dies_ok {$pager->setFormParam(\123)} 'setFormKey die';
   ok($pager->setFormParam($TL->newForm(ddd => 666)), 'setFormKey');
+  ok($pager->setFormParam({ddd => 666}), 'setFormKey');
 
   dies_ok {$pager->setPagingType} 'setPagingType die';
   dies_ok {$pager->setPagingType(\123)} 'setPagingType die';

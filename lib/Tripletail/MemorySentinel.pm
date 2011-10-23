@@ -45,11 +45,12 @@ sub getMemorySize {
 
 	if(!defined($this->{getmemfunc})) {
 		my $uname = eval {
+			$^O eq 'MSWin32' and die 'MSWin32 is not supported';
 			`uname -sr`;
 		};
 		if($@) {
 			$TL->log(__PACKAGE__, "Failed to exec `uname -sr`. [$@]");
-			$uname = 'unknown';
+			$uname = $^O;
 		} else {
 			$uname =~ s/^\s*|\s*$//g;
 			$TL->log(__PACKAGE__, "Uname is [$uname]");

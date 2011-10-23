@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 148;
+use Test::More tests => 151;
 
 use lib '.';
 use t::make_ini {
@@ -440,6 +440,16 @@ sub toHash {
   is($error->{false}, 'PcPortable', 'check');
   is($form->get('force'), '', 'check force');
   $validator = $TL->newValidator;
+
+#---DomainName
+  ok($validator->addFilter({
+      true  => 'DomainName',
+      false => 'DomainName',
+  }), 'addFilter');
+  $form->set(true => 'example.com', false => 'example-.com');
+  $error = $validator->check($form);
+  is($error->{true}, undef, 'check');
+  is($error->{false}, 'DomainName', 'check');
 
 #---IpAddress
   ok($validator->addFilter({

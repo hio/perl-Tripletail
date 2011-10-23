@@ -783,6 +783,19 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
+<dt><a id="isDomainName"><span class="pod_lang">isDomainName
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isDomainName</code></pre>
+
+<p>
+<span class="pod_lang">ドメイン名として正当であれば 1 を返し、そうでなければ undef を返す。
+
+</span>
+</p>
+
+</dd>
 <dt><a id="isIpAddress"><span class="pod_lang">isIpAddress
 
 </span></a></dt>
@@ -1212,6 +1225,21 @@ SJISの文字単位でカットする。
  A B C D E F G H   J K L M N   P   R S T U V W X Y Z</code></pre>
 
 </dd>
+<dt><a id="detectMobileAgent"><span class="pod_lang">detectMobileAgent
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $charset = $val-&gt;detectMobileAgent()</code></pre>
+
+<p>
+<span class="pod_lang">User-Agent 文字列から携帯電話の文字コード名を判別して返す。返される文字列は
+'sjis-au' のような Unicode::Japanese の文字コード名になる。判別できなかった場合は
+undef を返す。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 
@@ -1299,6 +1327,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#convWide">convWide</a></li>
 <li><a href="#convXe7Xb3Xbb">conv系</a></li>
 <li><a href="#countWords">countWords</a></li>
+<li><a href="#detectMobileAgent">detectMobileAgent</a></li>
 <li><a href="#forceHira">forceHira</a></li>
 <li><a href="#forceKata">forceKata</a></li>
 <li><a href="#forceMax($max,$val)">forceMax($max,$val)</a></li>
@@ -1321,6 +1350,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#getXe7Xb3Xbb">get系</a></li>
 <li><a href="#isBlank">isBlank</a></li>
 <li><a href="#isCharLen($min,$max)">isCharLen($min,$max)</a></li>
+<li><a href="#isDomainName">isDomainName</a></li>
 <li><a href="#isEmail">isEmail</a></li>
 <li><a href="#isEmpty">isEmpty</a></li>
 <li><a href="#isExistentDay">isExistentDay</a></li>

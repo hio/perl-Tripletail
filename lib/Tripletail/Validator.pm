@@ -401,6 +401,10 @@ Shift-Jisでのバイト数の範囲が指定値以内かチェックする。�
 
 値が空（存在しないか0文字）なら検証OKとなる。
 
+=item DomainName
+
+ドメイン名として正当である事を確認する。
+
 =item IpAddress
 
   IpAddress($checkmask)

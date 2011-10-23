@@ -114,6 +114,8 @@ sub setFormParam {
 
 	if(!defined($form)) {
 		$this->{formparam} = $TL->newForm;
+	} elsif(ref($form) eq 'HASH') {
+		$this->{formparam} = $TL->newForm($form);
 	} else {
 		if(ref($form) ne 'Tripletail::Form') {
 			die __PACKAGE__."#setFormParam: arg[1] is not an instance of Tripletail::Form. [$form] (第1引数がFormオブジェクトではありません)\n";
@@ -422,7 +424,7 @@ Tripletail::Pager - ページング処理
     <!begin:CurPage>現在<&CURPAGE>ページ目<!end:CurPage>
     ...
     <!begin:Row>
-      <!-- 行データを展開する <&XXX> タグを記述する -->
+      <!-- 行データを展開する ＜＆ＸＸＸ＞ タグを半角で記述する -->
     <!end:Row>
     ...
   <!end:paging>
@@ -467,7 +469,7 @@ L</pagingArray> や L</pagingHash> メソッドを利用する場合、
     ...
   <!end:paging>
   <!begin:Row>
-    <!-- 行データを展開する <&XXX> タグを記述する -->
+    <!-- 行データを展開する ＜＆ＸＸＸ＞ タグを半角で記述する -->
   <!end:Row>
   <!-- 以下は Pager クラスの処理とは関係ないため、無くても良い -->
   <!begin:nodata>
@@ -525,7 +527,8 @@ DBのグループ名を渡すこともできるが、この指定方法は今後
 
 =item setFormParam
 
-  $pager->setFormParam($CGI)
+  $pager->setFormParam($form_obj)
+  $pager->setFormParam($hashref)
 
 ページ移動リンクに追加されるフォームを指定する。デフォルトでは何も追加されない。
 
