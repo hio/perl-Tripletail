@@ -22,6 +22,7 @@ sub decodeCgi {
 	my $this = shift;
 	my $form = shift;
 
+	binmode(STDIN);
 	my $newform = $this->_formFromPairs(
 		$this->__pairsFromCgiInput);
 
@@ -183,6 +184,7 @@ sub __pairsFromMultipart {
 		index $buffer, $substr, 0;
 	};
 
+	my $rest_len = $ENV{CONTENT_LENGTH};
 	my $fill = sub {
 		# 一度EOFを検出した後に再びfillしようとしたらdie
 		if ($eof) {
@@ -194,6 +196,14 @@ sub __pairsFromMultipart {
 					  ? $chunksize : $req_limit - length($buffer));
 		if ($size == 0) {
 			die __PACKAGE__.", read buffer has been full.\n";
+		}
+		if( $size > $rest_len )
+		{
+			$size = $rest_len;
+			if ($size <= 0)
+			{
+				die __PACKAGE__.", already read CONTENT_LENGTH bytes ($ENV{CONTENT_LENGTH}).\n";
+			}
 		}
 		
 		my $chunk;
@@ -207,6 +217,7 @@ sub __pairsFromMultipart {
 		}
 		else {
 			$buffer .= $chunk;
+			$rest_len -= length($chunk);
 		}
 	};
 

@@ -21,6 +21,7 @@ sub decodeCgi {
 	my $this = shift;
 	my $form = shift;
 
+	binmode(STDIN);
 	my $newform = $this->_formFromPairs(
 	$this->__pairsFromCgiInput);
 

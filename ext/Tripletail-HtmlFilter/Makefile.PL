@@ -5,4 +5,5 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
   NAME         => 'Tripletail::HtmlFilter',
   VERSION_FROM => '../../lib/Tripletail.pm',
+  map{/([A-Z_]+)=(.*)/} @ARGV,
 );

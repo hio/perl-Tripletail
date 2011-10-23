@@ -17,10 +17,11 @@ sub main {
   # 文字コードの自動変換は行われません．
   # ファイル名は，->getFilename メソッドで取得できます．
   
-  if($CGI->exists('file')) {
+  if($CGI->getFileName('file')) {
+    my $fh = $CGI->getFile('file');
     $t->node('file')
-      ->add(FILENAME => $CGI->getFilename('file'),
-	    FILEDATA => $CGI->get('file'),
+      ->add(FILENAME => $CGI->getFileName('file'),
+	    FILEDATA => join('', <$fh>),
 	   );
   }
   

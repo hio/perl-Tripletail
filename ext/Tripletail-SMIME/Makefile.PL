@@ -18,5 +18,6 @@ WriteMakefile(
     INC                 => "$OPENSSL->{CFLAGS}",
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Tripletail-SMIME-*' },
+    map{/([A-Z_]+)=(.*)/} @ARGV,
 );
 

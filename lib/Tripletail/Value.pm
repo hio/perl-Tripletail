@@ -970,6 +970,56 @@ sub strCut {
 	@output;
 }
 
+sub genRandomString {
+	my $this = shift;
+	my $length = shift;
+	my $type = shift;
+
+	if(!defined($length)) {
+		die __PACKAGE__."#genRandomString, ARG[1] was undef.\n";
+	} elsif(ref($length)) {
+		die __PACKAGE__."#genRandomString, ARG[1] was a Ref. [$length]\n";
+	}
+
+	if(!defined($type)) {
+		$type = ['std'];
+	} elsif(ref($type) ne 'ARRAY') {
+		die __PACKAGE__."#genRandomString, ARG[2] was not ARRAY ref.\n";
+	}
+
+	my @str;
+	foreach my $key (@$type) {
+		if($key eq 'alpha') {
+			push(@str,'a'..'z');
+		} elsif($key eq 'ALPHA') {
+			push(@str,'A'..'Z');
+		} elsif($key eq 'num' || $key eq 'NUM') {
+			push(@str,'0'..'9');
+		} elsif($key eq 'std') {
+			push(@str,
+			     qw(    2 3 4 5 6 7 8  ),
+			     qw(a   c d e f g h         m n   p   r   t u v w x y z),
+			     qw(A B C D E F G H   J K L M N   P   R S T U V W X Y Z),
+			    );
+		} elsif($TL->newValue($key)->isCharLen(1,1)) {
+			push(@str,$key);
+		} else {
+			die __PACKAGE__."#genRandomString, ARG[2] [$key] is not supported.\n";
+		}
+	}
+	
+	if(!@str) {
+		die __PACKAGE__."#genRandomString, ARG[2] was undef.\n";
+	}
+	
+	my $password = '';
+	for(1..$length) {
+		$password .= $str[int(rand($#str+1))];
+	}
+	
+	$password;
+}
+
 #---------------------------------- 内部メソッド
 
 sub _isLeapYear {
@@ -1576,9 +1626,26 @@ SJISの文字単位でカットする。
 全角/半角スペースで単語に区切った時の個数を返す。
 
 =item strCut
+
   @str = $val->strCut($charanum)
 
 指定された文字数で文字列を区切り、配列に格納する。
+
+=item genRandomString
+
+  $randomstring = $val->genRandomString($length)
+  $randomstring = $val->genRandomString($length, \@types)
+
+C<$length> で指定された文字列長のランダムな文字列を生成する。
+使用する文字の種類は配列リファレンスで指定する。
+小文字アルファベット、大文字アルファベット、数値に関してはそれぞれ、
+C<alpha>、C<ALPHA>、C<num> で指定が可能。
+
+文字種を省略した時にデフォルトで使われる文字は以下の通り:
+
+     2 3 4 5 6 7 8  
+ a   c d e f g h         m n   p   r   t u v w x y z
+ A B C D E F G H   J K L M N   P   R S T U V W X Y Z
 
 =back
 

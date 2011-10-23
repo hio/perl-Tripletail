@@ -16,10 +16,11 @@ sub _new {
 	my $this = bless {} => $class;
 
 	$this->{group} = $group;
+	$this->{dbgroup} = $TL->INI->get($group => 'dbgroup');
 	$this->{dbgroup} or die __PACKAGE__."#new, dbgroup is not set.\n";
 
-	$this->{resend} = $TL->INI->get($group => reset, 1);
-	$this->{resendlimit} = $TL->INI->get($group => resendlimit, '24 hours');
+	$this->{resend} = $TL->INI->get($group => 'resend', 1);
+	$this->{resendlimit} = $TL->INI->get($group => 'resendlimit', '24 hours');
 
 	$this;
 }
@@ -108,7 +109,7 @@ L<Tripletail#startCgi|Tripletail/"startCgi"> で有効化しなければなら�
 
 =item resend
 
-  reset = 1
+  resend = 1
 
 送信失敗時に再送するかどうか。省略可能。
 0の場合、再送しない。

@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 131;
+use Test::More tests => 131 + 6*4+7;
 
 #---------------------------------- 一般
 my $v;
@@ -199,3 +199,31 @@ is($str[2],'うえ','strCut');
 is($str[3],'cd','strCut');
 is($str[4],'お','strCut');
 
+foreach my $iter (
+	['default', 10, undef,                   qr/^[a-zA-Z2-8]+$/],
+	['common',  20, [qw(alpha ALPHA num _)], qr/^\w+$/],
+	['alpha',    4, [qw(alpha)],             qr/^[a-z]+$/],
+	['ALPHA',   16, [qw(ALPHA)],             qr/^[A-Z]+$/],
+	['num',      6, [qw(num)],               qr/^[0-9]+$/],
+	['sym',      8, [qw(! = : _ & ~)],       qr/^[!=:_&~]+$/],
+)
+{
+  my ($name, $len, $type, $pat) = @$iter;
+  my $s = $v->genRandomString($len, $type);
+  ok($s, "genRandomString($name)");
+  is(length($s), $len, "genRandomString($name).length ($len)");
+  like($s, $pat, "genRandomString($name).pattern");
+  isnt($s, $v->genRandomString($len, $type), "genRandomString($name).another");
+}
+ok($v->genRandomString(10), "genRandomString, without type");
+{
+  my $iter = ['mix/long', 200, [qw(alpha ALPHA num _)], undef];
+  my ($name, $len, $type, $pat) = @$iter;
+  my $s = $v->genRandomString($len, $type);
+  ok($s, "genRandomString($name)");
+  is(length($s), $len, "genRandomString($name).length ($len)");
+  like($s, qr/[A-Z]/, "genRandomString($name) contains ALPHA");
+  like($s, qr/[a-z]/, "genRandomString($name) contains alpha");
+  like($s, qr/[0-9]/, "genRandomString($name) contains num");
+  like($s, qr/_/,     "genRandomString($name) contains '_'");
+}

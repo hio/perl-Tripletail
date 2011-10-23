@@ -1,5 +1,10 @@
 Revision history for Tripletail
 
+0.25	Tue Mar 27 14:40:11 JST 2007
+	- Value#genRandomString メソッドを追加.
+	- Esmtpが正常に動作しなかった問題を修正.
+	- Win32でPOST入力の処理に失敗する不具合の修正.
+
 0.24	Thu Mar  8 16:25:40 JST 2007
 	- Form#existsFile, Form#isUploaded メソッドを追加．
 	- Value#convKanaNallow, Value#convKanaWide メソッドを追加．

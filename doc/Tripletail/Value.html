@@ -1065,16 +1065,44 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
-<dt><a id="strCut_@str_=_$val->strCut($charanum)"><span class="pod_lang">strCut
-  @str = $val-&gt;strCut($charanum)
+<dt><a id="strCut"><span class="pod_lang">strCut
 
 </span></a></dt>
 <dd>
+<pre class="pod_verbatim"><code>  @str = $val-&gt;strCut($charanum)</code></pre>
+
 <p>
 <span class="pod_lang">指定された文字数で文字列を区切り、配列に格納する。
 
 </span>
 </p>
+
+</dd>
+<dt><a id="genRandomString"><span class="pod_lang">genRandomString
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $randomstring = $val-&gt;genRandomString($length)
+  $randomstring = $val-&gt;genRandomString($length, \@types)</code></pre>
+
+<p>
+<span class="pod_lang"><code class="pod_iseq_C">$length</code> で指定された文字列長のランダムな文字列を生成する。
+使用する文字の種類は配列リファレンスで指定する。
+小文字アルファベット、大文字アルファベット、数値に関してはそれぞれ、
+<code class="pod_iseq_C">alpha</code>、<code class="pod_iseq_C">ALPHA</code>、<code class="pod_iseq_C">num</code> で指定が可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">文字種を省略した時にデフォルトで使われる文字は以下の通り:
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>     2 3 4 5 6 7 8  
+ a   c d e f g h         m n   p   r   t u v w x y z
+ A B C D E F G H   J K L M N   P   R S T U V W X Y Z</code></pre>
 
 </dd>
 </dl>
@@ -1174,6 +1202,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#forceMin($max,$val)">forceMin($max,$val)</a></li>
 <li><a href="#forceNumber">forceNumber</a></li>
 <li><a href="#forceXe7Xb3Xbb">force系</a></li>
+<li><a href="#genRandomString">genRandomString</a></li>
 <li><a href="#get">get</a></li>
 <li><a href="#getAge">getAge</a></li>
 <li><a href="#getCharLen">getCharLen</a></li>
@@ -1212,7 +1241,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#setDateTime">setDateTime</a></li>
 <li><a href="#setTime">setTime</a></li>
 <li><a href="#setXe7Xb3Xbb">set系</a></li>
-<li><a href="#strCut_@str_=_$val->strCut($charanum)">strCut @str = $val-&gt;strCut($charanum)</a></li>
+<li><a href="#strCut">strCut</a></li>
 <li><a href="#trimWhitespace">trimWhitespace</a></li>
 <li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">その他</a></li>
 <li><a href="#Xe4Xb8X80Xe8X88Xac">一般</a></li>

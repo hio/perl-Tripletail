@@ -49,7 +49,7 @@ XSTEST_CODE
   my %argv = map{ /^(\w+)=(.*)$/ } @ARGV;
   use Config;
   my $cc = exists $argv{CC} ? $argv{CC} : $Config{cc};
-  my $ccopts = $argv{CCFLAGS}||$Config{ccflags};
+  my $ccopts = exists $argv{CCFLAGS} ? $argv{CCFLAGS} : $Config{ccflags};
   my $libs = ExtUtils::Liblist->ext($OPENSSL->{LIBS}) || '';
   
   my $cmd = "$cc $ccopts $OPENSSL->{CFLAGS} $xstest_src $libs -o $xstest_out";
