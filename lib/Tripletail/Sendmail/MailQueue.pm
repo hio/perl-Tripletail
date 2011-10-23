@@ -104,7 +104,7 @@ sub process {
 					or die __PACKAGE__."#process: failed to unlink [$outfile] (ファイルを削除できません)\n";
 			} else {
 				# 一時的失敗
-				my $deferral = "$this->{queuedir}/queue/$fname.$$";
+				my $deferral = "$this->{queuedir}/queue/$fname";
 				rename $outfile => $deferral
 					or die __PACKAGE__."#process: failed to rename [$outfile] => [$deferral] (リネームできません)\n";
 			}
@@ -309,6 +309,7 @@ sub _recover_outgoing {
 				);
 
 				my $requeue = "$queue/$fname";
+                $requeue =~ s/\.\d+$//; # pid を消す
 				rename $fpath => $requeue
 					or die __PACKAGE__."#process: failed to rename [$fpath] => [$requeue] (リネームできません)\n";
 			}
@@ -339,7 +340,7 @@ Tripletail::Sendmail::MailQueue - 独自のメールキューを使用するメ�
 
 =head1 DESCRIPTION
 
-送信要求されたメールを、Lib7のメールキューに保存する．
+送信要求されたメールを、TripletaiL のメールキューに保存する．
 
 キュー内に保存されたメールは、L</"process"> 呼び出し時に一括して配送される。
 
@@ -436,12 +437,12 @@ rm する。rename(2) する際、ファイル名の末尾に「.」とプロセ
 
 メールを定期的に調査し、設定されたMTAへSMTPで送信を行う。failure の場合は
 指定アドレスにメールを送るか、ログに書き込む（設定で変更可能）。deferral
-の場合は queue ディレクトリに rename(2) で戻す。末尾の .$pid はそのまま履歴。
+の場合は queue ディレクトリに rename(2) で戻す。末尾の .$pid は削除する。
 
 =item 修復 (mailqueue-recover)
 
 プロセスが存在しないのに、outgoing にファイルがある場合は、deferral として
-queue ディレクトリにrename(2) で戻す。末尾の .$pid はそのまま履歴。
+queue ディレクトリにrename(2) で戻す。末尾の .$pid は削除する。
 
 プロセスが存在しないのにincomingにファイルがある場合は、それを削除する。
 

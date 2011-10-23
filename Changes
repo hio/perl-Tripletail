@@ -1,5 +1,15 @@
 Revision history for Tripletail
 
+0.42 Thu Jun  5 11:27:13 JST 2008
+	- Template で, includeされるファイルの文字コードが常に自動認識だったのを, 親で指定されていればそれと同じ文字コードを使うように修正.
+	- Template.rootpath が相対パスで記述されている時に全てが不許可となるのを修正.
+	- DBで接続用グループが存在しなかったときのエラーメッセージを加筆.
+	- stratCgi外でのエラー(含コンパイルエラー)がInternal Server Errorとなっていたのをエラーメッセージを表示するように修正(compat_no_trap_for_cgi_internal_error).
+	- Errorオブジェクトに http_status_line フィールドを追加.
+	- $TL->printでのエラーがデバッグスクリーンにならないバグの修正.
+	- Value#isPcPortable でAUの絵文字が正しく判定されない問題を修正．
+	- enable_debugした際に出力が常にバッファリングされていたバグの修正.
+
 0.41 Mon Jan 28 12:27:55 JST 2008
 	- Makefile.PL がパラメータによって失敗することがあるのを修正.
 

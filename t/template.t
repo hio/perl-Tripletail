@@ -1,4 +1,4 @@
-use Test::More tests => 105;
+use Test::More tests => 108;
 use Test::Exception;
 use strict;
 use warnings;
@@ -455,3 +455,41 @@ is (trim $t->setTemplate($TMPL15)
            ->toStr,
     q{<a href="JavaScript:taglistOpen('http://.../hoge.cgi');"></a>},
     'expanding tags in html tag');
+
+
+my $TMPL16 = <<EOF;
+<form>
+  <input type="radio" name="area" value="a" disabled>
+  <input type="radio" name="area" value="b">
+</form>
+EOF
+is (trim $t->setTemplate($TMPL16)->setForm({area => 'a'})->toStr,
+    trim q{
+      <form>
+        <input type="radio" name="area" value="a" disabled="disabled" checked>
+        <input type="radio" name="area" value="b">
+      </form>
+    });
+is (trim $t->setTemplate($TMPL16)->setForm({area => 'b'})->toStr,
+    trim q{
+      <form>
+        <input type="radio" name="area" value="a" disabled>
+        <input type="radio" name="area" value="b" checked>
+      </form>
+    });
+
+
+my $TMPL17 = <<EOF;
+<form>
+  <textarea name="foo"></textarea>
+</form>
+EOF
+is ($t->setTemplate($TMPL17)->setForm({foo => "\n".'abcde'."\n"})->toStr,
+    <<EOF);
+<form>
+  <textarea name="foo">
+
+abcde
+</textarea>
+</form>
+EOF

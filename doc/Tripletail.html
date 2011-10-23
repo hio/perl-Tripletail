@@ -2374,12 +2374,20 @@ printCacheUnlessModifiedより後で実行する必要がある。
  {
    my $pkg = shift;
    my $err = shift;
+   my $status = ref($err) &amp;&amp; $err-&gt;{http_status_line};
+   $status ||= '500 Internal Server Error';
    
-   print &quot;Status: 413 Request Entity Too Large\r\n&quot;;
+   print &quot;Status: $status\r\n&quot;;
    print &quot;Content-Type: text/plain; charset=utf-8\r\n&quot;;
    print &quot;\r\n&quot;;
    print &quot;error: $err\n&quot;;
  }</code></pre>
+
+<p>
+<span class="pod_lang">(<code class="pod_iseq_C">http_status_line</code> は 0.42 以降でサポート)
+
+</span>
+</p>
 
 </dd>
 <dt><a id="logdir"><span class="pod_lang">logdir
@@ -2735,7 +2743,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 <pre class="pod_verbatim"><code>  allow_mutable_input_cgi_object = 1</code></pre>
 
 <p>
-<span class="pod_lang">非推奨. 互換のためのパラメータ. 
+<span class="pod_lang">非推奨. 互換のためのパラメータ. (0.40以降)
 
 </span>
 </p>
@@ -2743,6 +2751,27 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 <p>
 <span class="pod_lang">$TL-&gt;CGI で返される CGI 入力値を保持しているオブジェクトの
 const 化を行わないようにする.
+
+</span>
+</p>
+
+</dd>
+<dt><a id="compat_no_trap_for_cgi_internal_error"><span class="pod_lang">compat_no_trap_for_cgi_internal_error
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  compat_no_trap_for_cgi_internal_error = 1</code></pre>
+
+<p>
+<span class="pod_lang">互換のためのパラメータ. (0.42以降)
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">CGIモード動作時の startCgi 外のエラーに対する
+エラー画面の表示を抑制する.
+(httpdによる通常の Internal Server Error 画面になります)
 
 </span>
 </p>
@@ -3360,6 +3389,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#X__18">Tripletail::Value</a></li>
 <li><a href="#allow_mutable_input_cgi_object">allow_mutable_input_cgi_object</a></li>
 <li><a href="#charconv">charconv</a></li>
+<li><a href="#compat_no_trap_for_cgi_internal_error">compat_no_trap_for_cgi_internal_error</a></li>
 <li><a href="#decodeURL">decodeURL</a></li>
 <li><a href="#deleteCache">deleteCache</a></li>
 <li><a href="#die">die</a></li>

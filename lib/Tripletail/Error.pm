@@ -23,6 +23,10 @@ my $TRACE_ALLOWANCE_OF_CURRENT_REQUEST;
 
 1;
 
+# -----------------------------------------------------------------------------
+# $TL->newError($type, $msg);
+# $TL->newError($type, $msg, $title);
+#
 sub _new {
 	# スタックトレースを持った例外オブジェクトを生成する。
 	# 返されたインスタンスは "" 演算子によって文字列化が可能である。
@@ -43,6 +47,19 @@ sub _new {
 	$this->{suppress_internal} = 1;
 	$this->{appear} = 'sudden'; # sudden/usertrap
 	$this->{on_require} = undef; # undef/1.
+	$this->{http_status_code} = undef;
+	$this->{http_status_line} = undef;
+	$this->{db_error} = undef;
+
+	if( $msg =~ /: we are getting too large (file|request) which exceeds the limit. |: Post Error: request size was too big to accept. / )
+	{
+		$this->{http_status_code} = 413;
+		$this->{http_status_line} = "413 Request Entity Too Large";
+	}else
+	{
+		$this->{http_status_code} = 500;
+		$this->{http_status_line} = "500 Internal Server Error";
+	}
 
 	my $switch = $TL->INI->get(TL => 'stacktrace', 'onlystack');
 	if ($switch eq 'none') {
@@ -76,6 +93,32 @@ sub _new {
 			exit 1;
 		}
 	}
+
+    if( our $LAST_DBH )
+    {
+      for( my $i=0; my @c=caller($i); ++$i )
+      {
+        my $sub = $c[3];
+        $sub =~ /^DB[ID]::|^Tripletail::DB::/ or next;
+        my ($type, $dbh);
+        if( UNIVERSAL::isa($LAST_DBH, 'ARRAY') )
+        {
+          ($type, $dbh) = @$LAST_DBH;
+        }else
+        {
+          $type = $LAST_DBH->getType();
+          $dbh  = $LAST_DBH->getDbh();
+        }
+        if( $type eq 'error' )
+        {
+          $this->{db_error} = $dbh;
+        }else
+        {
+          $this->{db_error} = Tripletail::DB->_errinfo($dbh, $type);
+        }
+        last;
+      }
+    }
 
     $TL->setHook(
         'postRequest',
@@ -259,13 +302,24 @@ sub toHtml {
 	my $t = $TL->newTemplate->setTemplate($DEFAULT_ERROR_TEMPLATE);
 
 	if ($this->{show_trace} and $this->is_trace_allowed) {
-		$t->node('detail')->expand(
+		my $msg = $this->{message};
+		if( my $dberr = $this->{db_error} )
+		{
+			$msg .= "\nDB Error: ".Data::Dumper->new([$dberr])->Terse(1)->Dump();
+		}
+		$t->node('style-for-detail')->add({});
+		$t->node('detail')->setAttr({
+			MESSAGE => 'br',
+		})->expand(
 			TYPE    => $this->{type},
-			MESSAGE => $this->{message},
+			MESSAGE => $msg,
 		   );
 	}
 	else {
-		$t->node('header-only')->add(
+		$t->node('style-for-header-only')->add({});
+		$t->node('header-only')->setAttr({
+			MESSAGE => 'br',
+		})->add(
 			TYPE    => $this->{type},
 			MESSAGE => $this->{message},
 		   );
@@ -321,16 +375,16 @@ sub toHtml {
 
             $value =~ s!</script>!</sc"+"ript>!ig;
             
-			$t->node('js-vars')->node('var')->setAttr(
+			$t->node('scripts')->node('js-vars')->node('var')->setAttr(
 				NAME  => 'js',
 				VALUE => 'js',
 			   );
-			$t->node('js-vars')->node('var')->add(
+			$t->node('scripts')->node('js-vars')->node('var')->add(
 				NAME  => $name,
 				VALUE => $value,
 			   );
 		}
-		$t->node('js-vars')->add(
+		$t->node('scripts')->node('js-vars')->add(
 			LEVEL => $frame->level,
 		   );
 
@@ -338,25 +392,25 @@ sub toHtml {
 
             $value =~ s!</script>!</sc"+"ript>!ig;
             
-			$t->node('js-vars-shallow')->node('var')->setAttr(
+			$t->node('scripts')->node('js-vars-shallow')->node('var')->setAttr(
 				NAME  => 'js',
 				VALUE => 'js',
 			   );
-			$t->node('js-vars-shallow')->node('var')->add(
+			$t->node('scripts')->node('js-vars-shallow')->node('var')->add(
 				NAME  => $name,
 				VALUE => $value,
 			   );
 		}
-		$t->node('js-vars-shallow')->add(
+		$t->node('scripts')->node('js-vars-shallow')->add(
 			LEVEL => $frame->level,
 		   );
 
 		# フレーム
-		$t->node('js-frame')->setAttr(
+		$t->node('scripts')->node('js-frame')->setAttr(
 			FILE => 'js',
 			FUNC => 'js',
 		   );
-		$t->node('js-frame')->add(
+		$t->node('scripts')->node('js-frame')->add(
 			LEVEL => $frame->level,
 			FILE  => $frame->fpath,
 			LINE  => $frame->line,
@@ -372,17 +426,17 @@ sub toHtml {
 				$src = $TL->escapeJs($src);
 				$src =~ s!</script>!</sc"+"ript>!i;
 		
-				$t->node('js-src')->node('line')->setAttr(
+				$t->node('scripts')->node('js-src')->node('line')->setAttr(
 					LINE => 'raw',
 				   );
-				$t->node('js-src')->node('line')->add(
+				$t->node('scripts')->node('js-src')->node('line')->add(
 					LINE => $src,
 				   );
 			});
-		$t->node('js-src')->setAttr(
+		$t->node('scripts')->node('js-src')->setAttr(
 			FILE   => 'js',
 		   );
-		$t->node('js-src')->add(
+		$t->node('scripts')->node('js-src')->add(
 			FILE   => $fpath,
 		   );
 	}
@@ -464,12 +518,20 @@ sub toHtml {
 	}
 
     if ($frame) {
+        $t->node('scripts')->add({
+            SELECTED_LV  => $frame->level,
+            LAST_HILITED => $frame->line,
+           });
         $t->expand(
             SELECTED_LV  => $frame->level,
             LAST_HILITED => $frame->line,
            );
     }
     else {
+        $t->node('scripts')->add({
+            SELECTED_LV  => 0,
+            LAST_HILITED => 0,
+           });
         $t->expand(
             SELECTED_LV  => 0,
             LAST_HILITED => 0,
@@ -660,6 +722,17 @@ sub __load_default_error_template
           padding: 2px 3px;
       }
 
+      .message {
+          padding: 3px;
+          font-size: 110%;
+          font-weight: bold;
+      }
+    </style>
+
+    <!begin:style-for-header-only>
+    <!end:style-for-header-only>
+    <!begin:style-for-detail>
+    <style>
       table {
           width: 100%;
       }
@@ -688,12 +761,6 @@ sub __load_default_error_template
           overflow: auto;
 
           background-color: #ddbbbb;
-      }
-
-      .message {
-          padding: 3px;
-          font-size: 110%;
-          font-weight: bold;
       }
 
       /* スタック */
@@ -783,7 +850,9 @@ sub __load_default_error_template
       }
     </style>
     <![endif]-->
+    <!end:style-for-detail>
 
+    <!begin:scripts>
     <script type="text/javascript">
       var env = {
           selected_lv : <&SELECTED_LV>,
@@ -1247,6 +1316,7 @@ sub __load_default_error_template
           foreach_cols(tr, name, f);
       }
     </script>
+    <!end:scripts>
   </head>
   <body onload="on_load()">
     <!begin:header-only>

@@ -509,7 +509,14 @@ sub print {
 
 	$this->{filter_buf} .= $data;
 
-	'';
+	if( $this->{popup_type} eq 'none' )
+	{
+		return $data;
+	}else
+	{
+		# buffering to rewrite after data gathered.
+		return '';
+	}
 }
 
 sub flush {
@@ -575,7 +582,15 @@ sub flush {
 		$this->{filter_buf}=~ s|</head>|$html</head>|;
 	}
 
-	my $result = $this->{filter_buf};
+	my $result;
+	if( $this->{popup_type} eq 'none' )
+	{
+		$result = '';
+	}else
+	{
+		# return buffered and rewritten html.
+		$result = $this->{filter_buf};
+	}
 
 	$this->reset;
 

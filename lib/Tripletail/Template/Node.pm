@@ -172,7 +172,8 @@ sub node {
 	my $node = $this->{node}{$name};
 	if(!$node) {
 		my $me = $this->isRoot ? "the root" : "node [$this->{name}]";
-		die __PACKAGE__."#node: $me does not have a child node [$name]. (${me}は子ノードを持っていません)\n";
+		my $me_ja = $this->isRoot ? "ルートノード" : "ノード [$this->{name}]";
+		die __PACKAGE__."#node: $me does not have a child node [$name]. (${me_ja}は子ノード [$name] を持っていません)\n";
 	}
 
 	$node;
@@ -391,8 +392,10 @@ sub getForm {
 		} elsif($elem->isText) {
 			if(my $textarea = $context->in('textarea')) {
 				if(defined(my $name = $textarea->attr('name'))) {
+                    my $text = $elem->str;
+                    $text =~ s/^(?:\r?\n|\r)//;
 					$form->add(
-						$TL->unescapeTag($name) => $TL->unescapeTag($elem->str)
+						$TL->unescapeTag($name) => $TL->unescapeTag($text)
 					);
 				}
 			} elsif(my $option = $context->in('option')) {
@@ -554,6 +557,13 @@ sub setForm {
 								$elem->attr('checked' => 'checked');
 							}else {
 								$elem->attr('checked' => undef);
+
+                                if (defined(my $end = $elem->end)) {
+                                    if ($end ne 'checked') {
+                                        $elem->attr($end => $end);
+                                    }
+                                }
+                                
 								$elem->end('checked');
 							}
 						} else {
@@ -561,7 +571,12 @@ sub setForm {
 								$elem->attr('checked' => undef);
 							} else {
 								$elem->attr('checked' => undef);
-								$elem->end(undef);
+
+                                if (defined(my $end = $elem->end)) {
+                                    if ($end eq 'checked') {
+                                        $elem->end(undef);
+                                    }
+                                }
 							}
 						}
 					}
@@ -573,8 +588,13 @@ sub setForm {
 
 					if($form->exists($name)) {
 						# textareaの中身を置き換える
-						$elem->str(
-							$TL->escapeTag(__popform($form, $name)));
+                        my $text = __popform($form, $name);
+
+                        if ($text =~ m/^(\r?\n|\r)/) {
+                            $text = "$1$text";
+                        }
+                        
+						$elem->str($TL->escapeTag($text));
 					}
 				}
 			} elsif(my $option = $context->in('option')) {
@@ -600,6 +620,13 @@ sub setForm {
 							$option->attr('selected' => 'selected');
 						} else {
 							$option->attr(selected => undef);
+
+                            if (defined(my $end = $option->end)) {
+                                if ($end ne 'selected') {
+                                    $option->attr($end => $end);
+                                }
+                            }
+                            
 							$option->end('selected');
 						}
 					} else {
@@ -607,7 +634,12 @@ sub setForm {
 							$option->attr(selected => undef);
 						} else {
 							$option->attr(selected => undef);
-							$option->end(undef);
+
+                            if (defined(my $end = $option->end)) {
+                                if ($end eq 'selected') {
+                                    $option->end(undef);
+                                }
+                            }
 						}
 					}
 				}

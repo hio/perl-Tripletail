@@ -32,6 +32,11 @@ sub _new {
 		$this->{basepath} = __rel2abs($this->{basepath}, $cwd);
 	}
 	$this->{rootpath} = $TL->INI->get('Template' => 'rootpath', '/');
+	if( !File::Spec::Functions::file_name_is_absolute($this->{rootpath}) )
+	{
+		my $cwd = $TL::CWD || $TL->_cwd;
+		$this->{rootpath} = __rel2abs($this->{rootpath}, $cwd);
+	}
 
 	$TL->getDebug->_templateLog(
 		node => $this->{root},
@@ -85,10 +90,11 @@ sub _checkPathIsAcceptable {
 }
 
 sub _expandInclude {
-	my $this = shift;
+	my $this     = shift;
 	my $inccount = shift;
-	my $str = shift;
-	my $path = shift;
+	my $str      = shift;
+	my $path     = shift;
+	my $icode    = shift;
 
 	$$inccount += 1;
 	if($$inccount > 20) {
@@ -111,7 +117,7 @@ sub _expandInclude {
 		$filepath = __rel2abs($filepath, $basedir);
 		$this->_checkPathIsAcceptable($filepath);
 		$this->{loadfile}{$filepath} = 1;
-		my $includestr = $TL->readTextFile($filepath);
+		my $includestr = $TL->readTextFile($filepath, $icode);
 		$includestr = $this->_expandInclude($inccount, $includestr, $filepath);
 		$includestr
 	}eg;
@@ -160,7 +166,7 @@ sub loadTemplate {
 
 	my $str = $TL->readTextFile($filepath, $icode);
 	my $inccount = 0;
-	$str = $this->_expandInclude(\$inccount, $str, $filepath);
+	$str = $this->_expandInclude(\$inccount, $str, $filepath, $icode);
 
 	$this->{root}->_setTemplate($str);
 

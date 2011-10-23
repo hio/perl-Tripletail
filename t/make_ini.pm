@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: make_ini.pm 4751 2007-10-03 08:58:46Z hio $
+# $Id: make_ini.pm 42208 2008-06-05 02:26:54Z hio $
 # -----------------------------------------------------------------------------
 package t::make_ini;
 use strict;
@@ -91,7 +91,17 @@ sub write_ini
 }
 
 # -----------------------------------------------------------------------------
-# tltest($opts)
+# $ret = tltest($opts)
+# forkして子プロセスでTL環境をロードし, 関数を実行.
+# $opts->{ini}    = \%ini.
+# $opts->{method} = 'GET' | 'POST'
+# $opts->{param}  = \%param.
+# $opts->{file}   = \%file.
+# $opts->{sub}    = \&sub.
+# $opts->{timed_result} = $flag.
+# $ret :: t::make_ini::TestResult.
+# $ret->is_success.
+# $ret->content.
 # -----------------------------------------------------------------------------
 sub tltest
 {
@@ -214,6 +224,10 @@ sub tltest
 			#print "from-child: [[$_]]\n";
 			if( defined($body) )
 			{
+				if( $opts->{timed_result} )
+				{
+				  $body .= time.":";
+				}
 				$body .= $_;
 				next;
 			}

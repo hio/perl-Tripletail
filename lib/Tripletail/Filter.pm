@@ -260,7 +260,7 @@ Tripletail::Filter - CGI出力加工
 
 =head1 SYNOPSIS
 
-  $TL->setContentFilter('Tripletail::Filter::HTML', charset => 'UTF-7');
+  $TL->setContentFilter('Tripletail::Filter::HTML', charset => 'UTF-8');
   
   $TL->print("foo\n");
 

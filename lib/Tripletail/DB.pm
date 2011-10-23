@@ -33,7 +33,7 @@ sub _getInstance {
 
 	my $obj = $INSTANCES->{$group};
 	if(!$obj) {
-		die "TL#getDB: DB [$group] was not passed to the startCgi() / trapError(). (startCgi/trapErrorのDBに指定されていない${group}が指定されました)\n";
+		die "TL#getDB: DB group [$group] was not passed to the startCgi() / trapError(). (startCgi/trapErrorのDBに指定されていないDBグループ[${group}]が指定されました)\n";
 	}
 
 	$obj;
@@ -61,6 +61,121 @@ sub _reconnectSilently {
     $this->{tx_state} = _TX_STATE_NONE;
 
     $this;
+}
+
+sub _errinfo
+{
+  my $pkg  = shift;
+  my $dbh  = shift;
+  my $type = shift || (ref($pkg)&&$pkg->getType());
+
+  $dbh  or die __PACKAGE__."#_errinfo, no dbh. (dbhがありません)";
+  $type or die __PACKAGE__."#_errinfo, no type. (typeがありません)";
+
+  our $_ERRMAP ||= {};
+  $_ERRMAP->{$type} ||= do{
+    # $pkg->_load_errmap_mysql();
+    my $subname = "_load_errmap_$type";
+    $pkg->$subname();
+  };
+
+  my ($errno, $errstr, $errkey);
+  if( $type eq 'mysql' )
+  {
+    $errno  = $dbh->{mysql_errno};
+    $errstr = $dbh->{mysql_error};
+    $errkey = $_ERRMAP->{$type}{$errno} || 'COMMON_ERROR';
+  }elsif( $type eq 'sqlite' )
+  {
+    $errno  = $dbh->err;
+    $errstr = $dbh->errstr;
+    $errkey = $_ERRMAP->{$type}{$errno} || 'COMMON_ERROR';
+    if( $errno==1 )
+    {
+      # ちゃんとエラー番号が返ってこない?
+      if( $errstr =~ /^no such table:/ )
+      {
+        $errkey = 'NO_SUCH_OBJECT';
+      }elsif( $errstr =~ /^unable to open database file/ )
+      {
+        $errkey = $!{EACCES} ? 'CONNECT_DENIED' : 'CONNECT_NO_SERVER';
+      }elsif( $errstr =~ /^attempt to write a readonly database/ )
+      {
+        $errkey = 'ACCESS_DENIED';
+      }
+    }
+  }else
+  {
+    $errno  = $dbh->err;
+    $errstr = $dbh->errstr;
+    #die __PACKAGE__."#_errinfo: DB type [$type] is not supported. (DB type [$type] はサポートされていません)\n";
+  }
+
+  $pkg->_errinfo2($type, $errkey, $errno, $errstr);
+}
+sub _errinfo2
+{
+  my $pkg    = shift;
+  my $type   = shift;
+  my $errkey = shift;
+  my $errno  = shift;
+  my $errstr = shift;
+
+  our $_ERRMSG ||= $pkg->_load_errmsg();
+
+  my $errmsg = $_ERRMSG->{$errkey};
+  my ($errmsg_en, $errmsg_ja) = $errmsg =~ /^(.*) \((.*)\)\z/ or die "invalid message format: $errmsg";
+  my $info = {
+    $errkey   => $errmsg,
+    _key      => $errkey,
+    _msg      => $errmsg,
+    _msg_en   => $errmsg_en,
+    _msg_ja   => $errmsg_ja,
+    _dbtype   => $type,
+    _dberrno  => $errno,
+    _dberrstr => $errstr,
+  };
+}
+
+sub _load_errmsg
+{
+  +{
+    ACCESS_DENIED  => 'Access denied (アクセス権限がありません)',
+    ALREADY_EXISTS => 'Already exists (処理対象が既に存在します)',
+    COMMON_ERROR   => 'Error (何らかのエラー)',
+    CONNECT_DENIED    => 'Connection denied (接続する権限がありません)',
+    CONNECT_NO_SERVER => 'No server to connect (接続先サーバが存在しません)',
+    CONNECT_PROTOCOL_MISMATCH => 'Connection protocol mismatch (接続プロトコルが一致しません)',
+    NO_ERROR       => 'Success (処理成功)',
+    NO_SUCH_OBJECT => 'No such object (処理対象が存在しません)',
+    SYNTAX_ERROR   => 'Syntax error (構文エラー)',
+  };
+}
+sub _load_errmap_mysql
+{
+  # http://dev.mysql.com/doc/refman/5.0/en/error-messages-server.html
+  # http://dev.mysql.com/doc/refman/5.0/en/error-messages-client.html
+  #
+  +{
+    0    => 'NO_ERROR',
+    1044 => 'ACCESS_DENIED',
+    1045 => 'CONNECT_DENIED',
+    1050 => 'ALREADY_EXISTS',
+    1064 => 'SYNTAX_ERROR',
+    1146 => 'NO_SUCH_OBJECT',
+    1149 => 'SYNTAX_ERROR',
+    1251 => 'CONNECT_PROTOCOL_MISMATCH',
+    2002 => 'CONNECT_NO_SERVER',
+    2003 => 'CONNECT_NO_SERVER',
+    2005 => 'CONNECT_NO_SERVER',
+  };
+}
+sub _load_errmap_sqlite
+{
+  # http://www.sqlite.org/c3ref/c_abort.html
+  +{
+    0    => 'NO_ERROR',
+  };
 }
 
 sub connect {
@@ -108,6 +223,7 @@ sub tx
 		$this->{tx_state} = _TX_STATE_NONE;
 	});
 	$this->begin($setname);
+	local($Tripletail::Error::LAST_DBH) = $this;
 	$this->{tx_state} = _TX_STATE_ACTIVE;
 	if( wantarray )
 	{
@@ -942,7 +1058,16 @@ sub connect {
 		my $opts = {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
 		};
-		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
+		if( !$opts->{dbname} )
+		{
+			if( $TL->INI->existsGroup($this->{inigroup}) )
+			{
+				die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
+			}else
+			{
+				die __PACKAGE__."#connect: inigroup '$this->{inigroup}' does not exist. (inigroup '$this->{inigroup}' が存在しません)\n";
+			}
+		}
 
 		my $host = $TL->INI->get($this->{inigroup} => 'host');
 		if(defined($host)) {
@@ -953,6 +1078,25 @@ sub connect {
 		if(defined($port)) {
 			$opts->{port} = $port;
 		}
+
+		no warnings 'redefine';
+		$DBI::installed_drh{mysql} or DBI->install_driver('mysql');
+		my $orig = \&DBD::mysql::db::_login;
+		local($Tripletail::Error::LAST_DBH);
+		local(*DBD::mysql::db::_login) = sub{
+			my @ret;
+			@ret = wantarray ? &$orig : scalar(&$orig);
+			if( !$ret[0] )
+			{
+				# $_[0]がdbh.
+				# 保持してしまうとその後のエラーメッセージがでなくなり,
+				# リファレンスではundefに消されてしまうので
+				# ここでエラー情報を作成.
+				my $err = Tripletail::DB->_errinfo($_[0], $type);
+				$Tripletail::Error::LAST_DBH = ['error' => $err];
+			}
+			wantarray ? @ret : $ret[0];
+		};
 
 		$this->{dbh} = DBI->connect(
 			'dbi:mysql:' . join(';', map { "$_=$opts->{$_}" } keys %$opts),
@@ -1044,6 +1188,25 @@ sub connect {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
 		};
 		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
+
+		no warnings 'redefine';
+		$DBI::installed_drh{SQLite} or DBI->install_driver('SQLite');
+		my $orig = \&DBD::SQLite::db::_login;
+		local($Tripletail::Error::LAST_DBH);
+		local(*DBD::SQLite::db::_login) = sub{
+			my @ret;
+			@ret = wantarray ? &$orig : scalar(&$orig);
+			if( !$ret[0] )
+			{
+				# $_[0]がdbh.
+				# 保持してしまうとその後のエラーメッセージがでなくなり,
+				# リファレンスではundefに消されてしまうので
+				# ここでエラー情報を作成.
+				my $err = Tripletail::DB->_errinfo($_[0], $type);
+				$Tripletail::Error::LAST_DBH = ['error' => $err];
+			}
+			wantarray ? @ret : $ret[0];
+		};
 
 		$this->{dbh} = DBI->connect(
 			'dbi:SQLite:' . join(';', map { "$_=$opts->{$_}" } keys %$opts),

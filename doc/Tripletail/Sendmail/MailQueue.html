@@ -107,7 +107,7 @@ Tripletail::Sendmail::MailQueue - 独自のメールキューを使用するメ�
 </span></a></h1>
 
 <p>
-<span class="pod_lang">送信要求されたメールを、Lib7のメールキューに保存する．
+<span class="pod_lang">送信要求されたメールを、TripletaiL のメールキューに保存する．
 
 </span>
 </p>
@@ -313,7 +313,7 @@ rm する。rename(2) する際、ファイル名の末尾に「.」とプロセ
 <p>
 <span class="pod_lang">メールを定期的に調査し、設定されたMTAへSMTPで送信を行う。failure の場合は
 指定アドレスにメールを送るか、ログに書き込む（設定で変更可能）。deferral
-の場合は queue ディレクトリに rename(2) で戻す。末尾の .$pid はそのまま履歴。
+の場合は queue ディレクトリに rename(2) で戻す。末尾の .$pid は削除する。
 
 </span>
 </p>
@@ -325,7 +325,7 @@ rm する。rename(2) する際、ファイル名の末尾に「.」とプロセ
 <dd>
 <p>
 <span class="pod_lang">プロセスが存在しないのに、outgoing にファイルがある場合は、deferral として
-queue ディレクトリにrename(2) で戻す。末尾の .$pid はそのまま履歴。
+queue ディレクトリにrename(2) で戻す。末尾の .$pid は削除する。
 
 </span>
 </p>

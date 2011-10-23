@@ -623,10 +623,10 @@ sub isPcPortable {
 	
 	my @chars = grep {defined && length} split /($re_char)/, $this->{value};
 	
-	# Unicodeのプライベート領域判定（U+FF000～U+FFFFF）
+	# Unicodeのプライベート領域判定（U+FE000～U+FFFFF）
 	foreach my $str (@chars) {
 		my $str_ucs4 = $unijp->set($str, 'utf8')->ucs4;
-		return undef if($str_ucs4 =~ m/\A\x00\x0f[\xf0-\xff][\x00-\xff]\z/o);
+		return undef if($str_ucs4 =~ m/\A\x00\x0f[\xe0-\xff][\x00-\xff]\z/o);
 	}
 	
 	

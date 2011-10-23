@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 5338 2008-01-28 03:29:02Z hio $
+# $Id: Tripletail.pm 42209 2008-06-05 02:29:04Z hio $
 package Tripletail;
 use 5.008_000;
 use strict;
@@ -14,7 +14,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -132,10 +132,20 @@ sub __die_handler_for_startup
 
 	if( $trap eq 'diewithprint' && $err->{appear} ne 'usertrap' )
 	{
-		# die-with-print時かつevalの外であればは,
+		# die-with-print時かつevalの外であれば,
 		# エラーをヘッダと共に表示する.
-        print "Status: 500 Internal Server Error\r\n";
-		print "Content-Type: text/plain\r\n\r\n$err";
+		$TL->__dispError($err);
+	}elsif( $err->{appear} eq 'sudden' && $TL->_getRunMode eq 'CGI' && !$^S )
+	{
+		# Internal Server Error.
+		# 詳細なエラー内容がでても微妙なことがあるので軽いメッセージにしておく.
+		# でも Status: 500 は ErrorDocument 500 に反応しなくなるようなので,
+		# 一応compatも入れておく.
+		$err->{message} = "Internal Error has occured. To display details, you should set [TL] trap=diewithprint on ini file. (内部エラーが発生しました. 詳細を表示するには ini ファイルに [TL] trap=diewithprint の設定を加えてください)";
+		if( !$TL->INI->get(TL=>'compat_no_trap_for_cgi_internal_error') )
+		{
+			$TL->__dispError($err);
+		}
 	}
 
 	die $err;
@@ -944,7 +954,7 @@ sub _log {
 		eval
 		{
 			my $rel_to_logfile = sprintf('%04d%02d/%02d-%02d.log', @localtime[5,4,3,2]);
-			local($SIG{__DIE__});
+			local($SIG{__DIE__}) = 'DEFAULT';
 			my $cur_linkfile = File::Spec->catfile($this->{logdir}, "current");
 			unlink($cur_linkfile);
 			symlink($rel_to_logfile, $cur_linkfile);
@@ -1286,8 +1296,6 @@ sub print {
 		die __PACKAGE__."#print: we have no content-filters. Set at least one filter. (コンテンツフィルタが指定されていません)\n";
 	}
 
-	$this->{printflag} = 1;
-
 	if($this->{outputbuffering}) {
 		$this->{outputbuff} .= $data;
 	} else {
@@ -1296,6 +1304,8 @@ sub print {
 		}
 		print $data;
 	}
+
+	$this->{printflag} ||= 1;
 
 	$this;
 }
@@ -1715,7 +1725,16 @@ sub _fetchFileCache
 		}
 		
 		my @st = stat($fpath);
-		@st or die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません)\n";
+		if( !@st )
+		{
+			if( $!{ENOENT} )
+			{
+				die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません; ファイルが存在しません)\n";
+			}else
+			{
+				die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません)\n";
+			}
+		}
 		($inode, $size, $mtime) = @st[1, 7, 9];
 		if( $inode==$cache->{inode} && $size==$cache->{size} && $mtime==$cache->{mtime} )
 		{
@@ -1729,7 +1748,16 @@ sub _fetchFileCache
 	}else
 	{
 		my @st = stat($fpath);
-		@st or die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません)\n";
+		if( !@st )
+		{
+			if( $!{ENOENT} )
+			{
+				die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません; ファイルが存在しません)\n";
+			}else
+			{
+				die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません)\n";
+			}
+		}
 		($inode, $size, $mtime) = @st[1, 7, 9];
 	}
 	
@@ -2174,27 +2202,37 @@ sub __dispError {
 	  $err = $TL->newError('error' => $err);
 
 	my $errortemplate = $TL->INI->get(TL => 'errortemplate', '');
+	my $http_headers;
 	my $html;
     if ($this->{printflag} and not $this->{outputbuffering}) {
         $html = "<p>$err</p>";
         $html =~ s!\n!<br />!g;
+        $http_headers = '';
     }
 	elsif (length $errortemplate) {
 		my $t = $TL->newTemplate($errortemplate);
 		my $errortemplatecharset = $this->INI->get(TL => 'errortemplatecharset', 'UTF-8');
 		$html = $TL->charconv($t->toStr, 'UTF-8', $errortemplatecharset);
-		$html = "Content-Type: text/html; charset=$errortemplatecharset\r\n\r\n" . $html;
-        $html = "Status: 500 Internal Server Error\r\n" . $html;
+
+		my $status = ref($err) && $err->{http_status_line};
+		$status ||= '500 Internal Server Error';
+		$http_headers  = "Status: $status\r\n";
+		$http_headers .= "Content-Type: text/html; charset=$errortemplatecharset\r\n";
+		$http_headers .= "\r\n";
 	}
     else {
 		my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
 		$html = $err->toHtml;
 		$html =~ s|</html>$|$popup</html>|;
-		$html = "Content-Type: text/html; charset=UTF-8\r\n\r\n" . $html;
-        $html = "Status: 500 Internal Server Error\r\n" . $html
+
+		my $status = ref($err) && $err->{http_status_line};
+		$status ||= '500 Internal Server Error';
+		$http_headers  = "Status: $status\r\n";
+		$http_headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+		$http_headers .= "\r\n";
 	}
 
-	print $html;
+	print $http_headers.$html;
 
 	$this->_sendErrorIfNeeded($err);
 
@@ -2229,7 +2267,7 @@ sub __executeCgi {
 				($@->message =~ /we got EOF while reading from stdin/)
 			)
 		);
-        print "Status: 500 Internal Server Error\r\n";
+		print "Status: 500 Internal Server Error\r\n";
 		print "Content-Type: text/plain\r\n\r\nI/O Error\r\n$@";
 	}
 	else {
@@ -3289,12 +3327,16 @@ startCgi での最大リクエストサイズ若しくは
  {
    my $pkg = shift;
    my $err = shift;
+   my $status = ref($err) && $err->{http_status_line};
+   $status ||= '500 Internal Server Error';
    
-   print "Status: 413 Request Entity Too Large\r\n";
+   print "Status: $status\r\n";
    print "Content-Type: text/plain; charset=utf-8\r\n";
    print "\r\n";
    print "error: $err\n";
  }
+
+(C<http_status_line> は 0.42 以降でサポート)
 
 =item logdir
 
@@ -3473,14 +3515,28 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 
 L<Tripletail::Filter::MobileHTML> を利用した場合、outputbuffering は1にセットされる。
 
+=for COMMENT
+  有効にすると Content-Filter への中継も行われなくなる.
+  この際, CGI終了時に１つのデータでprintされ, 続けてflushされる.
+
 =item allow_mutable_input_cgi_object
 
   allow_mutable_input_cgi_object = 1
 
-非推奨. 互換のためのパラメータ. 
+非推奨. 互換のためのパラメータ. (0.40以降)
 
 $TL->CGI で返される CGI 入力値を保持しているオブジェクトの
 const 化を行わないようにする.
+
+=item compat_no_trap_for_cgi_internal_error
+
+  compat_no_trap_for_cgi_internal_error = 1
+
+互換のためのパラメータ. (0.42以降)
+
+CGIモード動作時の startCgi 外のエラーに対する
+エラー画面の表示を抑制する.
+(httpdによる通常の Internal Server Error 画面になります)
 
 =back
 

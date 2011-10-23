@@ -2,13 +2,13 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2+2+4+4+4;
+use Test::More tests => 2+2+5+4+4;
 use lib '.';
 require t::make_ini;
 
 &test01_get;    # 2
 &test02_fault;  # 2
-&test03_post1;  # 4
+&test03_post1;  # 5
 &test04_post2;  # 4
 &test05_upload; # 4
 
@@ -81,6 +81,7 @@ sub test03_post1
 	});
 	SKIP:{
 		ok(!$ret->is_success, "[test3] fetch failed");
+		is($ret->{headers}{Status}[0], "413 Request Entity Too Large\r\n", "[test3] Status: 413 Request Entity Too Large");
 		like($ret->{content}, qr/Post Error: request size was too big to accept./, "[test3] request too big");
 		like($ret->{content}, qr/^test3 handler\n/, "[test3] customized content");
 		unlike($ret->{content}, qr/<html\b/, "[test3] customized content, no html tag");
@@ -90,7 +91,9 @@ sub _test3_fault_handler
 {
 	my $pkg = shift;
 	my $err = shift;
-	print "Status: 500 Error\r\n";
+	my $status = ref($err) && $err->{http_status_line};
+	$status ||= '599 Internal Server Error';
+	print "Status: $status\r\n";
 	print "Content-Type: text/plain\r\n";
 	print "\r\n";
 	my $ref = ref($err) || '-';
