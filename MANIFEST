@@ -175,6 +175,8 @@ t/tagcheck.t
 t/template.t
 t/tl.t
 t/v002_select.t
+t/v018.reqnon.pl
+t/v018.t
 t/validator.t
 t/value.t
 META.yml                                 Module meta-data (added by MakeMaker)

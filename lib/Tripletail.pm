@@ -6,18 +6,26 @@ use strict;
 use warnings;
 use UNIVERSAL qw(isa);
 use File::Spec;
+use Data::Dumper;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
 our $LOG_SERIAL = 0;
+our $LASTERROR;
 
 require Unicode::Japanese;
 
 if($ENV{TL_COVER_TEST_MODE}) {
 	require Devel::Cover;
 	Devel::Cover->import(qw(-silent on -summary off -db ./cover_db -coverage statement branch condition path subroutine time +ignore ^/));
+}
+
+*errorTrap = \&_errorTrap_is_deprecated;
+sub _errorTrap_is_deprecated {
+	die "\$TL->errorTrap(..) is deprecated, use \$TL->trapEror(..)"
+	#&trapError;
 }
 
 1;
@@ -48,35 +56,16 @@ sub import {
 
 		my $trap = $TL->{INI}->get(TL => 'trap', 'die');
 		if($trap ne 'none' && $trap ne 'die' && $trap ne 'diewithprint') {
-			die __PACKAGE__."#startCgi, invalid trap option [$trap].\n";
+			die __PACKAGE__."#import, invalid trap option [$trap].\n";
 		}
 
 
 		$TL->{trap} = $trap;
 
-		if($trap eq 'die') {
-			$SIG{__DIE__} = sub {
-				# スタックトレースを付け加えて再度dieする。
-				# それ以外の事はしない。
-				my $msg = shift;
-
-				die isa($msg, 'Tripletail::Error') ? $msg : $TL->newError(error => $msg);
-			};
-		} elsif($trap eq 'diewithprint') {
-			$SIG{__DIE__} = sub {
-				# エラーをヘッダと共に表示して再度dieする。
-				my $msg = shift;
-
-				if (isa($msg, 'Tripletail::Error')) {
-					die $msg;
-				}
-				
-				my $err = $TL->newError(error => $msg);
-				
-				$err->{appear} eq 'sudden' and print "Content-Type: text/plain\n\n$err";
-				
-				die $err;
-			};
+		if($trap =~ /^(die|diewithprint)$/ )
+		{
+			my $trap = $1;
+			$SIG{__DIE__} = \&__die_handler_for_startup;
 		}
 		*{"$callpkg1\::CGI"} = _gensym(); # dummy to avoid strict.
 	} else {
@@ -84,6 +73,34 @@ sub import {
 			die "use Tripletail, ARG[1]: ini file already loaded.";
 		}
 	}
+}
+sub __die_handler_for_startup
+{
+	my $msg = shift;
+	my $trap = shift || $TL->{trap};
+
+	if( isa($msg, 'Tripletail::Error') )
+	{
+		die $msg;
+	}
+	my $prev = $LASTERROR;
+	if( $prev && !ref($msg) && $msg =~ s/^\Q$prev\E(?=Compilation failed in require at )// )
+	{
+		$prev->{message} .= $msg;
+		die $prev;
+	}
+
+	my $err = $TL->newError(error => $msg);
+	$LASTERROR = $err;
+
+	if( $trap eq 'diewithprint' && $err->{appear} ne 'usertrap' )
+	{
+		# die-with-print時かつevalの外であればは,
+		# エラーをヘッダと共に表示する.
+		print "Content-Type: text/plain\n\n$err";
+	}
+
+	die $err;
 }
 
 # -----------------------------------------------------------------------------
@@ -167,6 +184,7 @@ sub escapeTag {
 		die "TL#escapeTag, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/\&/\&amp;/g;
 	$str =~ s/</\&lt;/g;
 	$str =~ s/>/\&gt;/g;
@@ -184,6 +202,7 @@ sub unescapeTag {
 		die "TL#unescapeTag, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/\&lt;/</g;
 	$str =~ s/\&gt;/>/g;
 	$str =~ s/\&quot;/\"/g;
@@ -208,6 +227,7 @@ sub escapeJs {
 		die "TL#escapeJs, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/(['"\\])/\\$1/g;
 	$str =~ s/\r/\\r/g;
 	$str =~ s/\n/\\n/g;
@@ -223,6 +243,7 @@ sub unescapeJs {
 		die "TL#unescapeJs, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/\\(['"\\])/$1/g;
 
 	$str;
@@ -236,6 +257,7 @@ sub encodeURL {
 		die "TL#encodeURL, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/([^a-zA-Z0-9\-\_\.\!\~\*\'\(\)])/
 	'%' . sprintf('%02x', unpack("C", $1))/eg;
 
@@ -250,6 +272,7 @@ sub decodeURL {
 		die "TL#decodeURL, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/\%([a-zA-Z0-9]{2})/pack("C", hex($1))/eg;
 
 	$str;
@@ -263,6 +286,7 @@ sub escapeSqlLike {
 		die "TL#escapeSqlLike, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/\\/\\\\/g;
 	$str =~ s/\%/\\\%/g;
 	$str =~ s/\_/\\\_/g;
@@ -278,11 +302,21 @@ sub unescapeSqlLike {
 		die "TL#unescapeSqlLike, ARG[1]: got undef.\n";
 	}
 
+	$str = "$str"; # stringify.
 	$str =~ s/\\\%/\%/g;
 	$str =~ s/\\\_/\_/g;
 	$str =~ s/\\\\/\\/g;
 
 	$str;
+}
+
+sub __die_handler_for_localeval
+{
+	# スタックトレースを付け加えて再度dieする。
+	# それ以外の事はしない。
+	my $msg = shift;
+
+	die isa($msg, 'Tripletail::Error') ? $msg : $TL->newError(error => $msg);
 }
 
 sub startCgi {
@@ -295,15 +329,10 @@ sub startCgi {
 		# trap = diewithprint の場合はエラーハンドラを付け替える
 		# そうしないと Content-Type: text/plain が出力されてしまう。
 		if($this->{trap} eq 'diewithprint') {
-			$SIG{__DIE__} = sub {
-				# スタックトレースを付け加えて再度dieする。
-				# それ以外の事はしない。
-				my $msg = shift;
-
-				die isa($msg, 'Tripletail::Error') ? $msg : $TL->newError(error => $msg);
-			};
+			$SIG{__DIE__} = \&__die_handler_for_localeval;
 		}
 
+		# Tripletail::Debugをロード。debug機能が有効になっていれば、
 		# ここで各種フック類がインストールされる。
 		$this->getDebug;
 
@@ -438,22 +467,16 @@ sub startCgi {
 	$this;
 }
 
-sub errorTrap {
+sub trapError {
 	my $this = shift;
 	my $param = { @_ };
 
 	eval {
 		# trap = diewithprint の場合はエラーハンドラを付け替える
-		# そうしないと Content-Type: text/plain が出力されてしまう
-		local($SIG{__DIE__});
+		# そうしないと Content-Type: text/plain が出力されてしまう。
+		local($SIG{__DIE__}) = 'DEFAULT';
 		if ($this->{trap} eq 'diewithprint'){
-			$SIG{__DIE__} = sub {
-				# スタックトレースを付け加えて再度dieする。
-				# それ以外の事はしない。
-				my $msg = shift;
-
-				die isa($msg, 'Tripletail::Error') ? $msg : $TL->newError(error => $msg);
-			};
+			$SIG{__DIE__} = \&__die_handler_for_localeval;
 		}
 		# Tripletail::Debugをロード。debug機能が有効になっていれば、
 		# ここで各種フック類がインストールされる。
@@ -470,7 +493,7 @@ sub errorTrap {
 		}
 
 		if(!defined($param->{'-main'})) {
-			die __PACKAGE__."#errorTrap, -main handler was undef.\n";
+			die __PACKAGE__."#trapError, -main handler was undef.\n";
 		}
 
 		$this->__executeHook('init');
@@ -504,8 +527,8 @@ sub errorTrap {
 		}
 
 		# このevalでキャッチされたという事は、-mainの外で例外が起きた。
-		$this->log(errorTrap => "Died outside the `-main': $err");
-		print STDERR "Died outside the `-main': $err\n";
+		$this->log(trapError => "Died outside the `-main': $err");
+		print STDERR __PACKAGE__."#trapError, Died outside the `-main': $err\n";
 	}
 
 	$this;
@@ -551,22 +574,51 @@ sub dispatch {
 
 sub log {
 	my $this = shift;
-	my $group = shift;
-	my $log = shift;
+    my $group;
+    my $message;
+
+    my $stringify = sub {
+        my $val = shift;
+        
+        if (ref $val) {
+            Data::Dumper->new([$val])
+              ->Indent(1)->Purity(0)->Useqq(1)->Terse(1)->Deepcopy(1)
+                ->Quotekeys(0)->Sortkeys(1)->Deparse(1)->Dump;
+        }
+        else {
+            $val; # 元々スカラーだった
+        }
+    };
+    
+    if (@_ == 1) {
+        # "呼出し元ファイル名(行数):関数名"
+        my ($filename, $line) = (caller 0)[1, 2];
+        my $sub = (caller 1)[3];
+
+        $group   = sprintf '%s(%d) >> %s', $filename, $line, $sub;
+        $message = $stringify->(shift);
+    }
+    elsif (@_ == 2) {
+        $group   = shift;
+        $message = $stringify->(shift);
+    }
+    else {
+        die "TL#log, invalid call of \$TL->log().\n";
+    }
 
 	if(!defined($group)) {
 		die "TL#log, ARG[1]: got undef.\n";
 	}
-	if(!defined($log)) {
+	if(!defined($message)) {
 		die "TL#log, ARG[2]: got undef.\n";
 	}
 
 	$this->getDebug->_tlLog(
 		group => $group,
-		log   => $log,
+		log   => $message,
 	);
 
-	$this->_log($group, $log);
+	$this->_log($group, $message);
 }
 
 sub _log {
@@ -1469,20 +1521,59 @@ sub watch {
 }
 
 sub dump {
+    # dump($group, $obj)
+    # dump($group, $obj, $level)
+    # dump($obj)
+    # dump($obj, $level)
 	my $this = shift;
-	my $group = shift;
-	my $var = shift;
-	my $level = shift || 0;
+    my $group;
+    my $val;
+    my $level;
 
-	local($@);
-	eval {
-		use Data::Dumper;
-		my $dump = Data::Dumper->new([$var])
-			->Maxdepth($level)->Indent(1)->Terse(1)->Dump;
-		$this->log($group => $dump);
-	};
+    my $auto_group = sub {
+        # "呼出し元ファイル名(行数):関数名"
+        my ($filename, $line) = (caller 1)[1, 2];
+        my $sub = (caller 2)[3];
 
-	$this;
+        sprintf '%s(%d) >> %s', $filename, $line, $sub;
+    };
+
+    if (@_ == 0 || @_ > 3) {
+        die __PACKAGE__."#dump, invalid call of \$TL->dump().\n";
+    }
+    elsif (@_ == 1) {
+        $group = $auto_group->();
+        $val   = shift;
+        $level = 0;
+    }
+    elsif (@_ == 2) {
+        if (ref $_[0]) {
+            # dump($obj, $level)
+            $group = $auto_group->();
+            $val   = shift;
+            $level = shift;
+        }
+        else {
+            # dump($group, $obj)
+            $group = shift;
+            $val   = shift;
+            $level = 0;
+        }
+    }
+    elsif (@_ == 3) {
+        $group = shift;
+        $val   = shift;
+        $level = shift;
+    }
+    else {
+        die "Internal error";
+    }
+
+    my $dump = Data::Dumper->new([$val])
+      ->Indent(1)->Purity(0)->Useqq(1)->Terse(1)->Deepcopy(1)
+        ->Quotekeys(0)->Sortkeys(1)->Deparse(1)->Maxdepth($level)->Dump;
+
+    $this->log($group => $dump);
 }
 
 sub printCacheUnlessModified {
@@ -1975,7 +2066,7 @@ C<use Tripletail> したスクリプトファイルや、その L<Ini|Tripletail
 CGIでない一般のスクリプトとしてプログラムを動作させるモード。
 CGIモード特有の機能は利用出来ない。
 
-このモードでは L<< $TL->errorTrap|/"errorTrap" >> メソッドで L</"Main関数"> を呼ぶ。
+このモードでは L<< $TL->trapError|/"trapError" >> メソッドで L</"Main関数"> を呼ぶ。
 
 =back
 
@@ -2008,7 +2099,7 @@ L<< $TL->setHook|/"setHook" >> メソッドを用いてフックを掛ける事�
 
 =item init
 
-L</"startCgi"> もしくは L</"errorTrap"> が呼ばれ、最初に L</"Main関数"> が
+L</"startCgi"> もしくは L</"trapError"> が呼ばれ、最初に L</"Main関数"> が
 呼ばれる前。
 
 =item preRequest
@@ -2022,7 +2113,7 @@ L</"Main関数"> が呼ばれた直後。
 =item term
 
 最後に L</"Main関数"> が呼ばれた後。termフック呼出し後に L</"startCgi">
-もしくは L</"errorTrap"> が終了する。
+もしくは L</"trapError"> が終了する。
 
 =back
 
@@ -2122,9 +2213,9 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
     -Session => ['Session1', 'Session2'],
   );
 
-=item C<< errorTrap >>
+=item C<< trapError >>
 
-  $TL->errorTrap(
+  $TL->trapError(
     -main => \&Main, # メイン関数
     -DB   => 'DB',   # DBを使う場合，iniのグループ名を指定
   );
@@ -2166,6 +2257,8 @@ onerrorが設定されていた場合、関数が存在しなければ onerror�
   $TL->log($group => $log)
 
 ログを記録する。グループとログデータの２つを受け取る。
+
+第一引数のグループは省略可能。
 
 ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
 
@@ -2467,11 +2560,15 @@ C<$coding> が省略された場合、utf8として扱う。C<$prefer_encode> �
 
 =item C<< dump >>
 
+  $TL->dump(\$data);
+  $TL->dump(\$data, $level);
   $TL->dump(DATA => \$data);
   $TL->dump(DATA => \$data, $level);
 
 第2引数に変数へのリファレンスを渡すと，その内容を Data::Dumper でダンプし、
 第1引数のグループ名で $TL->log を呼び出す。
+
+第1引数のグループ名は省略可能。
 
 第3引数で、リファレンスをどのくらいの深さまで追うかを指定することが出来る。
 指定しなければ全て表示される。
@@ -2844,6 +2941,112 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 数値×1024^6の指定を表す。[×1024^6=2^60]
 
 =back
+
+=head1 SAMPLE
+
+ perldoc -u Tripletail |  podselect -sections SAMPLE | sed -e '1,4d' -e 's/^ //'
+
+
+ # master configurations.
+ #
+ [TL]
+ logdir=/home/project/logs/error
+ errormail=errors@your.address
+ errorlog=2
+ trap=diewithprint
+ stackallow=0.0.0.0/0
+ 
+ [TL:SmallDebug]
+ stacktrace=onlystack
+ outputbuffering=1
+ 
+ [TL:Debug]
+ stacktrace=full
+ outputbuffering=1
+ 
+ [TL:FullDebug]
+ stacktrace=full
+ outputbuffering=1
+ stackallow=0.0.0.0/0
+ 
+ # database configrations.
+ #
+ [DB]
+ type=mysql
+ namequery=1
+ tracelevel=0
+ AllTransaction=DBALL
+ defaultset=AllTransaction
+ [DBALL]
+ dbname=
+ user=
+ password=
+ #host=
+ 
+ [DB:SmallDebug]
+ 
+ [DB:Debug]
+ 
+ [DB:FullDebug]
+ tracelevel=2
+ 
+ # debug configrations.
+ #
+ [Debug]
+ enable_debug=0
+ 
+ [Debug:SmallDebug]
+ enable_debug=1
+ 
+ [Debug:Debug]
+ enable_debug=1
+ request_logging=1
+ content_logging=1
+ warn_logging=1
+ db_profile=1
+ popup_type=single
+ template_popup=0
+ request_popup=1
+ db_popup=0
+ log_popup=1
+ warn_popup=1
+ 
+ [Debug:FullDebug]
+ enable_debug=1
+ request_logging=1
+ content_logging=0
+ warn_logging=1
+ db_profile=1
+ popup_type=single
+ template_popup=1
+ request_popup=1
+ db_popup=1
+ log_popup=1
+ warn_popup=1
+ location_debug=1
+ 
+ # misc.
+ #
+ [SecureCookie]
+ path=/
+ secure=1
+ 
+ [Session]
+ mode=https
+ securecookie=SecureCookie
+ timeout=30min
+ updateinterval=10min
+ dbgroup=DB
+ dbset=AllTransaction
+ 
+ # user data.
+ # you can read this data:
+ # $val = $TL->INI->get(UserData=>'roses');
+ #
+ [UserData]
+ roses=red
+ violets=blue
+ sugar=sweet
 
 =head1 SEE ALSO
 

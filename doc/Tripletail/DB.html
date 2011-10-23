@@ -99,7 +99,6 @@ Tripletail::DB - DBIのラッパ
 <!-- End TABLE_OF_CONTENTS -->
 
 <!-- Begin CONTENT -->
-<!-- =encoding utf-8 -->
 
 <hr />
 <h1><a id="NAME">
@@ -150,7 +149,7 @@ Tripletail::DB - DBIのラッパ
 </span></a></h1>
 
 <dl>
-<dt><a id="item_Xe6X8eXa5Xe7Xb6X9a/Xe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82"><span class="pod_lang">接続/切断は自動で行われる。
+<dt><a id="Xe6X8eXa5Xe7Xb6X9a/Xe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82"><span class="pod_lang">接続/切断は自動で行われる。
 
 </span></a></dt>
 <dd>
@@ -161,17 +160,17 @@ Tripletail::DB - DBIのラッパ
 </p>
 
 </dd>
-<dt><a id="item_Xe5XaeX9fXe8Xa1X8cXe3X82XafXe3X82Xa8Xe3X83XaaXe3X81XaeXe5X87Xa6Xe7X90X86Xe6X99X82Xe9X96X93Xe3X83XbbXe5XaeX9fXe8Xa1X8cXe8Xa8X88Xe7X94XbbXe3X83XbbXe7Xb5X90Xe6X9eX9cXe3X82X92Xe8Xa8X98Xe9X8cXb2Xe3X81X99Xe3X82X8bXe3X83X87Xe3X83X90Xe3X83X83Xe3X82Xb0Xe3X83Xa2Xe3X83XbcXe3X83X89Xe3X80X82"><span class="pod_lang">実行クエリの処理時間・実行計画・結果を記録するデバッグモード。
+<dt><a id="Xe5XaeX9fXe8Xa1X8cXe3X82XafXe3X82Xa8Xe3X83XaaXe3X81XaeXe5X87Xa6Xe7X90X86Xe6X99X82Xe9X96X93Xe3X83XbbXe5XaeX9fXe8Xa1X8cXe8Xa8X88Xe7X94XbbXe3X83XbbXe7Xb5X90Xe6X9eX9cXe3X82X92Xe8Xa8X98Xe9X8cXb2Xe3X81X99Xe3X82X8bXe3X83X87Xe3X83X90Xe3X83X83Xe3X82Xb0Xe3X83Xa2Xe3X83XbcXe3X83X89Xe3X80X82"><span class="pod_lang">実行クエリの処理時間・実行計画・結果を記録するデバッグモード。
 
 </span></a></dt>
 <dd>
 </dd>
-<dt><a id="item_prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82"><span class="pod_lang">prepare/executeを分けない。fetchは分ける。
+<dt><a id="prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82"><span class="pod_lang">prepare/executeを分けない。fetchは分ける。
 
 </span></a></dt>
 <dd>
 </dd>
-<dt><a id="item_Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe6Xa9X9fXe8X83Xbd"><span class="pod_lang">拡張プレースホルダ機能
+<dt><a id="Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe6Xa9X9fXe8X83Xbd"><span class="pod_lang">拡張プレースホルダ機能
 
 </span></a></dt>
 <dd>
@@ -192,19 +191,19 @@ Tripletail::DB - DBIのラッパ
 </p>
 
 </dd>
-<dt><a id="item_Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe3X81XaeXe5X80Xa4Xe6Xb8Xa1Xe3X81X97Xe3X81XaeXe9X9aX9bXe3X81XabXe5X9eX8bXe6X8cX87Xe5XaeX9aXe3X81X8cXe5X8fXafXe8X83Xbd"><span class="pod_lang">プレースホルダの値渡しの際に型指定が可能
+<dt><a id="Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe3X81XaeXe5X80Xa4Xe6Xb8Xa1Xe3X81X97Xe3X81XaeXe9X9aX9bXe3X81XabXe5X9eX8bXe6X8cX87Xe5XaeX9aXe3X81X8cXe5X8fXafXe8X83Xbd"><span class="pod_lang">プレースホルダの値渡しの際に型指定が可能
 
 </span></a></dt>
 <dd>
 <pre class="pod_verbatim"><code>  $db-&gt;execute(q{select * from a limit ??}, ['a', \'SQL_INTEGER'])</code></pre>
 
 </dd>
-<dt><a id="item_Xe3X83XaaXe3X82XafXe3X82Xa8Xe3X82Xb9Xe3X83X88Xe5X87Xa6Xe7X90X86Xe5XaeX8cXe4XbaX86Xe5XbeX8cXe3X81XaeXe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X84unlockXe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X92Xe8X87XaaXe5X8bX95Xe6Xa4X9cXe5X87Xba"><span class="pod_lang">リクエスト処理完了後のトランザクション未完了やunlock未完了を自動検出
+<dt><a id="Xe3X83XaaXe3X82XafXe3X82Xa8Xe3X82Xb9Xe3X83X88Xe5X87Xa6Xe7X90X86Xe5XaeX8cXe4XbaX86Xe5XbeX8cXe3X81XaeXe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X84unlockXe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X92Xe8X87XaaXe5X8bX95Xe6Xa4X9cXe5X87Xba"><span class="pod_lang">リクエスト処理完了後のトランザクション未完了やunlock未完了を自動検出
 
 </span></a></dt>
 <dd>
 </dd>
-<dt><a id="item_DBXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X83XbbDBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3"><span class="pod_lang">DBグループ・DBセット・DBコネクション
+<dt><a id="DBXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X83XbbDBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3"><span class="pod_lang">DBグループ・DBセット・DBコネクション
 
 </span></a></dt>
 <dd>
@@ -272,7 +271,7 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 </p>
 
 <dl>
-<dt><a id="item_Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XabXe5X90X8cXe7XadX89Xe3X81XaeXe6Xa9X9fXe8X83XbdXe3X81X8cXe7X94Xa8Xe6X84X8fXe3X81X95Xe3X82X8cXe3X81Xa6Xe3X81X84Xe3X81XaaXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82"><span class="pod_lang">ラッパに同等の機能が用意されていない場合。
+<dt><a id="Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XabXe5X90X8cXe7XadX89Xe3X81XaeXe6Xa9X9fXe8X83XbdXe3X81X8cXe7X94Xa8Xe6X84X8fXe3X81X95Xe3X82X8cXe3X81Xa6Xe3X81X84Xe3X81XaaXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82"><span class="pod_lang">ラッパに同等の機能が用意されていない場合。
 
 </span></a></dt>
 <dd>
@@ -283,7 +282,7 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 </p>
 
 </dd>
-<dt><a id="item_Xe9XabX98Xe9X80X9fXe3X81XaaXe5X87Xa6Xe7X90X86Xe3X81X8cXe5XbfX85Xe8Xa6X81Xe3X81Xa7Xe3X80X81Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XaeXe3X82XaaXe3X83XbcXe3X83X90Xe3X83X98Xe3X83X83Xe3X83X89Xe3X82X92Xe5X9bX9eXe9X81XbfXe3X81X97Xe3X81X9fXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82"><span class="pod_lang">高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。
+<dt><a id="Xe9XabX98Xe9X80X9fXe3X81XaaXe5X87Xa6Xe7X90X86Xe3X81X8cXe5XbfX85Xe8Xa6X81Xe3X81Xa7Xe3X80X81Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XaeXe3X82XaaXe3X83XbcXe3X83X90Xe3X83X98Xe3X83X83Xe3X83X89Xe3X82X92Xe5X9bX9eXe9X81XbfXe3X81X97Xe3X81X9fXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82"><span class="pod_lang">高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。
 
 </span></a></dt>
 <dd>
@@ -466,7 +465,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </span></a></h3>
 
 <dl>
-<dt><a id="item_X$TL->getDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getDB</code>
+<dt><a id="X$TL->getDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getDB</code>
 
 </span></a></dt>
 <dd>
@@ -482,13 +481,13 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 <p>
-<span class="pod_lang"><a href=".././Tripletail.html#startCgi">$TL-&gt;startCgi</a> /  <a href=".././Tripletail.html#errorTrap">$TL-&gt;errorTrap</a> の関数内でDBオブジェクトを取得する場合に使用する。
+<span class="pod_lang"><a href=".././Tripletail.html#startCgi">$TL-&gt;startCgi</a> /  <a href=".././Tripletail.html#trapError">$TL-&gt;trapError</a> の関数内でDBオブジェクトを取得する場合に使用する。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="item_X$TL->newDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newDB</code>
+<dt><a id="X$TL->newDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newDB</code>
 
 </span></a></dt>
 <dd>
@@ -511,7 +510,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 </dd>
-<dt><a id="item_connect"><span class="pod_lang"><code class="pod_iseq_C">connect</code>
+<dt><a id="connect"><span class="pod_lang"><code class="pod_iseq_C">connect</code>
 
 </span></a></dt>
 <dd>
@@ -522,7 +521,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 <p>
-<span class="pod_lang"><a href=".././Tripletail.html#startCgi">$TL-&gt;startCgi</a> /  <a href=".././Tripletail.html#errorTrap">$TL-&gt;errorTrap</a> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
+<span class="pod_lang"><a href=".././Tripletail.html#startCgi">$TL-&gt;startCgi</a> /  <a href=".././Tripletail.html#trapError">$TL-&gt;trapError</a> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
 
 </span>
 </p>
@@ -540,7 +539,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 </dd>
-<dt><a id="item_disconnect"><span class="pod_lang"><code class="pod_iseq_C">disconnect</code>
+<dt><a id="disconnect"><span class="pod_lang"><code class="pod_iseq_C">disconnect</code>
 
 </span></a></dt>
 <dd>
@@ -551,7 +550,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 <p>
-<span class="pod_lang"><a href=".././Tripletail.html#startCgi">$TL-&gt;startCgi</a> /  <a href=".././Tripletail.html#errorTrap">$TL-&gt;errorTrap</a> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
+<span class="pod_lang"><a href=".././Tripletail.html#startCgi">$TL-&gt;startCgi</a> /  <a href=".././Tripletail.html#trapError">$TL-&gt;trapError</a> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
 
 </span>
 </p>
@@ -563,7 +562,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 </dd>
-<dt><a id="item_begin"><span class="pod_lang"><code class="pod_iseq_C">begin</code>
+<dt><a id="begin"><span class="pod_lang"><code class="pod_iseq_C">begin</code>
 
 </span></a></dt>
 <dd>
@@ -594,7 +593,7 @@ rollbackされる。
 </p>
 
 </dd>
-<dt><a id="item_rollback"><span class="pod_lang"><code class="pod_iseq_C">rollback</code>
+<dt><a id="rollback"><span class="pod_lang"><code class="pod_iseq_C">rollback</code>
 
 </span></a></dt>
 <dd>
@@ -607,7 +606,7 @@ rollbackされる。
 </p>
 
 </dd>
-<dt><a id="item_commit"><span class="pod_lang"><code class="pod_iseq_C">commit</code>
+<dt><a id="commit"><span class="pod_lang"><code class="pod_iseq_C">commit</code>
 
 </span></a></dt>
 <dd>
@@ -620,7 +619,7 @@ rollbackされる。
 </p>
 
 </dd>
-<dt><a id="item_setDefaultSet"><span class="pod_lang"><code class="pod_iseq_C">setDefaultSet</code>
+<dt><a id="setDefaultSet"><span class="pod_lang"><code class="pod_iseq_C">setDefaultSet</code>
 
 </span></a></dt>
 <dd>
@@ -635,7 +634,7 @@ rollbackされる。
 </p>
 
 </dd>
-<dt><a id="item_execute"><span class="pod_lang"><code class="pod_iseq_C">execute</code>
+<dt><a id="execute"><span class="pod_lang"><code class="pod_iseq_C">execute</code>
 
 </span></a></dt>
 <dd>
@@ -689,7 +688,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_selectAllHash"><span class="pod_lang"><code class="pod_iseq_C">selectAllHash</code>
+<dt><a id="selectAllHash"><span class="pod_lang"><code class="pod_iseq_C">selectAllHash</code>
 
 </span></a></dt>
 <dd>
@@ -709,7 +708,7 @@ DBセットでSQLが実行される。
   }</code></pre>
 
 </dd>
-<dt><a id="item_selectAllArray"><span class="pod_lang"><code class="pod_iseq_C">selectAllArray</code>
+<dt><a id="selectAllArray"><span class="pod_lang"><code class="pod_iseq_C">selectAllArray</code>
 
 </span></a></dt>
 <dd>
@@ -729,7 +728,7 @@ DBセットでSQLが実行される。
   }</code></pre>
 
 </dd>
-<dt><a id="item_selectRowHash"><span class="pod_lang"><code class="pod_iseq_C">selectRowHash</code>
+<dt><a id="selectRowHash"><span class="pod_lang"><code class="pod_iseq_C">selectRowHash</code>
 
 </span></a></dt>
 <dd>
@@ -748,7 +747,7 @@ DBセットでSQLが実行される。
   $TL-&gt;log(DBDATA =&gt; &quot;name of id $hash-&gt;{id} is $hash-&gt;{name}&quot;);</code></pre>
 
 </dd>
-<dt><a id="item_selectRowArray"><span class="pod_lang"><code class="pod_iseq_C">selectRowArray</code>
+<dt><a id="selectRowArray"><span class="pod_lang"><code class="pod_iseq_C">selectRowArray</code>
 
 </span></a></dt>
 <dd>
@@ -767,7 +766,7 @@ DBセットでSQLが実行される。
   $TL-&gt;log(DBDATA =&gt; $array-&gt;[0]);</code></pre>
 
 </dd>
-<dt><a id="item_lock"><span class="pod_lang"><code class="pod_iseq_C">lock</code>
+<dt><a id="lock"><span class="pod_lang"><code class="pod_iseq_C">lock</code>
 
 </span></a></dt>
 <dd>
@@ -789,7 +788,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_unlock"><span class="pod_lang"><code class="pod_iseq_C">unlock</code>
+<dt><a id="unlock"><span class="pod_lang"><code class="pod_iseq_C">unlock</code>
 
 </span></a></dt>
 <dd>
@@ -803,7 +802,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_setBufferSize"><span class="pod_lang"><code class="pod_iseq_C">setBufferSize</code>
+<dt><a id="setBufferSize"><span class="pod_lang"><code class="pod_iseq_C">setBufferSize</code>
 
 </span></a></dt>
 <dd>
@@ -818,7 +817,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_symquote"><span class="pod_lang"><code class="pod_iseq_C">symquote</code>
+<dt><a id="symquote"><span class="pod_lang"><code class="pod_iseq_C">symquote</code>
 
 </span></a></dt>
 <dd>
@@ -837,7 +836,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_getType"><span class="pod_lang">getType
+<dt><a id="getType"><span class="pod_lang">getType
 
 </span></a></dt>
 <dd>
@@ -850,7 +849,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_getDbh"><span class="pod_lang">getDbh
+<dt><a id="getDbh"><span class="pod_lang">getDbh
 
 </span></a></dt>
 <dd>
@@ -880,7 +879,7 @@ DBセットでSQLが実行される。
 </span></a></h3>
 
 <dl>
-<dt><a id="item_fetchHash"><span class="pod_lang"><code class="pod_iseq_C">fetchHash</code>
+<dt><a id="fetchHash"><span class="pod_lang"><code class="pod_iseq_C">fetchHash</code>
 
 </span></a></dt>
 <dd>
@@ -893,7 +892,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_fetchArray"><span class="pod_lang"><code class="pod_iseq_C">fetchArray</code>
+<dt><a id="fetchArray"><span class="pod_lang"><code class="pod_iseq_C">fetchArray</code>
 
 </span></a></dt>
 <dd>
@@ -906,7 +905,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_ret"><span class="pod_lang"><code class="pod_iseq_C">ret</code>
+<dt><a id="ret"><span class="pod_lang"><code class="pod_iseq_C">ret</code>
 
 </span></a></dt>
 <dd>
@@ -919,7 +918,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_rows"><span class="pod_lang"><code class="pod_iseq_C">rows</code>
+<dt><a id="rows"><span class="pod_lang"><code class="pod_iseq_C">rows</code>
 
 </span></a></dt>
 <dd>
@@ -932,7 +931,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_finish"><span class="pod_lang"><code class="pod_iseq_C">finish</code>
+<dt><a id="finish"><span class="pod_lang"><code class="pod_iseq_C">finish</code>
 
 </span></a></dt>
 <dd>
@@ -945,7 +944,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_nameArray"><span class="pod_lang"><code class="pod_iseq_C">nameArray</code>
+<dt><a id="nameArray"><span class="pod_lang"><code class="pod_iseq_C">nameArray</code>
 
 </span></a></dt>
 <dd>
@@ -958,7 +957,7 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
-<dt><a id="item_nameHash"><span class="pod_lang"><code class="pod_iseq_C">nameHash</code>
+<dt><a id="nameHash"><span class="pod_lang"><code class="pod_iseq_C">nameHash</code>
 
 </span></a></dt>
 <dd>
@@ -1027,7 +1026,7 @@ DBセットは、予約済みではない名前であれば任意の名称が使
 </p>
 
 <dl>
-<dt><a id="item_namequery"><span class="pod_lang"><code class="pod_iseq_C">namequery</code>
+<dt><a id="namequery"><span class="pod_lang"><code class="pod_iseq_C">namequery</code>
 
 </span></a></dt>
 <dd>
@@ -1042,7 +1041,7 @@ DBセットは、予約済みではない名前であれば任意の名称が使
 </p>
 
 </dd>
-<dt><a id="item_type"><span class="pod_lang"><code class="pod_iseq_C">type</code>
+<dt><a id="type"><span class="pod_lang"><code class="pod_iseq_C">type</code>
 
 </span></a></dt>
 <dd>
@@ -1057,7 +1056,7 @@ mysql, pgsql, oracleが使用可能。
 </p>
 
 </dd>
-<dt><a id="item_defaultset"><span class="pod_lang"><code class="pod_iseq_C">defaultset</code>
+<dt><a id="defaultset"><span class="pod_lang"><code class="pod_iseq_C">defaultset</code>
 
 </span></a></dt>
 <dd>
@@ -1079,7 +1078,7 @@ mysql, pgsql, oracleが使用可能。
 </span></a></h3>
 
 <dl>
-<dt><a id="item_dbname"><span class="pod_lang"><code class="pod_iseq_C">dbname</code>
+<dt><a id="dbname"><span class="pod_lang"><code class="pod_iseq_C">dbname</code>
 
 </span></a></dt>
 <dd>
@@ -1092,7 +1091,7 @@ mysql, pgsql, oracleが使用可能。
 </p>
 
 </dd>
-<dt><a id="item_host"><span class="pod_lang"><code class="pod_iseq_C">host</code>
+<dt><a id="host"><span class="pod_lang"><code class="pod_iseq_C">host</code>
 
 </span></a></dt>
 <dd>
@@ -1106,7 +1105,7 @@ mysql, pgsql, oracleが使用可能。
 </p>
 
 </dd>
-<dt><a id="item_user"><span class="pod_lang"><code class="pod_iseq_C">user</code>
+<dt><a id="user"><span class="pod_lang"><code class="pod_iseq_C">user</code>
 
 </span></a></dt>
 <dd>
@@ -1119,7 +1118,7 @@ mysql, pgsql, oracleが使用可能。
 </p>
 
 </dd>
-<dt><a id="item_password"><span class="pod_lang"><code class="pod_iseq_C">password</code>
+<dt><a id="password"><span class="pod_lang"><code class="pod_iseq_C">password</code>
 
 </span></a></dt>
 <dd>
@@ -1201,11 +1200,11 @@ Tripletail::DB - DBIのラッパ
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#item_X$TL->getDB">$TL-&gt;getDB</a></li>
-<li><a href="#item_X$TL->newDB">$TL-&gt;newDB</a></li>
+<li><a href="#X$TL->getDB">$TL-&gt;getDB</a></li>
+<li><a href="#X$TL->newDB">$TL-&gt;newDB</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DBIXe3X81X8bXe3X82X89Xe3X81XaeXe7Xa7XbbXe8Xa1X8c">DBIからの移行</a></li>
-<li><a href="#item_DBXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X83XbbDBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3">DBグループ・DBセット・DBコネクション</a></li>
+<li><a href="#DBXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X83XbbDBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3">DBグループ・DBセット・DBコネクション</a></li>
 <li><a href="#DBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3">DBセット・DBコネクション</a></li>
 <li><a href="#DBXe5XaeX9aXe7XbeXa9">DB定義</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
@@ -1216,46 +1215,46 @@ Tripletail::DB - DBIのラッパ
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
 <li><a href="#Tripletail::DB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB メソッド</a></li>
 <li><a href="#Tripletail::DB::STH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB::STH メソッド</a></li>
-<li><a href="#item_begin">begin</a></li>
-<li><a href="#item_commit">commit</a></li>
-<li><a href="#item_connect">connect</a></li>
-<li><a href="#item_dbname">dbname</a></li>
-<li><a href="#item_defaultset">defaultset</a></li>
-<li><a href="#item_disconnect">disconnect</a></li>
-<li><a href="#item_execute">execute</a></li>
-<li><a href="#item_fetchArray">fetchArray</a></li>
-<li><a href="#item_fetchHash">fetchHash</a></li>
-<li><a href="#item_finish">finish</a></li>
-<li><a href="#item_getDbh">getDbh</a></li>
-<li><a href="#item_getType">getType</a></li>
-<li><a href="#item_host">host</a></li>
-<li><a href="#item_lock">lock</a></li>
-<li><a href="#item_nameArray">nameArray</a></li>
-<li><a href="#item_nameHash">nameHash</a></li>
-<li><a href="#item_namequery">namequery</a></li>
-<li><a href="#item_password">password</a></li>
-<li><a href="#item_prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分ける。</a></li>
-<li><a href="#item_ret">ret</a></li>
-<li><a href="#item_rollback">rollback</a></li>
-<li><a href="#item_rows">rows</a></li>
-<li><a href="#item_selectAllArray">selectAllArray</a></li>
-<li><a href="#item_selectAllHash">selectAllHash</a></li>
-<li><a href="#item_selectRowArray">selectRowArray</a></li>
-<li><a href="#item_selectRowHash">selectRowHash</a></li>
-<li><a href="#item_setBufferSize">setBufferSize</a></li>
-<li><a href="#item_setDefaultSet">setDefaultSet</a></li>
-<li><a href="#item_symquote">symquote</a></li>
-<li><a href="#item_type">type</a></li>
-<li><a href="#item_unlock">unlock</a></li>
-<li><a href="#item_user">user</a></li>
-<li><a href="#item_Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe3X81XaeXe5X80Xa4Xe6Xb8Xa1Xe3X81X97Xe3X81XaeXe9X9aX9bXe3X81XabXe5X9eX8bXe6X8cX87Xe5XaeX9aXe3X81X8cXe5X8fXafXe8X83Xbd">プレースホルダの値渡しの際に型指定が可能</a></li>
-<li><a href="#item_Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XabXe5X90X8cXe7XadX89Xe3X81XaeXe6Xa9X9fXe8X83XbdXe3X81X8cXe7X94Xa8Xe6X84X8fXe3X81X95Xe3X82X8cXe3X81Xa6Xe3X81X84Xe3X81XaaXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82">ラッパに同等の機能が用意されていない場合。</a></li>
-<li><a href="#item_Xe3X83XaaXe3X82XafXe3X82Xa8Xe3X82Xb9Xe3X83X88Xe5X87Xa6Xe7X90X86Xe5XaeX8cXe4XbaX86Xe5XbeX8cXe3X81XaeXe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X84unlockXe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X92Xe8X87XaaXe5X8bX95Xe6Xa4X9cXe5X87Xba">リクエスト処理完了後のトランザクション未完了やunlock未完了を自動検出</a></li>
-<li><a href="#item_Xe5XaeX9fXe8Xa1X8cXe3X82XafXe3X82Xa8Xe3X83XaaXe3X81XaeXe5X87Xa6Xe7X90X86Xe6X99X82Xe9X96X93Xe3X83XbbXe5XaeX9fXe8Xa1X8cXe8Xa8X88Xe7X94XbbXe3X83XbbXe7Xb5X90Xe6X9eX9cXe3X82X92Xe8Xa8X98Xe9X8cXb2Xe3X81X99Xe3X82X8bXe3X83X87Xe3X83X90Xe3X83X83Xe3X82Xb0Xe3X83Xa2Xe3X83XbcXe3X83X89Xe3X80X82">実行クエリの処理時間・実行計画・結果を記録するデバッグモード。</a></li>
-<li><a href="#item_Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe6Xa9X9fXe8X83Xbd">拡張プレースホルダ機能</a></li>
+<li><a href="#begin">begin</a></li>
+<li><a href="#commit">commit</a></li>
+<li><a href="#connect">connect</a></li>
+<li><a href="#dbname">dbname</a></li>
+<li><a href="#defaultset">defaultset</a></li>
+<li><a href="#disconnect">disconnect</a></li>
+<li><a href="#execute">execute</a></li>
+<li><a href="#fetchArray">fetchArray</a></li>
+<li><a href="#fetchHash">fetchHash</a></li>
+<li><a href="#finish">finish</a></li>
+<li><a href="#getDbh">getDbh</a></li>
+<li><a href="#getType">getType</a></li>
+<li><a href="#host">host</a></li>
+<li><a href="#lock">lock</a></li>
+<li><a href="#nameArray">nameArray</a></li>
+<li><a href="#nameHash">nameHash</a></li>
+<li><a href="#namequery">namequery</a></li>
+<li><a href="#password">password</a></li>
+<li><a href="#prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分ける。</a></li>
+<li><a href="#ret">ret</a></li>
+<li><a href="#rollback">rollback</a></li>
+<li><a href="#rows">rows</a></li>
+<li><a href="#selectAllArray">selectAllArray</a></li>
+<li><a href="#selectAllHash">selectAllHash</a></li>
+<li><a href="#selectRowArray">selectRowArray</a></li>
+<li><a href="#selectRowHash">selectRowHash</a></li>
+<li><a href="#setBufferSize">setBufferSize</a></li>
+<li><a href="#setDefaultSet">setDefaultSet</a></li>
+<li><a href="#symquote">symquote</a></li>
+<li><a href="#type">type</a></li>
+<li><a href="#unlock">unlock</a></li>
+<li><a href="#user">user</a></li>
+<li><a href="#Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe3X81XaeXe5X80Xa4Xe6Xb8Xa1Xe3X81X97Xe3X81XaeXe9X9aX9bXe3X81XabXe5X9eX8bXe6X8cX87Xe5XaeX9aXe3X81X8cXe5X8fXafXe8X83Xbd">プレースホルダの値渡しの際に型指定が可能</a></li>
+<li><a href="#Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XabXe5X90X8cXe7XadX89Xe3X81XaeXe6Xa9X9fXe8X83XbdXe3X81X8cXe7X94Xa8Xe6X84X8fXe3X81X95Xe3X82X8cXe3X81Xa6Xe3X81X84Xe3X81XaaXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82">ラッパに同等の機能が用意されていない場合。</a></li>
+<li><a href="#Xe3X83XaaXe3X82XafXe3X82Xa8Xe3X82Xb9Xe3X83X88Xe5X87Xa6Xe7X90X86Xe5XaeX8cXe4XbaX86Xe5XbeX8cXe3X81XaeXe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X84unlockXe6X9cXaaXe5XaeX8cXe4XbaX86Xe3X82X92Xe8X87XaaXe5X8bX95Xe6Xa4X9cXe5X87Xba">リクエスト処理完了後のトランザクション未完了やunlock未完了を自動検出</a></li>
+<li><a href="#Xe5XaeX9fXe8Xa1X8cXe3X82XafXe3X82Xa8Xe3X83XaaXe3X81XaeXe5X87Xa6Xe7X90X86Xe6X99X82Xe9X96X93Xe3X83XbbXe5XaeX9fXe8Xa1X8cXe8Xa8X88Xe7X94XbbXe3X83XbbXe7Xb5X90Xe6X9eX9cXe3X82X92Xe8Xa8X98Xe9X8cXb2Xe3X81X99Xe3X82X8bXe3X83X87Xe3X83X90Xe3X83X83Xe3X82Xb0Xe3X83Xa2Xe3X83XbcXe3X83X89Xe3X80X82">実行クエリの処理時間・実行計画・結果を記録するデバッグモード。</a></li>
+<li><a href="#Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe6Xa9X9fXe8X83Xbd">拡張プレースホルダ機能</a></li>
 <li><a href="#Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe8Xa9Xb3Xe7Xb4Xb0">拡張プレースホルダ詳細</a></li>
-<li><a href="#item_Xe6X8eXa5Xe7Xb6X9a/Xe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82">接続/切断は自動で行われる。</a></li>
-<li><a href="#item_Xe9XabX98Xe9X80X9fXe3X81XaaXe5X87Xa6Xe7X90X86Xe3X81X8cXe5XbfX85Xe8Xa6X81Xe3X81Xa7Xe3X80X81Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XaeXe3X82XaaXe3X83XbcXe3X83X90Xe3X83X98Xe3X83X83Xe3X83X89Xe3X82X92Xe5X9bX9eXe9X81XbfXe3X81X97Xe3X81X9fXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82">高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。</a></li>
+<li><a href="#Xe6X8eXa5Xe7Xb6X9a/Xe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82">接続/切断は自動で行われる。</a></li>
+<li><a href="#Xe9XabX98Xe9X80X9fXe3X81XaaXe5X87Xa6Xe7X90X86Xe3X81X8cXe5XbfX85Xe8Xa6X81Xe3X81Xa7Xe3X80X81Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XaeXe3X82XaaXe3X83XbcXe3X83X90Xe3X83X98Xe3X83X83Xe3X83X89Xe3X82X92Xe5X9bX9eXe9X81XbfXe3X81X97Xe3X81X9fXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82">高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

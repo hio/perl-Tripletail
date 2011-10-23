@@ -235,7 +235,9 @@ sub _templateLog {
 		}
 		if($opts->{type} eq 'expand' || $opts->{type} eq 'setAttr') {
 			foreach my $key (sort keys %{$opts->{args}}) {
-				$params_dump .= sprintf("  %s = %s\n", $key, $opts->{args}{$key});
+				my $val = $opts->{args}{$key};
+				defined($val) or $val = '(null)';
+				$params_dump .= sprintf("  %s = %s\n", $key, $val);
 			}
 		}
 
@@ -837,10 +839,21 @@ sub __implant_template_popup {
 		foreach my $entry (@$log) {
 			my %params = %$entry;
 
+            my $force_defined = sub {
+                my $value = shift;
+
+                defined $value ? $value : '(null)';
+            };
+
 			if($entry->{type} eq 'expand' || $entry->{type} eq 'setattr') {
-				while(my ($key, $value) = each %{$entry->{args}}) {
+
+                # イテレータをリセットする代わりにコピーを取る。
+                my %copy = %{$entry->{args}};
+				while (my ($key, $value) = each %copy) {
+                    
+					defined($value) or $value = '(null)';
 					$t->node('entry')->node($entry->{type})->node('arg')->add(
-						KEY => $key, VALUE => $value,
+						KEY => $key, VALUE => $force_defined->($value),
 					);
 				}
 				delete $params{args};
@@ -848,7 +861,7 @@ sub __implant_template_popup {
 				foreach my $key ($entry->{form}->getKeys) {
 					foreach my $value ($entry->{form}->getValues($key)) {
 						$t->node('entry')->node($entry->{type})->node('pair')->add(
-							KEY => $key, VALUE => $value,
+							KEY => $key, VALUE => $force_defined->($value),
 						);
 					}
 				}
@@ -1018,13 +1031,25 @@ sub __implant_popup {
 	my $title = $opts->{title};
 	my $no_push = $opts->{no_push};
 
-	my $script = qq~
-  function $funcname(doc) {
-~;
+	my $script = "  function $funcname(doc) {\n";
 	if(defined($title)) {
 		$script .= qq{    doc.writeln("    <h1 id=\\"$funcname\\">$title</h1>");\n};
 	}
+	my $functions;
+	my $line = 0;
 	foreach(split /\r?\n|\r/, $html) {
+		if( (++$line%1000)==0 )
+		{
+			if( !$functions )
+			{
+				$script =~ s/^  function (\w+)/  function $1_001/;
+				$functions = 1;
+			}
+			++$functions;
+			$script .= "  }\n";
+			my $fname = sprintf('%s_%03d',$funcname,$functions);
+			$script .= "  function $fname(doc) {\n";
+		}
 		# ポップアップウインドウのHTMLの全ての行を、
 		# doc.writeln("..."); という形にする。
 		s/\\/\\\\/g;
@@ -1034,13 +1059,21 @@ sub __implant_popup {
 		s!</script>!"+"<"+"/sc"+"ript>"+"!g;
 		$script .= qq{    doc.writeln("$_");\n};
 	}
-	$script .= qq~
-  }
-~;
-
+	$script .= "  }\n";
+	if( $functions )
+	{
+		$script .= "  function $funcname(doc) {\n";
+		foreach my $i (1..$functions)
+		{
+			my $fname = sprintf('%s_%03d', $funcname, $i);
+			$script .= "    $fname(doc);\n";
+		}
+		$script .= "  }\n";
+	}
+	
 	$script =~ s/\n/\r\n/g;
 	$script = $TL->charconv($script, 'utf8' => $this->{header}{_CHARSET_});
-
+	
 	my $popup = [$title, $funcname, $script];
 	if(!$no_push) {
 		push @{$this->{popup}}, $popup;
@@ -1146,6 +1179,7 @@ sub __executeSql {
 
 sub __popup_css {
 	my $this = shift;
+	my $is_opera = ($ENV{HTTP_USER_AGENT}||'')=~/Opera/i;
 	qq{
     <style>
       * {
@@ -1159,6 +1193,7 @@ sub __popup_css {
         background-color: white;
         text-align: left;
         margin-bottom: 50px;
+@{[ $is_opera ? '        overflow: scroll;' : '' ]}
       }
 
       a {

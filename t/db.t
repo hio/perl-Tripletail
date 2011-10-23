@@ -32,7 +32,7 @@ END {
 }
 
 eval {
-    $TL->errorTrap(
+    $TL->trapError(
 	-DB   => 'DB',
 	-main => sub {},
        );
@@ -46,7 +46,7 @@ plan tests => 67;
 dies_ok {$TL->getDB} '_getInstance die';
 
 eval {
-    $TL->errorTrap(
+    $TL->trapError(
 	-DB   => 'DB',
 	-main => \&main,
        );

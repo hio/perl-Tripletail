@@ -53,7 +53,7 @@ print $fh "all: doc\n";
 print $fh "\n";
 foreach my $pod (@pod) {
     print $fh "$pod->[1]: $pod->[0]\n";
-    print $fh "\tmlpod2html \$< -o \$\@ --poddir=. --missing-dir=. --css=style.css\n";
+    print $fh "\t$mlpod2html \$< -o \$\@ --poddir=. --missing-dir=. --css=style.css\n";
     print $fh "\n";
 }
 if ($mlpod2html) {

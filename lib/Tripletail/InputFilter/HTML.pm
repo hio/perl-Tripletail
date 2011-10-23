@@ -245,7 +245,7 @@ sub __pairsFromMultipart {
 			$fill_until->("\x0d\x0a");
 
 			my $pos = index $buffer, "\x0d\x0a", 0;
-			if ($buffer =~ s/(.{$pos})\x0d\x0a[ \t]+/$1 /s) {
+			if ($buffer =~ s/^(.{$pos})\x0d\x0a[ \t]+/$1 /s) {
 				next; # もう一度。
 			}
 			last;

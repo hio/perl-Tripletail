@@ -49,16 +49,16 @@ is($TL->escapeSqlLike('%_\\'), '\\%\\_\\\\', 'escapeSqlLike');
 dies_ok {$TL->unescapeSqlLike} 'unescapeSqlLike die';
 is($TL->unescapeSqlLike('\\%\\_\\\\'), '%_\\', 'unescapeSqlLike');
 
-ok($TL->errorTrap(-main => sub {}), 'errorTrap');
+ok($TL->trapError(-main => sub {}), 'trapError');
 
 sub DoTEST {}
 ok($TL->dispatch('TEST'), 'dispatch');
 
-dies_ok {$TL->log} 'log die';
-dies_ok {$TL->log(__PACKAGE__)} 'log die';
-ok($TL->log(__PACKAGE__, 'foo'), 'log');
-dies_ok {$TL->_log} '_log die';
-dies_ok {$TL->_log(__PACKAGE__)} '_log die';
+dies_ok {$TL->log} 'log die (1)';
+lives_ok {$TL->log(__PACKAGE__)} 'log (2)';
+lives_ok {$TL->log(__PACKAGE__, 'foo')} 'log (3)';
+dies_ok {$TL->_log} '_log die (1)';
+dies_ok {$TL->_log(__PACKAGE__)} '_log die (2)';
 
 dies_ok {$TL->setHook('init')} 'setHook die';
 dies_ok {$TL->setHook(\123)} 'setHook die';

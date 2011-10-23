@@ -124,6 +124,11 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </li>
 </ul>
 </li>
+<li><a href="#SAMPLE">
+<span class="pod_lang">SAMPLE
+
+</span></a>
+</li>
 <li><a href="#SEE_ALSO">
 <span class="pod_lang">SEE ALSO
 
@@ -528,7 +533,7 @@ CGIモード特有の機能は利用出来ない。
 </p>
 
 <p>
-<span class="pod_lang">このモードでは <a href="#errorTrap">$TL-&gt;errorTrap</a> メソッドで <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を呼ぶ。
+<span class="pod_lang">このモードでは <a href="#trapError">$TL-&gt;trapError</a> メソッドで <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を呼ぶ。
 
 </span>
 </p>
@@ -591,7 +596,7 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> もしくは <a href="#errorTrap">&quot;errorTrap&quot;</a> が呼ばれ、最初に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> もしくは <a href="#trapError">&quot;trapError&quot;</a> が呼ばれ、最初に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が
 呼ばれる前。
 
 </span>
@@ -626,7 +631,7 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 <dd>
 <p>
 <span class="pod_lang">最後に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれた後。termフック呼出し後に <a href="#startCgi">&quot;startCgi&quot;</a>
-もしくは <a href="#errorTrap">&quot;errorTrap&quot;</a> が終了する。
+もしくは <a href="#trapError">&quot;trapError&quot;</a> が終了する。
 
 </span>
 </p>
@@ -820,11 +825,11 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
   );</code></pre>
 
 </dd>
-<dt><a id="errorTrap"><span class="pod_lang"><code class="pod_iseq_C">errorTrap</code>
+<dt><a id="trapError"><span class="pod_lang"><code class="pod_iseq_C">trapError</code>
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;errorTrap(
+<pre class="pod_verbatim"><code>  $TL-&gt;trapError(
     -main =&gt; \&amp;Main, # メイン関数
     -DB   =&gt; 'DB',   # DBを使う場合，iniのグループ名を指定
   );</code></pre>
@@ -893,6 +898,12 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 
 <p>
 <span class="pod_lang">ログを記録する。グループとログデータの２つを受け取る。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">第一引数のグループは省略可能。
 
 </span>
 </p>
@@ -1566,12 +1577,20 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;dump(DATA =&gt; \$data);
+<pre class="pod_verbatim"><code>  $TL-&gt;dump(\$data);
+  $TL-&gt;dump(\$data, $level);
+  $TL-&gt;dump(DATA =&gt; \$data);
   $TL-&gt;dump(DATA =&gt; \$data, $level);</code></pre>
 
 <p>
 <span class="pod_lang">第2引数に変数へのリファレンスを渡すと，その内容を Data::Dumper でダンプし、
 第1引数のグループ名で $TL-&gt;log を呼び出す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">第1引数のグループ名は省略可能。
 
 </span>
 </p>
@@ -2388,6 +2407,116 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 
 
 <hr />
+<h1><a id="SAMPLE">
+<span class="pod_lang">SAMPLE
+
+</span></a></h1>
+
+<pre class="pod_verbatim"><code> perldoc -u Tripletail |  podselect -sections SAMPLE | sed -e '1,4d' -e 's/^ //'
+
+ # master configurations.
+ #
+ [TL]
+ logdir=/home/project/logs/error
+ errormail=errors@your.address
+ errorlog=2
+ trap=diewithprint
+ stackallow=0.0.0.0/0
+ 
+ [TL:SmallDebug]
+ stacktrace=onlystack
+ outputbuffering=1
+ 
+ [TL:Debug]
+ stacktrace=full
+ outputbuffering=1
+ 
+ [TL:FullDebug]
+ stacktrace=full
+ outputbuffering=1
+ stackallow=0.0.0.0/0
+ 
+ # database configrations.
+ #
+ [DB]
+ type=mysql
+ namequery=1
+ tracelevel=0
+ AllTransaction=DBALL
+ defaultset=AllTransaction
+ [DBALL]
+ dbname=
+ user=
+ password=
+ #host=
+ 
+ [DB:SmallDebug]
+ 
+ [DB:Debug]
+ 
+ [DB:FullDebug]
+ tracelevel=2
+ 
+ # debug configrations.
+ #
+ [Debug]
+ enable_debug=0
+ 
+ [Debug:SmallDebug]
+ enable_debug=1
+ 
+ [Debug:Debug]
+ enable_debug=1
+ request_logging=1
+ content_logging=1
+ warn_logging=1
+ db_profile=1
+ popup_type=single
+ template_popup=0
+ request_popup=1
+ db_popup=0
+ log_popup=1
+ warn_popup=1
+ 
+ [Debug:FullDebug]
+ enable_debug=1
+ request_logging=1
+ content_logging=0
+ warn_logging=1
+ db_profile=1
+ popup_type=single
+ template_popup=1
+ request_popup=1
+ db_popup=1
+ log_popup=1
+ warn_popup=1
+ location_debug=1
+ 
+ # misc.
+ #
+ [SecureCookie]
+ path=/
+ secure=1
+ 
+ [Session]
+ mode=https
+ securecookie=SecureCookie
+ timeout=30min
+ updateinterval=10min
+ dbgroup=DB
+ dbset=AllTransaction
+ 
+ # user data.
+ # you can read this data:
+ # $val = $TL-&gt;INI-&gt;get(UserData=&gt;'roses');
+ #
+ [UserData]
+ roses=red
+ violets=blue
+ sugar=sweet</code></pre>
+
+
+<hr />
 <h1><a id="SEE_ALSO">
 <span class="pod_lang">SEE ALSO
 
@@ -2579,6 +2708,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#MainXe9X96Xa2Xe6X95Xb0">Main関数</a></li>
 <li><a href="#NAME">NAME</a></li>
 <li><a href="#NAME_(ja)">NAME (ja)</a></li>
+<li><a href="#SAMPLE">SAMPLE</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
 <li><a href="#X_">Tripletail::Cookie</a></li>
@@ -2611,7 +2741,6 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#dump">dump</a></li>
 <li><a href="#encodeURL">encodeURL</a></li>
 <li><a href="#error">error</a></li>
-<li><a href="#errorTrap">errorTrap</a></li>
 <li><a href="#errorlog">errorlog</a></li>
 <li><a href="#errormail">errormail</a></li>
 <li><a href="#errormailtype">errormailtype</a></li>
@@ -2680,6 +2809,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#tempdir">tempdir</a></li>
 <li><a href="#term">term</a></li>
 <li><a href="#trap">trap</a></li>
+<li><a href="#trapError">trapError</a></li>
 <li><a href="#unescapeJs">unescapeJs</a></li>
 <li><a href="#unescapeSqlLike">unescapeSqlLike</a></li>
 <li><a href="#unescapeTag">unescapeTag</a></li>

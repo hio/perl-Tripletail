@@ -1,5 +1,20 @@
 Revision history for Tripletail
 
+0.18	Fri Sep 15 10:57:55 JST 2006
+	- [[重要:0.17からの非互換な仕様変更]]
+	 - errorTrapをtrapErrorに変更
+	 - $TL->log() の第1引数は省略可能に。
+	 - $TL->log() の第2引数にリファレンスを渡した場合はダンプ結果を出力するように変更。
+	 - $TL->dump() の第1引数は省略可能に。
+	- DateTime#getCalendarMatrixが正しいデータを返していなかったのを修正.
+	- DateTime#spanXxx,minusXxxが破壊的メソッドになっていたのを修正.
+	- jpholiday.plに0.11_01で変更された内容が反映されていなかった問題を修正
+	- t/datetime.t を JST に固定.
+	- InputFilter::HTML のバグの為、0x0D 0x0A 0x09 のバイト列を含むファイルをアップロードした
+	  時に、それが破壊される場合のある問題を解決。
+	- Debug の表示するデバッグ画面内でエラーが発生する場合のある問題を解決。
+	- その他雑多な修正
+
 0.17	Fri Aug 18 16:32:40 JST 2006
 	- Filter::HTML を使うと <form action=""> の action の部分を xxx.cgi?a=b のようにクエリ付きの
 	URL に設定してしまう事がある問題を修正。

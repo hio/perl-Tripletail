@@ -209,8 +209,12 @@ sub set {
 	my $this = shift;
 	my $val = shift;
 
-	if(ref($val)) {
-		die __PACKAGE__."#set, ARG[1] was Ref.\n";
+	if(ref($val))
+	{
+		if( !isa($val, ref($this)) ) {
+			die __PACKAGE__."#set, ARG[1] was Ref.\n";
+		}
+		$val = $val->toStr();
 	}
 
 	if(!$val) {
@@ -667,115 +671,72 @@ sub getCalendar {
 
 sub getCalendarMatrix {
 	my $this = shift;
-	my $year = $this->getYear;
-	my $mon = $this->getMonth;
 
-	my $tmp;
-	if(ref($_[0])) {
-		$tmp = shift;
-	} else {
-		$tmp = { @_ };
-	}
 	my $opt = {
 		type => 'normal',
 		begin => 'sun',
 	};
-	foreach my $key (keys %$tmp) {
-		my $key2 = $key;
-		$key2 =~ s/^-//;
-		$opt->{$key2} = $tmp->{$key};
+	my $arg = ref($_[0]) ? shift : {@_};
+	foreach my $key (keys %$arg) {
+		$key =~ s/^-//; # key is copied.
+		$opt->{$key} = $arg->{$key};
 	}
 
-	my $begin = do {
-		local($_);
-		$_ = $opt->{begin};
-		if($_ eq 'sun') {
-			0;
-		} elsif($_ eq 'mon') {
-			1;
-		} else {
-			die __PACKAGE__."#getCalendarMatrix, opt[begin] is invalid: $_\n";
-		}
-	};
+	my $begin = {
+		qw(sun 0 mon 1 tue 2 wed 3 thu 4 fri 5 sat 6)
+	}->{lc($opt->{begin})};
+	if( !defined($begin) )
+	{
+		die __PACKAGE__."#getCalendarMatrix, opt[begin] is invalid: $_\n";
+	}
 
 	if($opt->{type} ne 'normal' && $opt->{type} ne 'fixed') {
-		die __PACKAGE__."#getCalendarMatrix, opt[fixed] is invalid: $opt->{type}\n";
+		die __PACKAGE__."#getCalendarMatrix, opt[type] is invalid: $opt->{type}\n";
 	}
 
-	my $first = $this->clone->setDay(1);
-	my $cur = $first->clone;
-	my $prev = $first->prevDay;
-
-	my $calendar = [];
-
-	my $j = 0;
-	# 前月が存在する場合は埋める。
-	if($first->getWday != $begin) {
-		my $i = $first->getWday;
-		while($i != $begin) {
-			unshift @{$calendar->[$j]}, $prev;
-			$prev = $prev->prevDay;
-			$i = ($i == 0 ? 6 : $i - 1);
+	my $this_month_1st = $this->clone->setDay(1);
+	
+	my $start_day;
+	{
+		my $daysback = ($this_month_1st->getWday()+7 - $begin)%7;
+		$start_day = $this_month_1st->clone()->addDay(-$daysback);
+	}
+	
+	my $weeks;
+	if( $opt->{type} eq 'fixed' )
+	{
+		$weeks = 6;
+	}else
+	{
+		my $end_day = $start_day->clone()->addDay(6*7);
+		my $daysback = $end_day->getDay()-1;
+		$weeks = 6 - int($daysback/7);
+	}
+	my $day = $start_day->clone();
+	my $matrix = [];
+	foreach (1..$weeks)
+	{
+		my @week;
+		foreach(0..6)
+		{
+			push(@week, $day->clone());
+			$day->addDay(1);
 		}
-	} elsif($opt->{type} eq 'fixed') {
-		# 1日が開始日の場合
-		for(my $i = 0; $i < 7; $i++) {
-			unshift @{$calendar->[$j]}, $prev;
-			$prev = $prev->prevDay;
-		}
+		push(@$matrix, \@week);
 	}
 
-	foreach my $d (1 .. 32) {
-		# 翌月が存在する場合は埋める。
-		if($cur->getMonth != $first->getMonth) {
-			if($cur->getWday != $begin) {
-				my $i = $cur->getWday;
-				while($i != $begin) {
-					push @{$calendar->[$j]}, $cur;
-					$cur = $cur->nextDay;
-					$i = ($i == 6 ? 0 : $i + 1);
-				}
-			}
-			last;
-		}
-		if($cur->getWday == $begin) {
-			$j++;
-			$calendar->[$j] = [];
-		}
-		push @{$calendar->[$j]}, $cur;
-		$cur = $cur->nextDay;
-	}
-
-	if(@$calendar < 6 && $opt->{type} eq 'fixed') {
-		$j++;
-		for(my $i = 0; $i < 7; $i++) {
-			push @{$calendar->[$j]}, $cur;
-			$cur = $cur->nextDay;
-		}
-	}
-
-	$calendar;
+	$matrix;
 }
 
 sub minusSecond {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#minusSecond, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -788,38 +749,25 @@ sub minusSecond {
 
 sub spanSecond {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
-		die __PACKAGE__."#spanSecond, ARG[1] was undef.\n";
+	if( @_==0 )
+	{
+		die __PACKAGE__."#minusSecond, ARG[1] was undef.\n";
 	}
-
-	$this->minusSecond($dt,$dt2);
+	$this->minusSecond(@_);
 }
 
 sub minusMinute {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#minusMinute, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 	
-	$dt->setSecond(0);
-	$dt2->setSecond(0);
+	$dt_base->setSecond(0);
+	$dt_sub->setSecond(0);
 	
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -838,23 +786,13 @@ sub minusMinute {
 
 sub spanMinute {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#spanMinute, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -873,28 +811,18 @@ sub spanMinute {
 
 sub minusHour {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#minusHour, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	$dt->setSecond(0);
-	$dt->setMinute(0);
-	$dt2->setSecond(0);
-	$dt2->setMinute(0);
+	$dt_base->setSecond(0);
+	$dt_base->setMinute(0);
+	$dt_sub->setSecond(0);
+	$dt_sub->setMinute(0);
 
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -918,23 +846,13 @@ sub minusHour {
 
 sub spanHour {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#spanHour, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($dt))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -958,23 +876,13 @@ sub spanHour {
 
 sub spanDay {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#spanDay, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -1001,32 +909,52 @@ sub spanDay {
 	$day;
 }
 
+sub _prepare_biop
+{
+	my $this = shift;
+	my @values;
+	if( @_==0 )
+	{
+		return;
+	}elsif( @_==1 )
+	{
+		# $val1->method($val2);
+		@values = ($this,$_[0]);
+	}else
+	{
+		# $x->method($val1, $val2);
+		@values = ($_[0],$_[1]);
+	}
+	foreach my $val (@values)
+	{
+		if( ref($val) && isa($val, ref($this)) )
+		{
+			$val = $val->clone();
+		}else
+		{
+			$val = $this->clone()->set($val);
+		}
+	}
+	@values;
+}
+
 sub minusDay {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	
+	if( @_==0 )
+	{
 		die __PACKAGE__."#minusDay, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 	
-	$dt->setSecond(0);
-	$dt->setMinute(0);
-	$dt->setHour(0);
-	$dt2->setSecond(0);
-	$dt2->setMinute(0);
-	$dt2->setHour(0);
+	$dt_base->setSecond(0);
+	$dt_base->setMinute(0);
+	$dt_base->setHour(0);
+	$dt_sub->setSecond(0);
+	$dt_sub->setMinute(0);
+	$dt_sub->setHour(0);
 
-	my $span = ($dt->{jd} - $dt2->{jd});
+	my $span = ($dt_base->{jd} - $dt_sub->{jd});
 	my $day = int($span);
 	my $f = $span - $day;
 	my $hour = int($f * 24);
@@ -1055,32 +983,20 @@ sub minusDay {
 
 sub spanMonth {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#spanMonth, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
+
+	my $reverse;
+	if($dt_base->{jd} < $dt_sub->{jd}){
+		$reverse = 1;
+		($dt_base, $dt_sub) = ($dt_sub, $dt_base);
 	}
 
-	my $dttemp;
-
-	if($dt->{jd} < $dt2->{jd}){
-		$dttemp = $dt;
-		$dt = $dt2;
-		$dt2 = $dttemp;
-	}
-
-	my $greg1 = $dt->__getGregorian();
-	my $greg2 = $dt2->__getGregorian();
+	my $greg1 = $dt_base->__getGregorian();
+	my $greg2 = $dt_sub->__getGregorian();
 
 	my $spanmon = ($greg1->{year} - $greg2->{year}) * 12 + ($greg1->{mon} - $greg2->{mon});
 
@@ -1089,63 +1005,41 @@ sub spanMonth {
 		 $spanmon--;
 	}
 	
-	$spanmon = 0 - $spanmon if(defined($dttemp));
+	$spanmon = 0 - $spanmon if(defined($reverse));
 	
 	$spanmon;
 }
 
 sub minusMonth {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#minusMonth, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	my $greg1 = $dt->__getGregorian();
-	my $greg2 = $dt2->__getGregorian();
+	my $greg1 = $dt_base->__getGregorian();
+	my $greg2 = $dt_sub->__getGregorian();
 
 	($greg1->{year} - $greg2->{year}) * 12 + ($greg1->{mon} - $greg2->{mon});
 }
 
 sub spanYear {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#spanYear, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
+
+	my $reverse;
+	if($dt_base->{jd} < $dt_sub->{jd}){
+		$reverse = 1;
+		($dt_base,$dt_sub) = ($dt_sub,$dt_base);
 	}
 
-	my $dttemp;
-
-	if($dt->{jd} < $dt2->{jd}){
-		$dttemp = $dt;
-		$dt = $dt2;
-		$dt2 = $dttemp;
-	}
-
-	my $greg1 = $dt->__getGregorian();
-	my $greg2 = $dt2->__getGregorian();
+	my $greg1 = $dt_base->__getGregorian();
+	my $greg2 = $dt_sub->__getGregorian();
 
 	my $spanyear = $greg1->{year} - $greg2->{year};
 
@@ -1154,31 +1048,21 @@ sub spanYear {
 		 $spanyear--;
 	}
 	
-	$spanyear = 0 - $spanyear if(defined($dttemp));
+	$spanyear = 0 - $spanyear if(defined($reverse));
 	
 	$spanyear;
 }
 
 sub minusYear {
 	my $this = shift;
-	my $dt = shift;
-	my $dt2 = shift;
-
-	if(!defined($dt)) {
+	if( @_==0 )
+	{
 		die __PACKAGE__."#minusYear, ARG[1] was undef.\n";
 	}
-	if(!ref($dt) || !isa($dt, ref($this))) {
-		$dt = $this->clone->set($dt);
-	}
-	if(!defined($dt2)) {
-		$dt2 = $dt;
-		$dt = $this;
-	} elsif(!ref($dt2) || !isa($dt2, ref($this))) {
-		$dt2 = $this->clone->set($dt2);
-	}
+	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
-	my $greg1 = $dt->__getGregorian();
-	my $greg2 = $dt2->__getGregorian();
+	my $greg1 = $dt_base->__getGregorian();
+	my $greg2 = $dt_sub->__getGregorian();
 
 	($greg1->{year} - $greg2->{year});
 }
@@ -2204,7 +2088,7 @@ $typeが2の場合、日本の祝祭日。
 
 =item C<< type >>
 
-'normal' または 'fixed' の2種類。fixed にすると行数が固定になる。
+'normal' または 'fixed' の2種類。fixed にすると常に６週分を返す.
 
 =item C<< begin >>
 

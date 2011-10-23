@@ -11,12 +11,625 @@ use overload
   '""'     => \&_stringify,
   fallback => 1;
 
+sub _POST_REQUEST_HOOK_PRIORITY() { 2_000_000_000 } # Debug よりも後
+
 my $PADWALKER_AVAILABLE; # PadWalker が利用可能であるかどうか。undef / 1 / 0
 
 my $VARIABLE_LENGTH_LIMIT = 32 * 1024; # 1変数あたりの表示する最大長 (バイト)
 
-# {{ DEFAULT_ERROR_TEMPLATE:
-my $DEFAULT_ERROR_TEMPLATE = <<'END';
+my $DEFAULT_ERROR_TEMPLATE = &__load_default_error_template();
+
+my $TRACE_ALLOWANCE_OF_CURRENT_REQUEST;
+
+1;
+
+sub _new {
+	# スタックトレースを持った例外オブジェクトを生成する。
+	# 返されたインスタンスは "" 演算子によって文字列化が可能である。
+	my $class = shift;
+	my $type = shift; # 'error' / 'warn' / 'file-update' / 'memory-leak'
+	my $msg = shift; # $@
+	my $title = shift; # 任意の文字列
+	my $this = bless {} => $class;
+
+	$this->{message} = $msg;
+	$this->{type} = $type;
+	$this->{title} = $title || "Error: $msg";
+	$this->{frames} = []; # Tripletail::Error::Frame
+	$this->{source} = {}; # ファイルパス => 中身
+	$this->{show_trace} = undef;
+	$this->{show_vars}  = undef;
+	$this->{show_src}   = undef;
+	$this->{suppress_internal} = 1;
+	$this->{appear} = 'sudden'; # sudden/usertrap
+	$this->{on_require} = undef; # undef/1.
+
+	my $switch = $TL->INI->get(TL => 'stacktrace', 'onlystack');
+	if ($switch eq 'none') {
+		# skip
+	}
+	elsif ($switch eq 'onlystack') {
+		$this->{show_trace} = 1;
+	}
+	elsif ($switch eq 'full') {
+		$this->{show_trace} = 1;
+		$this->{show_vars}  = 1;
+		$this->{show_src}   = 1;
+	}
+	else {
+		die "Unknown stacktrace type: $switch";
+	}
+
+	if ($this->{show_trace} and not $this->is_trace_allowed) {
+		$this->{show_trace} = undef;
+	}
+
+	if ($this->{show_trace}) {
+		# TLのdieハンドラから呼ばれるかも知れないので、無限再帰を防ぐ。
+		local $SIG{__DIE__} = 'DEFAULT';
+		eval {
+			$this->_fetch_frames;
+		};
+		if ($@) {
+			print STDERR $@;
+			exit 1;
+		}
+	}
+
+    $TL->setHook(
+        'postRequest',
+        _POST_REQUEST_HOOK_PRIORITY,
+        sub {
+            $TRACE_ALLOWANCE_OF_CURRENT_REQUEST = undef;
+        });
+
+	$this;
+}
+
+sub type {
+	shift->{type};
+}
+
+sub title {
+	shift->{title};
+}
+
+sub message {
+	my $this = shift;
+	my $new  = shift;
+
+	if ($new) {
+		$this->{message} = $new;
+	}
+	$this->{message};
+}
+
+sub _fetch_frames {
+	my $this = shift;
+
+	if (not defined $PADWALKER_AVAILABLE) {
+		eval {
+			require PadWalker;
+		};
+		$PADWALKER_AVAILABLE = ($@ ? 0 : 1);
+	}
+
+	my $found_die_handler;
+	my $level = 0;
+	my $pad_level = 0;
+	
+	$this->{appear} = 'sudden'; # sudden/usertrap
+	for (my $i = 0; my @c = caller $i; $i++) {
+		my ($package, $filename, $line, $sub, $hasargs,
+			$wantarray, $evaltext, $is_require, $hints, $bitmask) = @c;
+
+		if ($sub =~ /^Tripletail::__die_handler_for_(localeval|startup)$/) {
+			$sub = 'Tripletail::((die handler))';
+			
+			$found_die_handler = 1;
+		}
+		elsif ($sub eq '(eval)') {
+			if ($is_require) {
+				$sub = "((require/use $package))";
+				if( $this->{appear} eq 'sudden' )
+				{
+					$this->{on_require} = 1;
+				}
+			}
+			else {
+				if( $this->{appear} eq 'sudden' && $package!~/^Tripletail\b/ )
+				{
+					$this->{appear} = 'usertrap';
+				}
+				if (defined $evaltext) {
+					$evaltext =~ s!\s*|\s*!!g;
+					if (length($evaltext) > 30) {
+						substr($evaltext, 27) = '...';
+					}
+					$sub = sprintf '((eval "%s"))', $evaltext;
+				}
+				else {
+					$sub = '((eval))';
+				}
+			}
+			$sub = $package . '::' . $sub;
+		}
+
+		if ($hasargs) {
+			$pad_level++;
+		}
+		else {
+			next; # 関数呼出しのみ考慮。evalで作られたフレームは飛ばす。
+			# peek_my/peek_our でも eval のフレームは飛ばされる。
+			# (pod には取る引数が caller と同じだと書いてあるけど嘘…)
+		}
+
+		$this->{suppress_internal} and not $found_die_handler
+		  and next; # まだ die ハンドラが見えていない
+
+		my $frame = Tripletail::Error::Frame->new(
+			$level++, $filename, $line, $sub);
+
+		if ($this->{show_vars} and $PADWALKER_AVAILABLE) {
+			# ローカル変数を取得
+			my $mines = PadWalker::peek_my($pad_level);
+			my $ours  = PadWalker::peek_our($pad_level);
+
+			while (my ($name, $ref) = each %$mines) {
+				$frame->set_variable("my $name", $ref);
+			}
+
+			while (my ($name, $ref) = each %$ours) {
+				$frame->set_variable("our $name", $ref);
+			}
+
+			#my @args;
+			#do {
+			#	package DB;
+			#	@c = caller $i + 1;
+			#	@args = @DB::args;
+			#};
+			#$frame->set_variable('@_', \@args);
+		}
+
+		if ($this->{show_src}) {
+			# ソースコードを取得
+			if (not exists $this->{source}{$filename}) {
+				my $src;
+				if (-r $filename) {
+					$src = $TL->readTextFile($filename);
+				}
+				$this->{source}{$filename} = $src;
+			}
+		}
+
+		push @{$this->{frames}}, $frame;
+	}
+}
+
+sub is_trace_allowed {
+	my $this = shift;
+
+    if (defined(my $ret = $TRACE_ALLOWANCE_OF_CURRENT_REQUEST)) {
+        $ret;
+    }
+    else {
+        my $ret;
+
+        my $masks = $TL->INI->get(
+            TL => 'stackallow',
+            '');
+	
+        if (my $remote = $ENV{REMOTE_ADDR}) {
+            if($TL->newValue->set($remote)->isIpAddress($masks)) {
+                # マッチした
+                $TL->log(__PACKAGE__,
+                         "[$remote] matched to [$masks]. stack trace is allowed");
+                
+                $ret = 1;
+            }
+            else {
+                # どれにもマッチしなかった。
+                $TL->log(
+                    __PACKAGE__, sprintf(
+                        "[%s] didn't match to any of [%s]. stack trace is not allowed",
+                        $remote, $masks));
+                
+                $ret = 0;
+            }
+        }
+        else {
+            # CGI として起動されたのではないようなので、
+            # 無条件にスタックトレースの表示を許す。
+            $TL->log(__PACKAGE__,
+                     "\$ENV{REMOTE_ADDR} is not set. stack trace is allowed.");
+
+            $ret = 1;
+        }
+
+        $TRACE_ALLOWANCE_OF_CURRENT_REQUEST = $ret;
+        $ret;
+    }
+}
+
+sub toHtml {
+	my $this = shift;
+
+	my $t;
+	my $t_file = $TL->INI->get(TL => 'errortemplate', '');
+	if (length $t_file) {
+		$t = $TL->newTemplate($t_file);
+	}
+	else {
+		$t = $TL->newTemplate->setTemplate($DEFAULT_ERROR_TEMPLATE);
+	}
+
+	if ($this->{show_trace} and $this->is_trace_allowed) {
+		$t->node('detail')->expand(
+			TYPE    => $this->{type},
+			MESSAGE => $this->{message},
+		   );
+	}
+	else {
+		$t->node('header-only')->add(
+			TYPE    => $this->{type},
+			MESSAGE => $this->{message},
+		   );
+
+		$t->expand(
+            SELECTED_LV  => 0,
+			LAST_HILITED => 0,
+		   );
+		return $t->toStr;
+	}
+
+    # 初期状態で選択するスタックレベルは、０から順にフレームを辿って行
+    # き、最初に見付けた Tripletail:: 名前空間外のフレームのレベルとする。但し
+    # 全てのフレームが Tripletail:: であれば、レベル０を使用する。
+    my $default_level = 0;
+    for (my $i = 0; $i < @{$this->{frames}}; $i++) {
+		my $frame = $this->{frames}[$i];
+		my $next = ($i == @{$this->{frames}} - 1 ?
+					  undef : $this->{frames}[$i + 1]);
+        
+        if ($next and $next->func !~ m/^Tripletail::/) {
+            $default_level = $i;
+            last;
+        }
+    }
+
+	for (my $i = 0; $i < @{$this->{frames}}; $i++) {
+		my $frame = $this->{frames}[$i];
+		my $next = ($i == @{$this->{frames}} - 1 ?
+					  undef : $this->{frames}[$i + 1]);
+
+		if ($i == $default_level) {
+			$t->node('detail')->node('frame')->node('selected')->add;
+		}
+
+		$t->node('detail')->node('frame')->add(
+			LEVEL  => $i,
+			FILE   => $frame->fpath,
+			LINE   => $frame->line,
+			CALLER => (defined $next ? $next->func : '((basement))'),
+			CALLEE => $frame->func,
+		   );
+	}
+
+	# JavaScript から読む為のデータを展開
+	for (my $i = 0; $i < @{$this->{frames}}; $i++) {
+		my $frame = $this->{frames}[$i];
+		my $next = ($i == @{$this->{frames}} - 1 ?
+					  undef : $this->{frames}[$i + 1]);
+
+		# 変数
+		while (my ($name, $value) = each %{$frame->vars}) {
+
+            $value =~ s!</script>!</sc"+"ript>!ig;
+            
+			$t->node('js-vars')->node('var')->setAttr(
+				NAME  => 'js',
+				VALUE => 'js',
+			   );
+			$t->node('js-vars')->node('var')->add(
+				NAME  => $name,
+				VALUE => $value,
+			   );
+		}
+		$t->node('js-vars')->add(
+			LEVEL => $frame->level,
+		   );
+
+		while (my ($name, $value) = each %{$frame->vars_shallow}) {
+
+            $value =~ s!</script>!</sc"+"ript>!ig;
+            
+			$t->node('js-vars-shallow')->node('var')->setAttr(
+				NAME  => 'js',
+				VALUE => 'js',
+			   );
+			$t->node('js-vars-shallow')->node('var')->add(
+				NAME  => $name,
+				VALUE => $value,
+			   );
+		}
+		$t->node('js-vars-shallow')->add(
+			LEVEL => $frame->level,
+		   );
+
+		# フレーム
+		$t->node('js-frame')->setAttr(
+			FILE => 'js',
+			FUNC => 'js',
+		   );
+		$t->node('js-frame')->add(
+			LEVEL => $frame->level,
+			FILE  => $frame->fpath,
+			LINE  => $frame->line,
+			FUNC  => (defined $next ? $next->func : '((basement))'),
+		   );
+	}
+	# ソース
+	foreach my $fpath (keys %{$this->{source}}) {
+		$this->foreach_source_line(
+			$fpath, sub {
+				my ($linenum, $src) = @_;
+
+				$src = $TL->escapeJs($src);
+				$src =~ s!</script>!</sc"+"ript>!i;
+		
+				$t->node('js-src')->node('line')->setAttr(
+					LINE => 'raw',
+				   );
+				$t->node('js-src')->node('line')->add(
+					LINE => $src,
+				   );
+			});
+		$t->node('js-src')->setAttr(
+			FILE   => 'js',
+		   );
+		$t->node('js-src')->add(
+			FILE   => $fpath,
+		   );
+	}
+
+	my $frame = $this->{frames}[$default_level];
+
+	# デフォルトで表示される変数は Lv. 0 の変数であり、表示されるソース
+	# は Lv. 0 のソースである。これは後で JavaScript によって書き換えら
+	# れる可能性がある。
+	if (not $this->{show_vars}) {
+		$t->node('detail')->node('vars-unavail')->add(
+			REASON => 'iniファイル、[TL]グループの "stacktrace" の設定値が'.
+			  ' "full" になっていません。');
+	}
+    elsif (not $frame) {
+        $t->node('detail')->node('vars-unavail')->setAttr(
+            REASON => 'raw',
+           );
+        $t->node('detail')->node('vars-unavail')->add(
+            REASON =>
+              q{スタックトレースを取得できませんでした。} .
+              q{$SIG{__DIE__} ハンドラが置き換えられた状態でエラーが発生した可能性があります。<br />} .
+              q{エラー内容が勝手に書き換えられるのを防ぐなどの理由で一時的に $SIG{__DIE__} } .
+              q{ハンドラを置き換える際には、次のようにして、発生したエラーを再度 die して下さい。<br /><br />} .
+              q[<pre>eval {] . "\n" .
+              q[  $SIG{__DIE__} = 'DEFAULT';] . "\n" .
+              q[  # エラーが発生する処理] . "\n" .
+              q[};] . "\n" .
+              q[if ($@) {] . "\n" .
+              q[  die $@;  # 再度エラーを発生させる] . "\n" .
+              q[}</pre>],
+           );
+    }
+	elsif (not $PADWALKER_AVAILABLE) {
+		$t->node('detail')->node('vars-unavail')->setAttr(
+			REASON => 'raw',
+		   );
+		$t->node('detail')->node('vars-unavail')->add(
+			REASON => '<a href="http://search.cpan.org/~robin/PadWalker/">PadWalker</a> が利用不可能です。');
+	}
+	else {
+		foreach my $name (sort {$a cmp $b} keys %{$frame->vars_shallow}) {
+			$t->node('detail')->node('vars-avail')->node('var')->add(
+				NAME  => $name,
+				VALUE => $frame->vars_shallow->{$name},
+			   );
+		}
+		$t->node('detail')->node('vars-avail')->add;
+	}
+
+	if (not $this->{show_src}) {
+		$t->node('detail')->node('src-unavail')->add(
+			REASON => 'iniファイル、[TL]グループの "stacktrace" の設定値が'.
+			  ' "full" になっていません。');
+	}
+    elsif (not $frame) {
+        $t->node('detail')->node('src-unavail')->add(
+            REASON =>
+              q{スタックトレースを取得できませんでした。}
+             );
+    }
+	elsif (not defined $this->{source}{$frame->fpath}) {
+		$t->node('detail')->node('src-unavail')->add(
+			REASON => 'ソースファイル "%s" を読み込む事が出来ません。');
+	}
+	else {
+		$this->foreach_source_line(
+			$frame, sub {
+				my ($linenum, $src) = @_;
+
+				$t->node('detail')->node('src-avail')->node('line')->node(
+					$frame->line == $linenum ? 'caller-line' : 'other-line')->add(
+						SOURCE   => $src,
+						LINE_NUM => $linenum,
+					   );
+				$t->node('detail')->node('src-avail')->node('line')->add;
+			});
+		$t->node('detail')->node('src-avail')->add;
+	}
+
+    if ($frame) {
+        $t->expand(
+            SELECTED_LV  => $frame->level,
+            LAST_HILITED => $frame->line,
+           );
+    }
+    else {
+        $t->expand(
+            SELECTED_LV  => 0,
+            LAST_HILITED => 0,
+           );
+    }
+
+	$t->node('detail')->add;
+	$t->toStr;
+}
+
+sub _stringify {
+	# 文字列化は標準エラーやメール等への出力を目的として行われる為、ソー
+	# スコードは省かれる。ローカル変数が省かれるかどうかは設定に依る。
+	my $this = shift;
+	my $dump_vars = ($TL->INI->get(TL => 'errorlog', 1) > 2);
+	my $omission_threshold = 100; # 100 バイトを越える変数は二回以上出力しない
+	my $already_dumped = {}; # 値 => [名前, レベル]
+	
+	my $ret;
+
+	$ret = sprintf "[%s] message: %s\n", $this->{type}, $this->{message};
+
+	for (my $i = 0; $i < @{$this->{frames}}; $i++) {
+		my $frame = $this->{frames}[$i];
+		my $next = ($i == @{$this->{frames}} - 1 ?
+					  undef : $this->{frames}[$i + 1]);
+		
+		$ret .= sprintf(
+			"[stack][%d] file: %s (line %d) \@ %s ==> %s\n",
+			$i,
+			$frame->fpath,
+			$frame->line,
+			(defined $next ? $next->func : '((basement))'),
+			$frame->func,
+		   );
+
+		if ($dump_vars) {
+			my @sorted = sort keys %{$frame->vars};
+
+			foreach my $name (@sorted) {
+				my $value = $frame->vars->{$name};
+
+				$ret .= sprintf("     %s = ", $name);
+
+				if (length($value) >= $omission_threshold) {
+					if (my $before = $already_dumped->{$value}) {
+						$ret .= sprintf(
+							"already dumped as %s at frame %d. skip...\n",
+							$before->[0], $before->[1]);
+						next;
+					}
+					else {
+						$already_dumped->{$value} = [$name, $i];
+					}
+				}
+
+				my @lines = split /\r?\n|\n/, $value;
+				for (my $i = 0; $i < @lines; $i++) {
+					if ($i == 0) {
+						$ret .= "$lines[$i]\n";
+					}
+					elsif ($i == @lines - 1) {
+						$ret .= "     $lines[$i];\n";
+					}
+					else {
+						$ret .= "     $lines[$i]\n";
+					}
+				}
+			}
+		}
+	}
+
+	$ret;
+}
+
+sub foreach_source_line {
+	my ($this, $fpath, $f) = @_;
+	ref $fpath and
+	  $fpath = $fpath->fpath; # Tripletail::Error::Frame を許す
+
+	my $src = $this->{source}{$fpath};
+
+	my @lines = split /\r?\n|\r/, (defined $src ? $src : '');
+	for (my $i = 0; $i < @lines; $i++) {
+		$f->(
+			$i + 1, sprintf('%5d |  %s', $i + 1, $lines[$i]));
+	}
+}
+
+package Tripletail::Error::Frame;
+use strict;
+use warnings;
+
+sub new {
+	my $class = shift;
+	my $this = bless {} => $class;
+
+	$this->{level}  = shift;
+	$this->{fpath}  = shift;
+	$this->{line}   = shift;
+	$this->{func}   = shift;
+	$this->{vars}         = {}; # '$foo' => 666
+	$this->{vars_shallow} = {}; # '$doo' => 'ARRAY(0x81940f8)'
+	$this;
+}
+
+sub level  { shift->{level}  }
+sub fpath  { shift->{fpath}  }
+sub line   { shift->{line}   }
+sub func   { shift->{func}   }
+sub vars   { shift->{vars}   }
+sub vars_shallow { shift->{vars_shallow} }
+
+sub set_variable {
+	my $this = shift;
+	my $name = shift;
+	my $ref  = shift;
+
+	my $postprocess = sub {
+		local($_);
+		$_ = shift;
+		
+		s!^\\!!;
+		s!^\s*|\s*$!!g;
+		($name =~ m/[\@\%]/) and do {
+			s!^[\[\{]!(!;
+			s![\]\}]$!)!;
+		};
+
+		if (length > $VARIABLE_LENGTH_LIMIT) {
+			substr($_, $VARIABLE_LENGTH_LIMIT - 3) = '...';
+		}
+
+		$_;
+	};
+
+	my $dump = Data::Dumper->new([$ref])
+	  ->Indent(1)->Purity(0)->Useqq(1)->Terse(1)->Deepcopy(1)
+	  ->Quotekeys(0)->Sortkeys(1)->Deparse(1)->Maxdepth(7)->Dump;
+	$this->{vars}{$name} = $postprocess->($dump);
+
+	my $shallow = Data::Dumper->new([$ref])
+	  ->Indent(1)->Purity(0)->Useqq(1)->Terse(1)->Deepcopy(1)
+	  ->Quotekeys(0)->Sortkeys(1)->Deparse(1)->Maxdepth(1)->Dump;
+	$this->{vars_shallow}{$name} = $postprocess->($shallow);
+	
+	$this;
+}
+
+package Tripletail::Error;
+sub __load_default_error_template
+{
+	# {{ DEFAULT_ERROR_TEMPLATE:
+	<<'END';
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11.dtd">
 <html xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
@@ -752,585 +1365,7 @@ my $DEFAULT_ERROR_TEMPLATE = <<'END';
   </body>
 </html>
 END
-# DEFAULT_ERROR_TEMPLATE:}}
-
-1;
-
-sub _new {
-	# スタックトレースを持った例外オブジェクトを生成する。
-	# 返されたインスタンスは "" 演算子によって文字列化が可能である。
-	my $class = shift;
-	my $type = shift; # 'error' / 'warn' / 'file-update' / 'memory-leak'
-	my $msg = shift; # $@
-	my $title = shift; # 任意の文字列
-	my $this = bless {} => $class;
-
-	$this->{message} = $msg;
-	$this->{type} = $type;
-	$this->{title} = $title || "Error: $msg";
-	$this->{frames} = []; # Tripletail::Error::Frame
-	$this->{source} = {}; # ファイルパス => 中身
-	$this->{show_trace} = undef;
-	$this->{show_vars}  = undef;
-	$this->{show_src}   = undef;
-	$this->{suppress_internal} = 1;
-	$this->{appear} = 'sudden'; # sudden/tltrap/usertrap
-
-	my $switch = $TL->INI->get(TL => 'stacktrace', 'onlystack');
-	if ($switch eq 'none') {
-		# skip
-	}
-	elsif ($switch eq 'onlystack') {
-		$this->{show_trace} = 1;
-	}
-	elsif ($switch eq 'full') {
-		$this->{show_trace} = 1;
-		$this->{show_vars}  = 1;
-		$this->{show_src}   = 1;
-	}
-	else {
-		die "Unknown stacktrace type: $switch";
-	}
-
-	if ($this->{show_trace} and not $this->is_trace_allowed) {
-		$this->{show_trace} = undef;
-	}
-
-	if ($this->{show_trace}) {
-		# TLのdieハンドラから呼ばれるかも知れないので、無限再帰を防ぐ。
-		local $SIG{__DIE__} = 'DEFAULT';
-		eval {
-			$this->_fetch_frames;
-		};
-		if ($@) {
-			print STDERR $@;
-			exit 1;
-		}
-	}
-
-	$this;
-}
-
-sub type {
-	shift->{type};
-}
-
-sub title {
-	shift->{title};
-}
-
-sub message {
-	my $this = shift;
-	my $new  = shift;
-
-	if ($new) {
-		$this->{message} = $new;
-	}
-	$this->{message};
-}
-
-sub _fetch_frames {
-	my $this = shift;
-
-	if (not defined $PADWALKER_AVAILABLE) {
-		eval {
-			require PadWalker;
-		};
-		$PADWALKER_AVAILABLE = ($@ ? 0 : 1);
-	}
-
-	my $found_die_handler;
-	my $level = 0;
-	my $pad_level = 0;
-	
-	$this->{appear} = 'sudden';
-	for (my $i = 0; my @c = caller $i; $i++) {
-		my ($package, $filename, $line, $sub, $hasargs,
-			$wantarray, $evaltext, $is_require, $hints, $bitmask) = @c;
-
-		if ($sub eq 'Tripletail::__ANON__') {
-			$sub = 'Tripletail::((die handler))';
-			
-			$found_die_handler = 1;
-			$this->{appear} = 'tltrap';
-		}
-		elsif ($sub eq '(eval)') {
-			if ($is_require) {
-				$sub = "((require/use $package))";
-			}
-			else {
-				if( $this->{appear} eq 'sudden' )
-				{
-					$this->{appear} = 'usertrap';
-				}
-				if (defined $evaltext) {
-					$evaltext =~ s!\s*|\s*!!g;
-					if (length($evaltext) > 30) {
-						substr($evaltext, 27) = '...';
-					}
-					$sub = sprintf '((eval "%s"))', $evaltext;
-				}
-				else {
-					$sub = '((eval))';
-				}
-			}
-			$sub = $package . '::' . $sub;
-		}
-
-		if ($hasargs) {
-			$pad_level++;
-		}
-		else {
-			next; # 関数呼出しのみ考慮。evalで作られたフレームは飛ばす。
-			# peek_my/peek_our でも eval のフレームは飛ばされる。
-			# (pod には取る引数が caller と同じだと書いてあるけど嘘…)
-		}
-
-		$this->{suppress_internal} and not $found_die_handler
-		  and next; # まだ die ハンドラが見えていない
-
-		my $frame = Tripletail::Error::Frame->new(
-			$level++, $filename, $line, $sub);
-
-		if ($this->{show_vars} and $PADWALKER_AVAILABLE) {
-			# ローカル変数を取得
-			my $mines = PadWalker::peek_my($pad_level);
-			my $ours  = PadWalker::peek_our($pad_level);
-
-			while (my ($name, $ref) = each %$mines) {
-				$frame->set_variable("my $name", $ref);
-			}
-
-			while (my ($name, $ref) = each %$ours) {
-				$frame->set_variable("our $name", $ref);
-			}
-
-			#my @args;
-			#do {
-			#	package DB;
-			#	@c = caller $i + 1;
-			#	@args = @DB::args;
-			#};
-			#$frame->set_variable('@_', \@args);
-		}
-
-		if ($this->{show_src}) {
-			# ソースコードを取得
-			if (not exists $this->{source}{$filename}) {
-				my $src;
-				if (-r $filename) {
-					$src = $TL->readTextFile($filename);
-				}
-				$this->{source}{$filename} = $src;
-			}
-		}
-
-		push @{$this->{frames}}, $frame;
-	}
-}
-
-sub is_trace_allowed {
-	my $this = shift;
-
-	my $masks = $TL->INI->get(
-		TL => 'stackallow',
-		'');
-	
-	if (my $remote = $ENV{REMOTE_ADDR}) {
-		if($TL->newValue->set($remote)->isIpAddress($masks)) {
-			# マッチした
-			$TL->log(__PACKAGE__,
-					 "[$remote] matched to [$masks]. stack trace is allowed");
-					   
-			return 1;
-		} else {
-			# どれにもマッチしなかった。
-			$TL->log(
-				__PACKAGE__, sprintf(
-					"[%s] didn't match to any of [%s]. stack trace is not allowed",
-				   $remote, $masks));
-			0;
-		}
-	} else {
-		# CGI として起動されたのではないようなので、
-		# 無条件にスタックトレースの表示を許す。
-		$TL->log(__PACKAGE__,
-				 "\$ENV{REMOTE_ADDR} is not set. stack trace is allowed.");
-		1;
-	}
-}
-
-sub toHtml {
-	my $this = shift;
-
-	my $t;
-	my $t_file = $TL->INI->get(TL => 'errortemplate', '');
-	if (length $t_file) {
-		$t = $TL->newTemplate($t_file);
-	}
-	else {
-		$t = $TL->newTemplate->setTemplate($DEFAULT_ERROR_TEMPLATE);
-	}
-
-	if ($this->{show_trace} and $this->is_trace_allowed) {
-		$t->node('detail')->expand(
-			TYPE    => $this->{type},
-			MESSAGE => $this->{message},
-		   );
-	}
-	else {
-		$t->node('header-only')->add(
-			TYPE    => $this->{type},
-			MESSAGE => $this->{message},
-		   );
-
-		$t->expand(
-            SELECTED_LV  => 0,
-			LAST_HILITED => 0,
-		   );
-		return $t->toStr;
-	}
-
-    # 初期状態で選択するスタックレベルは、０から順にフレームを辿って行
-    # き、最初に見付けた Tripletail:: 名前空間外のフレームのレベルとする。但し
-    # 全てのフレームが Tripletail:: であれば、レベル０を使用する。
-    my $default_level = 0;
-    for (my $i = 0; $i < @{$this->{frames}}; $i++) {
-		my $frame = $this->{frames}[$i];
-		my $next = ($i == @{$this->{frames}} - 1 ?
-					  undef : $this->{frames}[$i + 1]);
-        
-        if ($next and $next->func !~ m/^Tripletail::/) {
-            $default_level = $i;
-            last;
-        }
-    }
-
-	for (my $i = 0; $i < @{$this->{frames}}; $i++) {
-		my $frame = $this->{frames}[$i];
-		my $next = ($i == @{$this->{frames}} - 1 ?
-					  undef : $this->{frames}[$i + 1]);
-
-		if ($i == $default_level) {
-			$t->node('detail')->node('frame')->node('selected')->add;
-		}
-
-		$t->node('detail')->node('frame')->add(
-			LEVEL  => $i,
-			FILE   => $frame->fpath,
-			LINE   => $frame->line,
-			CALLER => (defined $next ? $next->func : '((basement))'),
-			CALLEE => $frame->func,
-		   );
-	}
-
-	# JavaScript から読む為のデータを展開
-	for (my $i = 0; $i < @{$this->{frames}}; $i++) {
-		my $frame = $this->{frames}[$i];
-		my $next = ($i == @{$this->{frames}} - 1 ?
-					  undef : $this->{frames}[$i + 1]);
-
-		# 変数
-		while (my ($name, $value) = each %{$frame->vars}) {
-
-            $value =~ s!</script>!</sc"+"ript>!ig;
-            
-			$t->node('js-vars')->node('var')->setAttr(
-				NAME  => 'js',
-				VALUE => 'js',
-			   );
-			$t->node('js-vars')->node('var')->add(
-				NAME  => $name,
-				VALUE => $value,
-			   );
-		}
-		$t->node('js-vars')->add(
-			LEVEL => $frame->level,
-		   );
-
-		while (my ($name, $value) = each %{$frame->vars_shallow}) {
-
-            $value =~ s!</script>!</sc"+"ript>!ig;
-            
-			$t->node('js-vars-shallow')->node('var')->setAttr(
-				NAME  => 'js',
-				VALUE => 'js',
-			   );
-			$t->node('js-vars-shallow')->node('var')->add(
-				NAME  => $name,
-				VALUE => $value,
-			   );
-		}
-		$t->node('js-vars-shallow')->add(
-			LEVEL => $frame->level,
-		   );
-
-		# フレーム
-		$t->node('js-frame')->setAttr(
-			FILE => 'js',
-			FUNC => 'js',
-		   );
-		$t->node('js-frame')->add(
-			LEVEL => $frame->level,
-			FILE  => $frame->fpath,
-			LINE  => $frame->line,
-			FUNC  => (defined $next ? $next->func : '((basement))'),
-		   );
-	}
-	# ソース
-	foreach my $fpath (keys %{$this->{source}}) {
-		$this->foreach_source_line(
-			$fpath, sub {
-				my ($linenum, $src) = @_;
-
-				$src = $TL->escapeJs($src);
-				$src =~ s!</script>!</sc"+"ript>!i;
-		
-				$t->node('js-src')->node('line')->setAttr(
-					LINE => 'raw',
-				   );
-				$t->node('js-src')->node('line')->add(
-					LINE => $src,
-				   );
-			});
-		$t->node('js-src')->setAttr(
-			FILE   => 'js',
-		   );
-		$t->node('js-src')->add(
-			FILE   => $fpath,
-		   );
-	}
-
-	my $frame = $this->{frames}[$default_level];
-
-	# デフォルトで表示される変数は Lv. 0 の変数であり、表示されるソース
-	# は Lv. 0 のソースである。これは後で JavaScript によって書き換えら
-	# れる可能性がある。
-	if (not $this->{show_vars}) {
-		$t->node('detail')->node('vars-unavail')->add(
-			REASON => 'iniファイル、[TL]グループの "stacktrace" の設定値が'.
-			  ' "full" になっていません。');
-	}
-    elsif (not $frame) {
-        $t->node('detail')->node('vars-unavail')->setAttr(
-            REASON => 'raw',
-           );
-        $t->node('detail')->node('vars-unavail')->add(
-            REASON =>
-              q{スタックトレースを取得できませんでした。} .
-              q{$SIG{__DIE__} ハンドラが置き換えられた状態でエラーが発生した可能性があります。<br />} .
-              q{エラー内容が勝手に書き換えられるのを防ぐなどの理由で一時的に $SIG{__DIE__} } .
-              q{ハンドラを置き換える際には、次のようにして、発生したエラーを再度 die して下さい。<br /><br />} .
-              q[<pre>eval {] . "\n" .
-              q[  $SIG{__DIE__} = 'DEFAULT';] . "\n" .
-              q[  # エラーが発生する処理] . "\n" .
-              q[};] . "\n" .
-              q[if ($@) {] . "\n" .
-              q[  die $@;  # 再度エラーを発生させる] . "\n" .
-              q[}</pre>],
-           );
-    }
-	elsif (not $PADWALKER_AVAILABLE) {
-		$t->node('detail')->node('vars-unavail')->setAttr(
-			REASON => 'raw',
-		   );
-		$t->node('detail')->node('vars-unavail')->add(
-			REASON => '<a href="http://search.cpan.org/~robin/PadWalker/">PadWalker</a> が利用不可能です。');
-	}
-	else {
-		foreach my $name (sort {$a cmp $b} keys %{$frame->vars_shallow}) {
-			$t->node('detail')->node('vars-avail')->node('var')->add(
-				NAME  => $name,
-				VALUE => $frame->vars_shallow->{$name},
-			   );
-		}
-		$t->node('detail')->node('vars-avail')->add;
-	}
-
-	if (not $this->{show_src}) {
-		$t->node('detail')->node('src-unavail')->add(
-			REASON => 'iniファイル、[TL]グループの "stacktrace" の設定値が'.
-			  ' "full" になっていません。');
-	}
-    elsif (not $frame) {
-        $t->node('detail')->node('src-unavail')->add(
-            REASON =>
-              q{スタックトレースを取得できませんでした。}
-             );
-    }
-	elsif (not defined $this->{source}{$frame->fpath}) {
-		$t->node('detail')->node('src-unavail')->add(
-			REASON => 'ソースファイル "%s" を読み込む事が出来ません。');
-	}
-	else {
-		$this->foreach_source_line(
-			$frame, sub {
-				my ($linenum, $src) = @_;
-
-				$t->node('detail')->node('src-avail')->node('line')->node(
-					$frame->line == $linenum ? 'caller-line' : 'other-line')->add(
-						SOURCE   => $src,
-						LINE_NUM => $linenum,
-					   );
-				$t->node('detail')->node('src-avail')->node('line')->add;
-			});
-		$t->node('detail')->node('src-avail')->add;
-	}
-
-    if ($frame) {
-        $t->expand(
-            SELECTED_LV  => $frame->level,
-            LAST_HILITED => $frame->line,
-           );
-    }
-    else {
-        $t->expand(
-            SELECTED_LV  => 0,
-            LAST_HILITED => 0,
-           );
-    }
-
-	$t->node('detail')->add;
-	$t->toStr;
-}
-
-sub _stringify {
-	# 文字列化は標準エラーやメール等への出力を目的として行われる為、ソー
-	# スコードは省かれる。ローカル変数が省かれるかどうかは設定に依る。
-	my $this = shift;
-	my $dump_vars = ($TL->INI->get(TL => 'errorlog', 1) > 2);
-	my $omission_threshold = 100; # 100 バイトを越える変数は二回以上出力しない
-	my $already_dumped = {}; # 値 => [名前, レベル]
-	
-	my $ret;
-
-	$ret = sprintf "[%s] message: %s\n", $this->{type}, $this->{message};
-
-	for (my $i = 0; $i < @{$this->{frames}}; $i++) {
-		my $frame = $this->{frames}[$i];
-		my $next = ($i == @{$this->{frames}} - 1 ?
-					  undef : $this->{frames}[$i + 1]);
-		
-		$ret .= sprintf(
-			"[stack][%d] file: %s (line %d) \@ %s ==> %s\n",
-			$i,
-			$frame->fpath,
-			$frame->line,
-			(defined $next ? $next->func : '((basement))'),
-			$frame->func,
-		   );
-
-		if ($dump_vars) {
-			my @sorted = sort keys %{$frame->vars};
-
-			foreach my $name (@sorted) {
-				my $value = $frame->vars->{$name};
-
-				$ret .= sprintf("     %s = ", $name);
-
-				if (length($value) >= $omission_threshold) {
-					if (my $before = $already_dumped->{$value}) {
-						$ret .= sprintf(
-							"already dumped as %s at frame %d. skip...\n",
-							$before->[0], $before->[1]);
-						next;
-					}
-					else {
-						$already_dumped->{$value} = [$name, $i];
-					}
-				}
-
-				my @lines = split /\r?\n|\n/, $value;
-				for (my $i = 0; $i < @lines; $i++) {
-					if ($i == 0) {
-						$ret .= "$lines[$i]\n";
-					}
-					elsif ($i == @lines - 1) {
-						$ret .= "     $lines[$i];\n";
-					}
-					else {
-						$ret .= "     $lines[$i]\n";
-					}
-				}
-			}
-		}
-	}
-
-	$ret;
-}
-
-sub foreach_source_line {
-	my ($this, $fpath, $f) = @_;
-	ref $fpath and
-	  $fpath = $fpath->fpath; # Tripletail::Error::Frame を許す
-
-	my $src = $this->{source}{$fpath};
-
-	my @lines = split /\r?\n|\r/, (defined $src ? $src : '');
-	for (my $i = 0; $i < @lines; $i++) {
-		$f->(
-			$i + 1, sprintf('%5d |  %s', $i + 1, $lines[$i]));
-	}
-}
-
-package Tripletail::Error::Frame;
-use strict;
-use warnings;
-
-sub new {
-	my $class = shift;
-	my $this = bless {} => $class;
-
-	$this->{level}  = shift;
-	$this->{fpath}  = shift;
-	$this->{line}   = shift;
-	$this->{func}   = shift;
-	$this->{vars}         = {}; # '$foo' => 666
-	$this->{vars_shallow} = {}; # '$doo' => 'ARRAY(0x81940f8)'
-	$this;
-}
-
-sub level  { shift->{level}  }
-sub fpath  { shift->{fpath}  }
-sub line   { shift->{line}   }
-sub func   { shift->{func}   }
-sub vars   { shift->{vars}   }
-sub vars_shallow { shift->{vars_shallow} }
-
-sub set_variable {
-	my $this = shift;
-	my $name = shift;
-	my $ref  = shift;
-
-	my $postprocess = sub {
-		local($_);
-		$_ = shift;
-		
-		s!^\\!!;
-		s!^\s*|\s*$!!g;
-		($name =~ m/[\@\%]/) and do {
-			s!^[\[\{]!(!;
-			s![\]\}]$!)!;
-		};
-
-		if (length > $VARIABLE_LENGTH_LIMIT) {
-			substr($_, $VARIABLE_LENGTH_LIMIT - 3) = '...';
-		}
-
-		$_;
-	};
-
-	my $dump = Data::Dumper->new([$ref])
-	  ->Indent(1)->Purity(0)->Useqq(1)->Terse(1)->Deepcopy(1)
-	  ->Quotekeys(0)->Sortkeys(1)->Deparse(1)->Maxdepth(7)->Dump;
-	$this->{vars}{$name} = $postprocess->($dump);
-
-	my $shallow = Data::Dumper->new([$ref])
-	  ->Indent(1)->Purity(0)->Useqq(1)->Terse(1)->Deepcopy(1)
-	  ->Quotekeys(0)->Sortkeys(1)->Deparse(1)->Maxdepth(1)->Dump;
-	$this->{vars_shallow}{$name} = $postprocess->($shallow);
-	
-	$this;
+	# DEFAULT_ERROR_TEMPLATE:}}
 }
 
 __END__

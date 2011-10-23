@@ -1,11 +1,13 @@
 # -*- cperl -*-
-use Test::More tests => 312;
+BEGIN{ $ENV{TZ}='JST-9'; }
+use Test::More tests => 334;
 use Test::Exception;
 
+use strict;
 use warnings;
 
 BEGIN {
-    eval q{use Tripletail qw(/dev/null)};
+    use_ok('Tripletail' => qw(/dev/null));
 }
 
 END {
@@ -247,16 +249,79 @@ $dt->setYear(2005);
 is($dt->isLeapYear, undef, 'isLeapYear -- 2005');
 
 #-- calendar ----------------------
-dies_ok {$dt->getCalendarMatrix(type => {})} 'getCalendarMatrix die';
-dies_ok {$dt->getCalendarMatrix(\123)} 'getCalendarMatrix die';
-dies_ok {$dt->getCalendarMatrix(type => 'normal', begin => 'wed')} 'getCalendarMatrix die';
+throws_ok sub{$dt->getCalendarMatrix(type => {})} => qr/opt\[type\] is invalid: HASH/,  'getCalendarMatrix die (type=>HASHref)';
+throws_ok sub{$dt->getCalendarMatrix(\123)} => qr//,  'getCalendarMatrix die(SCALARref)';
 
-$dt->set('2006-10-01');
-ok($dt->getCalendar, 'getCalendar');
-ok($dt->getCalendarMatrix(type => 'normal', begin => 'sun'), 'getCalendarMatrix');
-ok($dt->getCalendarMatrix(type => 'fixed', begin => 'sun'), 'getCalendarMatrix');
+{
+	my $dt = $TL->newDateTime('2006-10-10');
+	lives_ok(sub{$dt->getCalendar}, 'getCalendar, 2006-10');
+	lives_ok(sub{$dt->getCalendarMatrix}, 'getCalendarMatrix, 2006-10');
+	my $mat = $dt->getCalendarMatrix;
+	is(scalar(@$mat), 5, 'getCalendarMatrix, 2006-10 has 5 arrays');
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[0]} ],
+	           [ map{sprintf('2006-10-%02d',$_)}1..7 ],
+	           'getCalendarMatrix,   1st week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[1]} ],
+	           [ map{sprintf('2006-10-%02d',$_)}8..14 ],
+	           'getCalendarMatrix,   2nd week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[2]} ],
+	           [ map{sprintf('2006-10-%02d',$_)}15..21 ],
+	           'getCalendarMatrix,   3rd week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[3]} ],
+	           [ map{sprintf('2006-10-%02d',$_)}22..28 ],
+	           'getCalendarMatrix,   4th week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[4]} ],
+	           [ (map{sprintf('2006-10-%02d',$_)}29..31),
+	             (map{sprintf('2006-11-%02d',$_)}1..4)
+	           ],
+	           'getCalendarMatrix,   5th week.'
+	);
+}
+{
+	my $dt = $TL->newDateTime('2006-07-31');
+	lives_ok(sub{$dt->getCalendar}, 'getCalendar, 2006-07');
+	lives_ok(sub{$dt->getCalendarMatrix}, 'getCalendarMatrix, 2006-07');
+	my $mat = $dt->getCalendarMatrix(begin=>'mon');
+	is(scalar(@$mat), 6, 'getCalendarMatrix, 2006-07(from monday) has 6 arrays');
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[0]} ],
+	           [ (map{sprintf('2006-06-%02d',$_)}26..30),
+	             (map{sprintf('2006-07-%02d',$_)} 1.. 2),
+	           ],
+	           'getCalendarMatrix,   1st week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[1]} ],
+	           [ map{sprintf('2006-07-%02d',$_)}3..9 ],
+	           'getCalendarMatrix,   2nd week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[2]} ],
+	           [ map{sprintf('2006-07-%02d',$_)}10..16 ],
+	           'getCalendarMatrix,   3rd week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[3]} ],
+	           [ map{sprintf('2006-07-%02d',$_)}17..23 ],
+	           'getCalendarMatrix,   4th week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[4]} ],
+	           [ (map{sprintf('2006-07-%02d',$_)}24..30), ],
+	           'getCalendarMatrix,   5th week.'
+	);
+	is_deeply( [ map{$_->strFormat('%Y-%m-%d')}@{$mat->[5]} ],
+	           [ (map{sprintf('2006-07-%02d',$_)}31..31),
+	             (map{sprintf('2006-08-%02d',$_)}1..6)
+	           ],
+	           'getCalendarMatrix,   6th week.'
+	);
+}
+is(scalar(@{$TL->newDateTime('1998-02-01')->getCalendarMatrix()}), 4, 'getCalendarMatrix, 1998-02 is start with sunday, and has only 4 weeks');
+is(scalar(@{$TL->newDateTime('1998-02-01')->getCalendarMatrix({type=>'fixed'})}), 6, 'getCalendarMatrix, fixed matrix of 1998-02 results 6 weeks');
+ok($dt->getCalendarMatrix(type => 'normal', begin => 'sun'), 'getCalendarMatrix, type=normal,begin=sun');
+ok($dt->getCalendarMatrix(type => 'fixed', begin => 'sun'), 'getCalendarMatrix, type=fixed,begin=sun');
 $dt->set('2005-12-01');
-ok($dt->getCalendarMatrix(type => 'fixed', begin => 'mon'), 'getCalendarMatrix');
+ok($dt->getCalendarMatrix(type => 'fixed', begin => 'mon'), 'getCalendarMatrix, type=normal,begin=mon');
 
 #-- spanSecond, ... --------------
 dies_ok {$dt->spanSecond} 'spanSecond die';
@@ -349,6 +414,14 @@ is($dt->minusDay('2000-01-01 05:14:05'), 1, 'minusDay');
 is($dt->minusDay('2000-01-02 03:04:00','2000-01-04 02:02:59'), -2, 'minusDay');
 is($dt->minusDay('2000-01-02 03:03:30','2000-01-01 03:03:31'), 1, 'minusDay');
 is($dt->minusDay('2000-01-02 03:04:00','2000-01-01 03:03:59'), 1, 'minusDay');
+{
+  my $dt1 = $TL->newDateTime('2000-01-02 11:22:33');
+  my $dt2 = $TL->newDateTime('2000-01-03 01:02:03');
+  is($dt2->minusDay($dt1),  1, 'minusDay(Jan/3rd,Jan/2nd)==1');
+  is($dt1->minusDay($dt2), -1, 'minusDay(Jan/2nd,Jan/3rd)==-1');
+  is($dt1->toStr(), '2000-01-02 11:22:33', 'minusDay, dt1 keeps original value');
+  is($dt2->toStr(), '2000-01-03 01:02:03', 'minusDay, dt2 keeps original value');
+}
 
 $dt->set('2000-01-02 03:04:05');
 dies_ok {$dt->minusMonth} 'minusMonth die';

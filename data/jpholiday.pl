@@ -63,12 +63,12 @@ sub expand_national_holiday ($$) {
 	return if(!defined($olddt));
 	# 国民の休日判定
 	if ($dt->getYear >= 1986) {
-		if($olddt->spanDay($dt) == 2) {
-			my $nextdt = $olddt->nextDay;
-			my $year = sprintf('%02d', $nextdt->getYear);
-			my $month = sprintf('%02d', $nextdt->getMonth);
-			my $day = sprintf('%02d', $nextdt->getDay);
-			if(!(exists($HOLIDAYDATA->{$year}{$month}{$day})) && $nextdt->getWday != 0) {
+		if($dt->spanDay($olddt) == 2) {
+			$olddt->nextDay;
+			my $year = sprintf('%02d', $olddt->getYear);
+			my $month = sprintf('%02d', $olddt->getMonth);
+			my $day = sprintf('%02d', $olddt->getDay);
+			if(!(exists($HOLIDAYDATA->{$year}{$month}{$day})) && $olddt->getWday != 0) {
 				$HOLIDAYDATA->{$year}{$month}{$day} = '国民の休日';
 				$t->node('year')->node('entry')->add(
 					month => $month,
@@ -88,7 +88,7 @@ sub expand_substitute_holiday ($) {
 		#2007年から最初の祝日では無い日が振替休日になる
 		if ($dt->getWday == 0) {
 			while(1) {
-				$dt = $dt->nextDay;
+				$dt->nextDay;
 				my $year = sprintf('%02d', $dt->getYear);
 				my $month = sprintf('%02d', $dt->getMonth);
 				my $day = sprintf('%02d', $dt->getDay);
@@ -105,7 +105,7 @@ sub expand_substitute_holiday ($) {
 		}
 	} elsif ($dt->getYear >= 1974) {
 		if ($dt->getWday == 0) {
-			$dt = $dt->nextDay;
+			$dt->nextDay;
 			my $year = sprintf('%02d', $dt->getYear);
 			my $month = sprintf('%02d', $dt->getMonth);
 			my $day = sprintf('%02d', $dt->getDay);
@@ -188,7 +188,7 @@ sub expand_happy_monday ($) {
 		my $n = shift;
 		my $count = 0;
 		while($count < $n) {
-			$d = $d->nextDay;
+			$d->nextDay;
 			$count++ if($d->getWday == 1);
 		}
 		$d;

@@ -1096,7 +1096,7 @@ sub _compose {
 	# このメソッドの動作速度は重要。
 	my $this = shift;
 	my $opts = { @_ };
-	my $ret;
+	my $ret = '';
 	
 	my $save_marks = $opts->{save_marks};
 

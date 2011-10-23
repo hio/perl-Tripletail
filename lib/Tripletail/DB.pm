@@ -27,7 +27,7 @@ sub _getInstance {
 
 	my $obj = $INSTANCES->{$group};
 	if(!$obj) {
-		die "TL#getDB, DB [$group] was not specified in the startCgi() / errorTrap().\n";
+		die "TL#getDB, DB [$group] was not specified in the startCgi() / trapError().\n";
 	}
 
 	$obj;
@@ -563,7 +563,7 @@ sub _getDbSetName {
 }
 
 sub _connect {
-	# クラスメソッド。TL#startCgi，TL#errorTrapのみが呼ぶ。
+	# クラスメソッド。TL#startCgi，TL#trapErrorのみが呼ぶ。
 	my $class = shift;
 	my $groups = shift;
 
@@ -1235,7 +1235,7 @@ Tripletail::DB オブジェクトを取得。
 引数にはIniで設定したグループ名を渡す。
 引数省略時は 'DB' グループが使用される。
 
-L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->errorTrap|Tripletail/"errorTrap" >> の関数内でDBオブジェクトを取得する場合に使用する。
+L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"trapError" >> の関数内でDBオブジェクトを取得する場合に使用する。
 
 =item C<< $TL->newDB >>
 
@@ -1253,7 +1253,7 @@ L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->errorTrap|Tripletail/"err
 
 DBに接続する。
 
-L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->errorTrap|Tripletail/"errorTrap" >> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
+L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"trapError" >> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
 
 L<< $TL->newDB|"$TL->newDB" >> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへ接続する必要がある。
 
@@ -1263,7 +1263,7 @@ connect時には、AutoCommit 及び RaiseError オプションは 1 が指定�
 
 DBから切断する。
 
-L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->errorTrap|Tripletail/"errorTrap" >> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
+L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"trapError" >> の関数内でDBオブジェクトを取得する場合には自動的に接続が管理されるため、このメソッドを呼び出してはならない。
 
 L<< $TL->newDB|"$TL->newDB" >> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへの接続を切断する必要がある。
 

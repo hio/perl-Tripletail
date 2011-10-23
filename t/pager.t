@@ -33,7 +33,7 @@ END {
 my $planned;
 
 eval {
-    $TL->errorTrap(
+    $TL->trapError(
 	-DB   => 'DB',
 	-main => \&main,
        );
