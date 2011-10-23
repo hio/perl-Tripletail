@@ -37,7 +37,7 @@ sub read {
 
 	my $fh = $TL->_gensym;
 	if(!open($fh, "$filename")) {
-		die "Tripletail::Ini#read, can't open file for read. [$filename] ($!)\n";
+		die __PACKAGE__."#read: can't open file for read. [$filename] ($!) (ファイルを読めません)\n";
 	}
 
 	binmode($fh);
@@ -58,7 +58,7 @@ sub read {
 					$this->{ini}{$group}{$key} = $value;
 				}
 			} else {
-				die "Tripletail::Ini#read, ini data format error. line [$.]\n";
+				die __PACKAGE__."#read: ini data format error. line [$.] (INIファイルの形式が不正です)\n";
 			}
 		}
 	}
@@ -74,7 +74,7 @@ sub write {
 
 	my $fh = $TL->_gensym;
 	if(!open($fh, ">$filename")) {
-		die "Tripletail::Ini#write, can't open file for write. [$filename] ($!)\n";
+		die __PACKAGE__."#write: can't open file for write. [$filename] ($!) (ファイルに書けません)\n";
 	}
 
 	binmode($fh);
@@ -98,9 +98,9 @@ sub existsGroup {
 	my $raw = shift;
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#existsGroup, ARG[1]: got undef.\n";
+		die __PACKAGE__."#existsGroup: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#existsGroup, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#existsGroup: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 
 	$group = ($this->_getrawgroupname($group))[0] if(!$raw);
@@ -121,14 +121,14 @@ sub existsKey {
 	my $raw = shift;
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#existsKey, ARG[1]: got undef.\n";
+		die __PACKAGE__."#existsKey: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#existsKey, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#existsKey: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
-		die "Tripletail::Ini#existsKey, ARG[2]: got undef.\n";
+		die __PACKAGE__."#existsKey: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die "Tripletail::Ini#existsKey, ARG[2]: got Ref.[$key]\n";
+		die __PACKAGE__."#existsKey: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -172,9 +172,9 @@ sub getKeys {
 	my $raw = shift;
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#getKeys, ARG[1]: got undef.\n";
+		die __PACKAGE__."#getKeys: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#getKeys, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#getKeys: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -208,14 +208,14 @@ sub get {
 	my $raw = shift;
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#get, ARG[1]: got undef.\n";
+		die __PACKAGE__."#get: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#get, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#get: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
-		die "Tripletail::Ini#get, ARG[2]: got undef.\n";
+		die __PACKAGE__."#get: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die "Tripletail::Ini#get, ARG[2]: got Ref.[$key]\n";
+		die __PACKAGE__."#get: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -247,41 +247,41 @@ sub set {
 	my $value = shift;
 
 	if(exists($this->{const})) {
-		die "Tripletail::Ini#set, This instance is const object.\n";
+		die __PACKAGE__."#set: This instance is const object. (このIniオブジェクトの内容は変更できません)\n";
 	}
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#set, ARG[1]: got undef.\n";
+		die __PACKAGE__."#set: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#set, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#set: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
-		die "Tripletail::Ini#set, ARG[2]: got undef.\n";
+		die __PACKAGE__."#set: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die "Tripletail::Ini#set, ARG[2]: got Ref.[$key]\n";
+		die __PACKAGE__."#set: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
 	}
 	if(!defined($value)) {
-		die "Tripletail::Ini#set, ARG[3]: got undef.\n";
+		die __PACKAGE__."#set: arg[3] is not defined. (第3引数が指定されていません)\n";
 	} elsif(ref($value)) {
-		die "Tripletail::Ini#set, ARG[3]: got Ref.[$value]\n";
+		die __PACKAGE__."#set: arg[2] is a Ref. [$value] (第2引数がリファレンスです)\n";
 	}
 	if($group =~ m/[\x00-\x1f]/) {
-		die "Tripletail::Ini#set, ARG[1]: contains control code.\n";
+		die __PACKAGE__."#set: arg[1]: contains control code. (第1引数にコントロールコードが含まれています)\n";
 	}
 	if($key =~ m/[\x00-\x1f]/) {
-		die "Tripletail::Ini#set, ARG[2]: contains control code.\n";
+		die __PACKAGE__."#set: arg[2]: contains control code. (第2引数にコントロールコードが含まれています)\n";
 	}
 	if($value =~ m/[\x00-\x1f]/) {
-		die "Tripletail::Ini#set, ARG[3]: contains control code.\n";
+		die __PACKAGE__."#set: arg[3]: contains control code. (第3引数にコントロールコードが含まれています)\n";
 	}
 	if($group =~ m/^\s+/ or $group =~ m/\s+$/) {
-		die "Tripletail::Ini#set, ARG[1]: space will be delete.\n";
+		die __PACKAGE__."#set: arg[1]: space will be delete. (第1引数の前後にスペースが含まれています)\n";
 	}
 	if($key =~ m/^\s+/ or $key =~ m/\s+$/) {
-		die "Tripletail::Ini#set, ARG[2]: space will be delete.\n";
+		die __PACKAGE__."#set: arg[2]: space will be delete. (第2引数の前後にスペースが含まれています)\n";
 	}
 	if($value =~ m/^\s+/ or $value =~ m/\s+$/) {
-		die "Tripletail::Ini#set, ARG[3]: space will be delete.\n";
+		die __PACKAGE__."#set: arg[3]: space will be delete. (第3引数の前後にスペースが含まれています)\n";
 	}
 
 	$this->{ini}{$group}{$key} = $value;
@@ -296,18 +296,18 @@ sub delete {
 	my $raw = shift;
 
 	if(exists($this->{const})) {
-		die "Tripletail::Ini#delete, This instance is const object.\n";
+		die __PACKAGE__."#delete, This instance is const object.\n";
 	}
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#delete, ARG[1]: got undef.\n";
+		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#delete, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#delete: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
-		die "Tripletail::Ini#delete, ARG[2]: got undef.\n";
+		die __PACKAGE__."#delete: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die "Tripletail::Ini#delete, ARG[2]: got Ref.[$key]\n";
+		die __PACKAGE__."#delete: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -331,13 +331,13 @@ sub deleteGroup {
 	my $raw = shift;
 
 	if(exists($this->{const})) {
-		die "Tripletail::Ini#delete, This instance is const object.\n";
+		die __PACKAGE__."#delete, This instance is const object.\n";
 	}
 
 	if(!defined($group)) {
-		die "Tripletail::Ini#delete, ARG[1]: got undef.\n";
+		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die "Tripletail::Ini#delete, ARG[1]: got Ref.[$group]\n";
+		die __PACKAGE__."#delete: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
 	}
 
 	$group = $this->_getrawgroupname($group) if(!$raw);
@@ -370,7 +370,8 @@ sub _getrawgroupname {
 					if(defined($servermask)) {
 						my $server = $ENV{SERVER_ADDR};
 						if(!defined($server)){
-							$server = `hostname -i 2>&1`;
+							# ipaddress of host.
+							$server = $TL->_readcmd("hostname -i 2>&1");
 							$server = $server && $server =~ /^\s*([0-9.]+)\s*$/ ? $1 : undef;
 						}
 						if(defined($server)) {

@@ -11,6 +11,7 @@ use MIME::Decoder;
 use MIME::QuotedPrint;
 use MIME::Base64;
 use MIME::Words qw (:all);
+use Tripletail;
 
 our $MAIL_ID_COUNT = 0;
 our $BOUNDARY_COUNT = 0;
@@ -113,6 +114,7 @@ sub set {
 
 			my $encoding = $ent->head->mime_attr('Content-Transfer-Encoding');
 			if($encoding) {
+				require IO::Scalar;
 				my $instr = $bodystr;
 				my $in = IO::Scalar->new(\$instr);
 				my $outstr;
@@ -157,7 +159,7 @@ sub set {
 
 					$last and last;
 				} else {
-					die __PACKAGE__."#set, invalid multipart: we found no boundaries [$boundary]\n";
+					die __PACKAGE__."#set: invalid multipart: we found no boundaries [$boundary] (マルチパート形式が不正です。バウンダリ[$boundary]が見つかりません)\n";
 				}
 			}
 		} else {
@@ -193,7 +195,7 @@ sub setHeader {
 		$hash = { @_ };
 	} else {
 		my $ref = ref $_[0];
-		die __PACKAGE__."#setHeader, ARG[1] was a bad Ref. [$ref]\n";
+		die __PACKAGE__."#setHeader: arg[1] is a bad Ref. [$ref] (第1引数が不正なリファレンスです)\n";
 	}
 
 	while(my ($key, $value) = each(%$hash)) {
@@ -295,7 +297,7 @@ sub attach {
 
 	if(defined($opts->{part})) {
 		if(ref($opts->{part}) ne __PACKAGE__) {
-			die __PACKAGE__."#attach, ARG[part] was not an instance of Tripletail::Mail. [$opts->{part}]\n";
+			die __PACKAGE__."#attach: arg[part] is not an instance of Tripletail::Mail. [$opts->{part}] (partがTripletail::Mailのインスタンスではありません)\n";
 		}
 
 		# Content-Typeがマルチパートでなければ、そのように設定する。
@@ -304,13 +306,13 @@ sub attach {
 		}
 	} else {
 		if(!defined($opts->{type})) {
-			die __PACKAGE__."#attach, ARG[type] was undef.\n";
+			die __PACKAGE__."#attach: arg[type] is not defined. (typeが指定されていません)\n";
 		} elsif(ref($opts->{type})) {
-			die __PACKAGE__."#attach, ARG[type] was a Ref. [$opts->{type}]\n";
+			die __PACKAGE__."#attach: arg[type] is a Ref. [$opts->{type}] (typeがリファレンスです)\n";
 		} elsif(!defined($opts->{data}) and !defined($opts->{path})) {
-			die __PACKAGE__."#attach, ARG[data]/ARG[path] was undef.\n";
+			die __PACKAGE__."#attach: arg[data]/arg[path] is not defined. (dataもpathも指定されていません)\n";
 		} elsif(ref($opts->{data})) {
-			die __PACKAGE__."#attach, ARG[type] was a Ref. [$opts->{data}]\n";
+			die __PACKAGE__."#attach: arg[data] is a Ref. [$opts->{data}] (dataがリファレンスです)\n";
 		}
 
 		# Content-Typeがマルチパートでなければ、そのように設定する。
@@ -551,14 +553,14 @@ sub getPart {
 	my $index = shift;
 
 	if(!defined($index)) {
-		die __PACKAGE__."#getPart, ARG[1] was undef.\n";
+		die __PACKAGE__."#getPart: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($index)) {
-		die __PACKAGE__."#getPart, ARG[2] was a Ref. [$index]\n";
+		die __PACKAGE__."#getPart: arg[1] is a Ref. [$index] (第1引数がリファレンスです)\n";
 	}
 
 	my $ent = $this->{entity}->parts($index);
 	if(!$ent) {
-		die __PACKAGE__."#getPart, No part [$index] found.\n";
+		die __PACKAGE__."#getPart: no part [$index] found. (${index}番目のパートはありません)\n";
 	}
 
 	my $obj = __PACKAGE__->_new;
@@ -571,15 +573,15 @@ sub deletePart {
 	my $index = shift;
 
 	if(!defined($index)) {
-		die __PACKAGE__."#getPart, ARG[1] was undef.\n";
+		die __PACKAGE__."#deletePart: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($index)) {
-		die __PACKAGE__."#getPart, ARG[2] was a Ref. [$index]\n";
+		die __PACKAGE__."#deletePart: arg[1] is a Ref. [$index] (第1引数がリファレンスです)\n";
 	}
 
 	my @parts = $this->{entity}->parts;
 
 	if($index < 0 || $index >= @parts) {
-		die __PACKAGE__."#getPart, No part [$index] found.\n";
+		die __PACKAGE__."#deletePart: no part [$index] found. (${index}番目のパートはありません)\n";
 	}
 
 	splice @parts, $index, 1;
@@ -618,7 +620,7 @@ sub _encodeHeader {
 	# 分割された文字列それぞれをエンコードして\t\nで結合し、それを返す
 	# 参考：MIME-Bエンコード後のサイズは元のサイズの約1.333倍(4/3倍)。
 	# サイズ換算は文字コードの因果があるので注意
-	# （例：JISの場合はASCII<->漢字などで、間に2〜3バイト程の切替シーケンスが入る）
+	# （例：JISの場合はASCII<->漢字などで、間に2縲鰀3バイト程の切替シーケンスが入る）
 
 	my $result = '';
 	my $maxlinelength = 76;		# RFC上は78文字。今回は76文字。
@@ -744,7 +746,7 @@ sub _getHostname {
 	my $this = shift;
 
 	if(!defined($HOSTNAME)) {
-		$HOSTNAME = `hostname`;
+		$HOSTNAME = $TL->_readcmd("hostname");
 		chomp $HOSTNAME;
 	}
 

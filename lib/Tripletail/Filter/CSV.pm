@@ -71,7 +71,7 @@ sub print {
 			$data = $TL->getCsv->makeCsv($data) . "\n";
 		}
 		else {
-			die __PACKAGE__."#print, ARG[1] was neither SCALAR nor ARRAY Ref. [$data]\n";
+			die __PACKAGE__."#print: arg[1] is neither SCALAR nor ARRAY Ref. [$data] (第1引数がスカラでも配列のリファレンスでもありません)\n";
 		}
 	}
 
@@ -88,7 +88,7 @@ sub flush {
 	my $this = shift;
 
 	if(!$this->{content_printed}) {
-		die __PACKAGE__."#flush, We printed no content during this request.\n";
+		die __PACKAGE__."#flush: We printed no content during this request. (リクエスト処理で何もprintされていません)\n";
 	}
 	$this->_reset;
 

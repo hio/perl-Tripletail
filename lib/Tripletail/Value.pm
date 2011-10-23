@@ -77,7 +77,7 @@ sub set {
 	my $value = shift;
 
 	if(ref($value)) {
-		die __PACKAGE__."#set, ARG[1] was a Ref. [$value]\n";
+		die __PACKAGE__."#set: arg[1] is a Ref. [$value] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{value} = $value;
@@ -198,9 +198,9 @@ sub getRegexp {
 	my $type = shift;
 	
 	if(!defined($type)) {
-		die __PACKAGE__."#getRegexp, ARG[1] was undef.\n";
+		die __PACKAGE__."#getRegexp: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($type)) {
-		die __PACKAGE__."#getRegexp, ARG[1] was a Ref. [$type]\n";
+		die __PACKAGE__."#getRegexp: arg[1] is a Ref. [$type] (第1引数がリファレンスです)\n";
 	}
 
 	my $regexp;
@@ -215,7 +215,7 @@ sub getRegexp {
 	} elsif($type eq 'numberwide') {
 		$regexp = $re_widenum;
 	} else {
-		die __PACKAGE__."#getRegexp, ARG[1] was no mache. [$type]\n";
+		die __PACKAGE__."#getRegexp: arg[1] is no match. [$type] (指定された正規表現は存在しません)\n";
 	}
 	
 	$regexp;
@@ -816,9 +816,9 @@ sub forceMin {
 	}
 
 	if(!defined($min)) {
-		die __PACKAGE__."#forceMin, ARG[1] was undef.\n";
+		die __PACKAGE__."#forceMin: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($min)) {
-		die __PACKAGE__."#forceMin, ARG[1] was a Ref. [$min]\n";
+		die __PACKAGE__."#forceMin: arg[1] is a Ref. [$min] (第1引数がリファレンスです)\n";
 	}
 
 	$this->forceNumber;
@@ -839,9 +839,9 @@ sub forceMax {
 	}
 
 	if(!defined($max)) {
-		die __PACKAGE__."#forceMax, ARG[1] was undef.\n";
+		die __PACKAGE__."#forceMax: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($max)) {
-		die __PACKAGE__."#forceMax, ARG[1] was a Ref. [$max]\n";
+		die __PACKAGE__."#forceMax: arg[1] is a Ref. [$max] (第1引数がリファレンスです)\n";
 	}
 
 	$this->forceNumber;
@@ -1085,15 +1085,15 @@ sub genRandomString {
 	my $type = shift;
 
 	if(!defined($length)) {
-		die __PACKAGE__."#genRandomString, ARG[1] was undef.\n";
+		die __PACKAGE__."#genRandomString: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($length)) {
-		die __PACKAGE__."#genRandomString, ARG[1] was a Ref. [$length]\n";
+		die __PACKAGE__."#genRandomString: arg[1] is a Ref. [$length] (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($type)) {
 		$type = ['std'];
 	} elsif(ref($type) ne 'ARRAY') {
-		die __PACKAGE__."#genRandomString, ARG[2] was not ARRAY ref.\n";
+		die __PACKAGE__."#genRandomString: arg[2] is not ARRAY ref. (第2引数が配列のリファレンスではありません)\n";
 	}
 
 	my @str;
@@ -1113,12 +1113,12 @@ sub genRandomString {
 		} elsif($TL->newValue($key)->isCharLen(1,1)) {
 			push(@str,$key);
 		} else {
-			die __PACKAGE__."#genRandomString, ARG[2] [$key] is not supported.\n";
+			die __PACKAGE__."#genRandomString: arg[2] [$key] is not supported. (第2引数の $key はサポートされていません)\n";
 		}
 	}
 	
 	if(!@str) {
-		die __PACKAGE__."#genRandomString, ARG[2] was undef.\n";
+		die __PACKAGE__."#genRandomString: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 	
 	my $password = '';
@@ -1738,7 +1738,7 @@ SJISの文字単位でカットする。
 
   $val->forcePortable
 
-機種依存文字以外を削除。
+機種依存文字を削除。（携帯絵文字も機種依存文字に含む）
 
 詳しい判定条件は L</isPortable> メソッドを参照。
 
@@ -1746,7 +1746,7 @@ SJISの文字単位でカットする。
 
   $val->forcePcPortable
 
-携帯絵文字文字以外を削除。
+携帯絵文字を削除。
 
 詳しい判定条件は L</isPcPortable> メソッドを参照。
 

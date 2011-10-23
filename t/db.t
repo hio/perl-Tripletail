@@ -3,6 +3,7 @@ use Test::Exception;
 use strict;
 use warnings;
 
+use lib '.';
 use t::make_ini {
 	ini => sub{+{
 		TL => {
@@ -380,10 +381,10 @@ sub test_tx_transaction
 			)){
 				throws_ok {
 					$DB->tx(sub{ $DB->commit(); $DB->$meth("SELECT 1"); })
-				} qr/^$pkg#$meth, $msg\b/, "[tx_tran] execute on commit close-wait tx";
+				} qr/^$pkg#$meth: $msg\b/, "[tx_tran] execute on commit close-wait tx";
 				throws_ok {
 					$DB->tx(sub{ $DB->rollback(); $DB->$meth("SELECT 1"); })
-				} qr/^$pkg#$meth, $msg\b/, "[tx_tran] $meth on rollback close-wait tx";
+				} qr/^$pkg#$meth: $msg\b/, "[tx_tran] $meth on rollback close-wait tx";
 			}
 		},
 	);

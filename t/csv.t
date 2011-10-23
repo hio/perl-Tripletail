@@ -29,7 +29,7 @@ if ($@) {
 	}
 }
 else {
-	plan tests => 14;
+	plan tests => 15;
 	
 	ok($csv, 'getCsv');
 }
@@ -37,8 +37,9 @@ else {
 my $p;
 ok($p = $csv->parseCsv(\*DATA), 'parseCsv (fh)');
 is_deeply($p->next, ['a,b', 'c"d', "e\nf"], 'next [0]');
-is_deeply($p->next, [qw(1 2 3 4 5)], 'next[1]');
-is($p->next, undef, 'next[2]');
+is_deeply($p->next, [qw(1 2 3 4 5)], 'next [1]');
+is_deeply($p->next, ['a,b', 'cd\\'], 'next [2]');
+is($p->next, undef, 'next[3]');
 
 ok($p = $csv->parseCsv('a,b,c'), 'parseCsv (scalar)');
 is_deeply($p->next, [qw(a b c)], 'next [0]');
@@ -61,3 +62,4 @@ __END__
 "a,b","c""d","e
 f"
 1,2,3,4,5
+"a,b","cd\"

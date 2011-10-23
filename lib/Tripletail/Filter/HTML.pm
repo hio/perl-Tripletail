@@ -58,8 +58,9 @@ sub _new {
 	$this->_check_options($check);
 
 	if($this->{option}{type} ne 'html' && $this->{option}{type} ne 'xhtml') {
-		die "TL#setContentFilter, option [type] for [Tripletail::Filter::HTML] ".
-			"must be 'html' or 'xhtml' instead of [$this->{option}{type}].\n";
+		die "TL#setContentFilter: option [type] for [Tripletail::Filter::HTML] ".
+			"must be 'html' or 'xhtml' instead of [$this->{option}{type}].".
+			" (typeオプションはhtml/xhtmlのいずれかを指定してください)\n";
 	}
 
 	# 状態の初期化。
@@ -80,10 +81,10 @@ sub print {
 	return '' if($data eq '' and $this->{buffer} eq '');
 	
 	if(ref($data)) {
-		die __PACKAGE__."#print, ARG[1] was a Ref. [$data]\n";
+		die __PACKAGE__."#print: arg[1] is a Ref. [$data] (第1引数がリファレンスです)\n";
 	}
 	if(defined $this->{locationurl}) {
-		die __PACKAGE__."#print, print called after location.\n";
+		die __PACKAGE__."#print: print called after location. (location後にprintすることは出来ません)\n";
 	}
 
 	$data = $this->{buffer} . $data;
@@ -134,7 +135,7 @@ sub flush {
 		$output = $TL->charconv($data, 'UTF-8' => $this->{option}{charset});
 
 		if(!$this->{content_printed}) {
-			die __PACKAGE__."#flush, We printed no content during this request.\n";
+			die __PACKAGE__."#flush: We printed no content during this request. (リクエスト処理で何もprintされていません)\n";
 		}
 	}
 
@@ -192,7 +193,7 @@ sub _relink_html {
 
 	if(!defined($this->{save})) {
 		# sanity check
-		die __PACKAGE__."#_relink_form, internal error: \$this->{save} was undefined.\n";
+		die __PACKAGE__."#_relink_form: internal error: \$this->{save} is undefined. (内部エラー:\$this->{save}が未定義です)\n";
 	}
 
 	# _relink用のキャッシュ(配列)

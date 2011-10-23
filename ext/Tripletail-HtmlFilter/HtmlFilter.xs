@@ -5,7 +5,7 @@
  *
  * Copyright 2005 YAMASHINA Hio
  * ----------------------------------------------------------------------------
- * $Id: HtmlFilter.xs,v 1.16 2007/04/16 02:23:54 hio Exp $
+ * $Id: HtmlFilter.xs,v 1.17 2007/09/05 10:33:10 hio Exp $
  * ------------------------------------------------------------------------- */
 
 #include "EXTERN.h"
@@ -343,6 +343,30 @@ _is_matched(AV* matcher, SV* str_sv) {
 	return FALSE;
 }
 
+static bool
+_is_tainted_pv(SV* sv)
+{
+	MAGIC* mg;
+	if( SvTYPE(sv)!=SVt_PVMG )
+	{
+		return FALSE;
+	}
+	mg = SvMAGIC(sv);
+	if( mg==NULL )
+	{
+		return FALSE;
+	}
+	if( mg->mg_moremagic!=NULL )
+	{
+		return FALSE;
+	}
+	if( mg->mg_type!=PERL_MAGIC_taint )
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
 MODULE = Tripletail::HtmlFilter  PACKAGE = Tripletail::HtmlFilter
 PROTOTYPES: ENABLE
 
@@ -393,7 +417,7 @@ next(SV* this_sv)
 			SV* interested = &PL_sv_undef;
 			SV* parsed = &PL_sv_undef;
 
-			if (!SvPOK(str_sv)) {
+			if (!SvPOK(str_sv) && !_is_tainted_pv(str_sv) ) {
 				croak("Internal Error: "
 					  "$this->[HTML] contains an element other than string");
 			}
@@ -539,7 +563,7 @@ PPCODE:
 		  bool close;
 		  SV* nameonly;
 
-		  if (!SvPOK(elem_name)) {
+		  if (!SvPOK(elem_name) ) {
 			  croak("$elem->name returned non-string");
 		  }
 

@@ -85,7 +85,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 
 </span></a></h1>
 
-<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MemCached',key =&gt; 'key', type =&gt; 'out', param =&gt; $param,  charset =&gt; 'Shift_JIS');</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MemCached',key =&gt; 'key', mode =&gt; 'read', param =&gt; $param,  charset =&gt; 'Shift_JIS');</code></pre>
 
 
 <hr />
@@ -148,24 +148,24 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 </p>
 
 </dd>
-<dt><a id="type"><span class="pod_lang">type
+<dt><a id="mode"><span class="pod_lang">mode
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">MemCachedへの書き込みか、MemCachedからの出力かを選択する。
+<span class="pod_lang">MemCachedへの書き込みか、MemCachedからの読み込みかを選択する。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">inで書き込み、outで出力。省略可能。
+<span class="pod_lang">writeで書き込み、readで読み込み。省略可能。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">デフォルトはin。
+<span class="pod_lang">デフォルトはwrite。
 
 </span>
 </p>
@@ -299,9 +299,9 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 <li><a href="#charset">charset</a></li>
 <li><a href="#flush">flush</a></li>
 <li><a href="#key">key</a></li>
+<li><a href="#mode">mode</a></li>
 <li><a href="#param">param</a></li>
 <li><a href="#print">print</a></li>
-<li><a href="#type">type</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">フィルタパラメータ</a></li>
 </ul>
 </div>

@@ -71,7 +71,8 @@ sub setValue {
 	my $value = shift;
 
 	if((!$this->isHttps) && ($this->{mode} eq 'double' || $this->{mode} eq 'https')) {
-		die __PACKAGE__."#setValue, we can't modify session while we are using '$this->{mode}' mode and not in the https.\n";
+		die __PACKAGE__."#setValue: we can't modify session while we are using '$this->{mode}' mode and not in the https.".
+			" ($this->{mode}モードの場合はhttps接続中でのみセッション内容を変更できます)\n";
 	}
 
 	if($this->{setvaluewithrenew}) {
@@ -140,7 +141,7 @@ sub __createSid {
 			$sid = $DB->getLastInsertId(\$this->{dbset});
 		};
 		if($@) {
-			die __PACKAGE__."#__createSid, cannot create sid. [$@]\n";
+			die __PACKAGE__."#__createSid: DB error. [$@]\n";
 		}
 	}elsif($type eq 'sqlite') {
 		eval {
@@ -151,10 +152,11 @@ sub __createSid {
 			$sid = $DB->getLastInsertId(\$this->{dbset});
 		};
 		if($@) {
-			die __PACKAGE__."#__createSid, cannot create sid. [$@]\n";
+			die __PACKAGE__."#__createSid: DB error. [$@]\n";
 		}
 	} else {
-		die __PACKAGE__."#__createSid, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
+		die __PACKAGE__."#__createSid: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
 	if($sid) {
@@ -162,7 +164,7 @@ sub __createSid {
 			$TL->log(__PACKAGE__, "Created new session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 		}
 	} else {
-		die __PACKAGE__."#__createSid, cannot create sid.\n";
+		die __PACKAGE__."#__createSid: cannot create session id. (セッションIDが作成できませんでした)\n";
 	}
 
 	$sid;
@@ -182,6 +184,9 @@ sub __removeSid {
 					WHERE sid = ?
 			}, $sid);
 		};
+		if($@) {
+			die __PACKAGE__."#__removeSid: DB error. [$@]\n";
+		}
 	}elsif($type eq 'sqlite') {
 		eval {
 			$DB->execute(\$this->{dbset} => qq{
@@ -193,9 +198,12 @@ sub __removeSid {
 					WHERE sid = ?
 			}, $sid);
 		};
-		$@ and die "mark as deleted failed: $@";
+		if($@) {
+			die __PACKAGE__."#__removeSid: DB error. [$@]\n";
+		}
 	} else {
-		die __PACKAGE__."#__removeSid, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
+		die __PACKAGE__."#__removeSid: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
 	if($TL->INI->get($this->{group} => 'logging', '0')) {
@@ -235,7 +243,9 @@ sub __prepareSessionTable {
 					$typeoption
 				});
 			};
-			$@ and die "CREATE TABLE failed: $@";
+			if($@) {
+				die __PACKAGE__."#__prepareSessionTable: DB error. [$@]\n";
+			}
 		}elsif($type eq 'sqlite') {
 			# sqlite3: 9223372036854775807. (64bit/signed)
 			eval {
@@ -250,16 +260,22 @@ sub __prepareSessionTable {
 					)
 				});
 			};
-			$@ and die "CREATE TABLE failed: $@";
+			if($@) {
+				die __PACKAGE__."#__prepareSessionTable,]: DB error. [$@]\n";
+			}
 			eval {
 				$DB->execute(\$this->{dbset} => qq{
 					CREATE INDEX $this->{sessiontable}_idx
 						ON $this->{sessiontable} (updatetime)
 					)
 				});
+			if($@) {
+				die __PACKAGE__."#__prepareSessionTable: DB error. [$@]\n";
+			}
 			};
 		} else {
-			die __PACKAGE__."#__prepareSessionTable, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
+			die __PACKAGE__."#__prepareSessionTable: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+				" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 		}
 
 		if($TL->INI->get($this->{group} => 'logging', '0')) {
@@ -280,7 +296,7 @@ sub _init {
 		$groups = [ @_ ];
 	} else {
 		my $ref = ref($_[0]);
-		die "Tripletail::Session#_init, ARG[1]: group name is Wrong-Ref. [$ref]\n";
+		die "Tripletail::Session#_init: arg[1]: group name is Wrong-Ref. [$ref] (第1引数が不正なリファレンスです)\n";
 	}
 
 	# postRequest時に古いデータを消す。
@@ -322,20 +338,21 @@ sub __new {
 	# モードチェック
 	if($this->{mode} eq 'https') {
 		if(!$this->isHttps) {
-			die __PACKAGE__."#__new, the 'https' mode of Session can't be used while we are not in the https.\n";
+			die __PACKAGE__."#__new: the 'https' mode of Session can't be used while we are not in the https.".
+				" (httpsモードの場合はhttps接続中でのみセッションを利用できます)\n";
 		}
 	} elsif($this->{mode} eq 'http') {
 		# 常に利用可能
 	} elsif($this->{mode} eq 'double') {
 		# 常に利用可能
 	} else {
-		die __PACKAGE__."#__new, invalid mode: [$this->{mode}]\n";
+		die __PACKAGE__."#__new: invalid mode: [$this->{mode}] (不正なモードが指定されました)\n";
 	}
 
 	$this->{dbgroup} = $TL->INI->get($this->{group} => 'dbgroup');
-	$this->{dbgroup} or die __PACKAGE__."#new, dbgroup is not set.\n";
+	$this->{dbgroup} or die __PACKAGE__."#new: dbgroup is not set. (dbgroupが指定されていません)\n";
 	$this->{dbset} = $TL->INI->get($this->{group} => 'dbset');
-	$this->{dbset} or die __PACKAGE__."#new, dbset is not set.\n";
+	$this->{dbset} or die __PACKAGE__."#new: dbset is not set. (dbsetが指定されていません)\n";
 	$this->{readdbset} = $TL->INI->get($this->{group} => 'readdbset', $this->{dbset});
 	$this->{sessiontable} = $TL->INI->get($this->{group} => 'sessiontable', 'tl_session_' . $this->{group});
 
@@ -365,8 +382,9 @@ sub _getInstance {
 	if($_instance{$group}) {
 		$_instance{$group};
 	} else {
-		die "TL#getSession, the Session of $group group is not in use. ".
-			"Specify [-Session => '(group)'] at the call of TL#startCgi if you want to use this.\n";
+		die "TL#getSession: the Session of $group group is not in use. ".
+			"Specify [-Session => '(group)'] at the call of TL#startCgi if you want to use this.".
+			" (セッショングループ $group は使用できません。startCgi の -Session で指定する必要があります)\n";
 	}
 }
 
@@ -390,11 +408,13 @@ sub _getRawCookie {
 
 	my $cookie = $TL->getRawCookie($group);
 	if($opts->{secure} && !$cookie->_isSecure) {
-		die __PACKAGE__."#_getRawCookie, cookie group [$group] is not secure.".
-			" We can't use it for secure part of session.\n";
+		die __PACKAGE__."#_getRawCookie: cookie group [$group] is not secure.".
+			" We can't use it for secure part of session.".
+			" (セキュアなセッション部分でクッキーグループ $group を使用しようとしましたが、クッキーの secure 指定がされていません)\n";
 	} elsif(!$opts->{secure} and $cookie->_isSecure) {
-		die __PACKAGE__."#_getRawCookie, cookie group [$group] is secure.".
-		" We can't use it for insecure part of session.\n";
+		die __PACKAGE__."#_getRawCookie: cookie group [$group] is secure.".
+		" We can't use it for insecure part of session.".
+			" (非セキュアなセッション部分でクッキーグループ $group を使用しようとしましたが、クッキーの secure 指定がされています)\n";
 	}
 	$cookie;
 }
@@ -439,8 +459,9 @@ sub _setSessionDataToCookies {
 				$cookie->delete('SID' . $this->{group});
 			}
 		} else {
-			die __PACKAGE__."#_setSessionDataToCookies, session mode is https.".
-				" We can't use it for insecure part of session.\n";
+			die __PACKAGE__."#_setSessionDataToCookies: session mode is https.".
+				" We can't use it for insecure part of session.".
+				" (httpsモードのセッションはhttps接続中でのみ使用できます)\n";
 		}
 	}
 
@@ -562,6 +583,9 @@ sub __setSession {
 				$this->{checkvalssl} = $sessiondata->[0][3];
 			}
 		};
+		if($@) {
+			die __PACKAGE__."#__setSession: DB error. [$@]\n";
+		}
 	}elsif($type eq 'sqlite') {
 		eval {
 			my $sessiondata = $DB->selectAllArray(\$this->{readdbset} => qq{
@@ -588,8 +612,12 @@ sub __setSession {
 				$this->{checkvalssl} = $sessiondata->[0][3];
 			}
 		};
+		if($@) {
+			die __PACKAGE__."#__setSession: DB error. [$@]\n";
+		}
 	} else {
-		die __PACKAGE__."#__setSession, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
+		die __PACKAGE__."#__setSession: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
 	if(defined $this->{sid}) {
@@ -629,6 +657,9 @@ sub __updateSession {
 					WHERE sid = ?
 			}, $this->{data}, $this->{sid});
 		};
+		if($@) {
+			die __PACKAGE__."#__updateSession: DB error. [$@]\n";
+		}
 	}elsif($type eq 'sqlite') {
 		eval {
 			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
@@ -637,8 +668,12 @@ sub __updateSession {
 					WHERE sid = ?
 			}, $this->{data}, $this->{sid});
 		};
+		if($@) {
+			die __PACKAGE__."#__updateSession: DB error. [$@]\n";
+		}
 	} else {
-		die __PACKAGE__."#__updateSession, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
+		die __PACKAGE__."#__updateSession, the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
 	$this->{updatetime} = time;

@@ -1,6 +1,6 @@
 # -*- cperl -*-
 BEGIN{ $ENV{TZ}='JST-9'; }
-use Test::More tests => 334;
+use Test::More tests => 333;
 use Test::Exception;
 
 use strict;
@@ -68,11 +68,6 @@ is($dt->toStr, '2006-02-17 11:24:41', 'W3C Year Month Day Hour Minute Second TZ'
 $dt->set('2006-02-17T11:24:41.55+09:00');
 is($dt->toStr, '2006-02-17 11:24:41', 'W3C Year Month Day Hour Minute Second.s TZ');
 
-$dt->set('@4000000043f529721590b6bc');
-is($dt->toStr, '2006-02-17 10:33:52', 'TAI64N');
-
-$dt->set('@40000000446442a90c03bcac');
-#is($dt->toStr, '2006-02-17 10:33:52', 'TAI64N');
 
 
 my $dt_1 = $dt->set('2000-04-31')->toStr;

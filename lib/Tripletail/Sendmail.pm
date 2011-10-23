@@ -33,7 +33,7 @@ sub _new {
 		require Tripletail::Sendmail::Esmtp;
 		Tripletail::Sendmail::Esmtp->_new($group);
 	} else {
-		die "TL#newSendmail, ini.method was invalid. [$method]\n";
+		die "TL#newSendmail: ini.method was invalid. [$method] (Iniファイルのmethodの指定が不正です)\n";
 	}
 }
 
@@ -51,7 +51,7 @@ sub disconnect {
 
 sub send {
 	# オーバーライドしなければエラー
-	die __PACKAGE__."#send, internal error: this method has to be overridden.\n";
+	die __PACKAGE__."#send: internal error: this method has to be overridden. (内部エラー:このメソッドはオーバーライドされなければなりません)\n";
 }
 
 sub _setLogging {
@@ -77,7 +77,7 @@ sub _getoptSend {
 	};
 
 	if(!defined($data->{data})) {
-		die "$pkg#send, ARG[data] was undef.\n";
+		die "$pkg#send: arg[data] is not defined. (dataが指定されていません)\n";
 	}
 
 	if(!defined($data->{from}) || !defined($data->{rcpt})) {
@@ -102,10 +102,10 @@ sub _getoptSend {
 	}
 
 	if(!defined($data->{from})) {
-		die "$pkg#send, ARG[from] was undef and not readable from the data.\n";
+		die "$pkg#send: arg[from] is undef and not readable from the data. (fromが指定されておらず、dataからも推測できません)\n";
 	}
 	if(!defined($data->{rcpt})) {
-		die "$pkg#send, ARG[rcpt] was undef and not readable from the data.\n";
+		die "$pkg#send: arg[rcpt] is undef and not readable from the data. (rcptが指定されておらず、dataからも推測できません)\n";
 	}
 
 	if(ref($data->{rcpt}) ne 'ARRAY') {

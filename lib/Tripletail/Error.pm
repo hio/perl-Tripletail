@@ -57,7 +57,7 @@ sub _new {
 		$this->{show_src}   = 1;
 	}
 	else {
-		die "Unknown stacktrace type: $switch";
+		die "Unknown stacktrace type: $switch (stacktraceの指定が不正です)";
 	}
 
 	if ($this->{show_trace} and not $this->is_trace_allowed) {
@@ -256,14 +256,7 @@ sub is_trace_allowed {
 sub toHtml {
 	my $this = shift;
 
-	my $t;
-	my $t_file = $TL->INI->get(TL => 'errortemplate', '');
-	if (length $t_file) {
-		$t = $TL->newTemplate($t_file);
-	}
-	else {
-		$t = $TL->newTemplate->setTemplate($DEFAULT_ERROR_TEMPLATE);
-	}
+	my $t = $TL->newTemplate->setTemplate($DEFAULT_ERROR_TEMPLATE);
 
 	if ($this->{show_trace} and $this->is_trace_allowed) {
 		$t->node('detail')->expand(

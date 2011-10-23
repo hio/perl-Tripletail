@@ -4,6 +4,7 @@ use Test::More;
 use Test::Exception;
 use Config;
 use Data::Dumper;
+use lib '.';
 use t::test_server;
 
 &setup;
@@ -191,7 +192,7 @@ sub test_03_form
 		} => '[form] addSessionCheck/haveSessionCheck w/o form name');
 	
 	my $re_err_no_session_group = 
-		qr/^Tripletail::Template::Node#addSessionCheck, ARG\[1\] was undef[.]\n/;
+		qr/^Tripletail::Template::Node#addSessionCheck: arg\[1\] is not defined/;
 	throws_ok { rget q{
 			my $t = $TL->newTemplate->setTemplate(q{
 				<form name="TEST" method="post">

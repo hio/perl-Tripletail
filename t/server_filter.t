@@ -4,6 +4,7 @@ use Test::More;
 use Test::Exception;
 use Config;
 use Data::Dumper;
+use lib '.';
 use t::test_server;
 
 &setup;

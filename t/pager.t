@@ -140,7 +140,7 @@ my $ANS = q{
 <!mark:nodata>
 <!mark:overpage>};
 
-    plan tests => 80;
+    plan tests => 83;
 	$planned = 1;
 
     my $DB;
@@ -169,14 +169,13 @@ for(my $i = 0;$i < 100;$i++){
 	$DB->commit;
 
 my $pager;
-  ok($pager = $TL->newPager('DB'), 'newPager');
+  ok($pager = $TL->newPager($DB), 'newPager');
 
   ok($pager->setCurrentPage(1), 'setCurrentPage');
 
   my $t = $TL->newTemplate;
   $t->setTemplate($TMPL);
 
-my $paging;
   dies_ok {$pager->paging} 'paging die';
   dies_ok {$pager->paging(\123)} 'paging die';
   dies_ok {$pager->paging($t)} 'paging die';
@@ -185,8 +184,8 @@ my $paging;
   dies_ok {$pager->paging($t->node('paging'),['SELECT * FROM TripletaiL_DB_Test',\123])} 'paging die';
   dies_ok {$pager->paging($t->node('paging'),['SELECT * FROM TripletaiL_DB_Test',-10])} 'paging die';
 
- $pager = $TL->newPager('DB');
-
+my $paging;
+  ok($pager = $TL->newPager($DB), 'newPager');
   ok($paging = $pager->paging($t->node('paging'), 'SELECT * FROM TripletaiL_DB_Test'),'paging');
   if(!defined($paging)) {
     my $info = $pager->getPagingInfo;
@@ -201,7 +200,7 @@ is(trim $t->getHtml, trim $ANS, 'paging (1)');
 
 
 ok(my $info = $pager->getPagingInfo,'getPagingInfo');
-is($info->{dbgroup},'DB','dbgroup');
+is(ref($info->{db}),'Tripletail::DB','db');
 is($info->{pagesize},30,'pagesize');
 is($info->{current},1,'current');
 is($info->{maxlinks},10,'maxlinks');
@@ -227,9 +226,11 @@ is($info->{rows},30,'rows');
  is($pager->paging($t->node('paging'),['SELECT * FROM TripletaiL_DB_Test',0]), 0 ,'setCurrentPage');
 
  ok($pager = $TL->newPager, 'newPager');
+ ok($pager = $TL->newPager('DB'), 'newPager (obsolute)');
+ ok($pager = $TL->newPager($DB), 'newPager');
 
-  dies_ok {$pager->setDbGroup(\123)} 'setDbGroup die';
-  ok($pager->setDbGroup('DB'), 'setDbGroup');
+  dies_ok {$pager->setDbGroup(\123)} 'setDbGroup die (obsolute)';
+  ok($pager->setDbGroup('DB'), 'setDbGroup (obsolute)');
 
   dies_ok {$pager->setPageSize} 'setPageSize die';
   dies_ok {$pager->setPageSize(\123)} 'setPageSize die';

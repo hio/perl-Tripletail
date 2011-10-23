@@ -108,7 +108,8 @@ sub _setTemplate {
 
 	# テンプレートに既に<!mark>が入っていたらエラー。
 	if($str =~ m/<!mark:(.+)>/) {
-		die __PACKAGE__."#setTemplate, we can't implant <!mark:$1> in a template by hand anymore. Use <!copy:$1> instead.\n";
+		die __PACKAGE__."#setTemplate: we can't implant <!mark:$1> in a template by hand anymore. Use <!copy:$1> instead.".
+			" (テンプレートに<!mark:$1>タグを入れることは出来ません。<!copy:$1>を使用してください)\n";
 	}
 
 	# <!begin> - <!end>をパースして、ノードを生成。
@@ -117,7 +118,7 @@ sub _setTemplate {
 
 		if($this->{node}{$name}) {
 			# 既に同じノードが存在していたらエラー。
-			die __PACKAGE__."#setTemplate, node [$name] is duplicated.\n";
+			die __PACKAGE__."#setTemplate: node [$name] is duplicated. (ノード[$name]が複数あります)\n";
 		}
 
 		$this->{node}{$name} = Tripletail::Template::Node->_new(
@@ -128,7 +129,7 @@ sub _setTemplate {
 
 	# 置換されなかった<!begin>や<!end>があったらエラー。
 	if($str =~ m{(<!(?:begin|end>):.+?>)}) {
-		die __PACKAGE__."#setTemplate, $1 was not matched to an another side.\n";
+		die __PACKAGE__."#setTemplate: $1 was not matched to an another side. ($1のブロックの対応がとれていません)\n";
 	}
 
 	$this->_split($str,1);
@@ -145,9 +146,9 @@ sub setHtml {
 	my $html = shift;
 
 	if(!defined($html)) {
-		die __PACKAGE__."#setHtml, ARG[1] was undef.\n";
+		die __PACKAGE__."#setHtml: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($html)) {
-		die __PACKAGE__."#setHtml, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setHtml: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	$this->_split($html,1);
@@ -159,9 +160,9 @@ sub node {
 	my $name = shift;
 
 	if(!defined($name)) {
-		die __PACKAGE__."#node, ARG[1] is undef.\n";
+		die __PACKAGE__."#node: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#node, ARG[1] is Ref.\n";
+		die __PACKAGE__."#node: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	$name = lc($name);
@@ -169,7 +170,7 @@ sub node {
 	my $node = $this->{node}{$name};
 	if(!$node) {
 		my $me = $this->isRoot ? "the root" : "node [$this->{name}]";
-		die __PACKAGE__."#node, $me did not have a child node [$name].\n";
+		die __PACKAGE__."#node: $me did not have a child node [$name]. (${me}は子ノードを持っていません)\n";
 	}
 
 	$node;
@@ -180,9 +181,9 @@ sub exists {
 	my $name = shift;
 
 	if(!defined($name)) {
-		die __PACKAGE__."#exists, ARG[1] was undef.\n";
+		die __PACKAGE__."#exists: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#exists, ARG[1] was Ref.\n";
+		die __PACKAGE__."#exists: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 	
 	$name = lc($name);
@@ -199,7 +200,7 @@ sub setAttr {
 		} elsif(!ref($_[0])) {
 			scalar { @_ };
 		} else {
-			die __PACKAGE__."#setAttr, ARG[1] was neither SCALAR nor HASH Ref. [$_[0]]\n";
+			die __PACKAGE__."#setAttr: arg[1] is neither HASH nor HASH Ref. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
 		}
 	};
 
@@ -210,7 +211,7 @@ sub setAttr {
 		|| $param->{$key} eq 'br') {
 			$this->{attr}{lc($key)} = $param->{$key};
 		} else {
-			die __PACKAGE__."#setAttr, ARG[1] has wrong type. [$param->{$key}]\n";
+			die __PACKAGE__."#setAttr: arg[1] has wrong type. [$param->{$key}] (第1引数の指定に不正な展開方法が含まれます)\n";
 		}
 	}
 
@@ -231,7 +232,7 @@ sub expand {
 		} elsif(!ref($_[0])) {
 			scalar { @_ };
 		} else {
-			die __PACKAGE__."#expand, ARG[1] was neither SCALAR nor HASH Ref. [$_[0]]\n";
+			die __PACKAGE__."#expand: arg[1] is neither HASH nor HASH Ref. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
 		}
 	};
 
@@ -246,7 +247,7 @@ sub expandAny {
 		} elsif(!ref($_[0])) {
 			scalar { @_ };
 		} else {
-			die __PACKAGE__."#expandAny, ARG[1] was neither SCALAR nor HASH Ref. [$_[0]]\n";
+			die __PACKAGE__."#expandAny: arg[1] is neither HASH nor HASH Ref. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
 		}
 	};
 
@@ -260,9 +261,9 @@ sub add {
 	$this->_dieIfDirty('add');
 
 	if(!defined($this->{parent})) {
-		die __PACKAGE__."#add, internal error [I have no parents].";
+		die __PACKAGE__."#add: internal error [I have no parents]. (内部エラー:親がいません)";
 	} elsif(!defined($this->{name})) {
-		die __PACKAGE__."#add, internal error [I have no name].";
+		die __PACKAGE__."#add: internal error [I have no name]. (内部エラー:名前がありません)";
 	}
 
 	$TL->getDebug->_templateLog(
@@ -304,7 +305,7 @@ sub getForm {
 	my $name = shift;
 
 	if(ref($name)) {
-		die __PACKAGE__."#getForm, ARG[1] was Ref.\n";
+		die __PACKAGE__."#getForm: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($name)) {
@@ -425,7 +426,7 @@ sub getForm {
 	}
 
 	if(!$found) {
-		die __PACKAGE__."#getForm, form [$name] does not exist.\n";
+		die __PACKAGE__."#getForm: form [$name] does not exist. (form [$name] が存在しません)\n";
 	}
 
 	$form;
@@ -454,15 +455,15 @@ sub setForm {
 	my $name = shift;
 
 	if(!defined($form)) {
-		die __PACKAGE__."#setForm, ARG[1] was undef.\n";
+		die __PACKAGE__."#setForm: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($form) eq 'HASH') {
 		$form = $TL->newForm($form);
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#setForm, ARG[1] was not instance of Tripletail::Form. [$form].\n";
+		die __PACKAGE__."#setForm: arg[1] is not instance of Tripletail::Form. [$form]. (第1引数がFormオブジェクトではありません)\n";
 	}
 
 	if(ref($name)) {
-		die __PACKAGE__."#setForm, ARG[2] was Ref.\n";
+		die __PACKAGE__."#setForm: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 
 	# $formは後で変更してしまうのでcloneして置く
@@ -610,7 +611,7 @@ sub setForm {
 	}
 
 	if(!$found) {
-		die __PACKAGE__."#setForm, form [$name] does not exist.\n";
+		die __PACKAGE__."#setForm: form [$name] does not exist. (form [$name] が存在しません)\n";
 	}
 
 	$this->setHtml($filter->toStr);
@@ -623,7 +624,7 @@ sub extForm {
 	my $name = shift;
 
 	if(ref($name)) {
-		die __PACKAGE__."#extForm, ARG[1] was Ref.\n";
+		die __PACKAGE__."#extForm: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined $name) {
@@ -661,7 +662,7 @@ sub extForm {
 	}
 
 	if(!$found) {
-		die __PACKAGE__."#extForm, form [$name] does not exist.\n";
+		die __PACKAGE__."#extForm: form [$name] does not exist. (form [$name] が存在しません)\n";
 	}
 
 	$this->setHtml($filter->toStr);
@@ -675,14 +676,14 @@ sub addHiddenForm {
 	my $name = shift;
 
 	if(!defined($form)) {
-		die __PACKAGE__."#addHiddenForm, ARG[1] was undef.\n";
+		die __PACKAGE__."#addHiddenForm: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($form) eq 'HASH') {
 		$form = $TL->newForm($form);
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#addHiddenForm, ARG[1] was not instance of Tripletail::Form or HASH.\n";
+		die __PACKAGE__."#addHiddenForm: arg[1] is not instance of Tripletail::Form or HASH. (第1引数がFormオブジェクトではありません)\n";
 	}
 	if(ref($name)) {
-		die __PACKAGE__."#addHiddenForm, ARG[2] was Ref.\n";
+		die __PACKAGE__."#addHiddenForm: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 
 	if(!defined($name)) {
@@ -735,7 +736,7 @@ sub addHiddenForm {
 	}
 
 	if(!$found) {
-		die __PACKAGE__."#addHiddenForm, form [$name] does not exist.\n";
+		die __PACKAGE__."#addHiddenForm: form [$name] does not exist. (form [$name] が存在しません)\n";
 	}
 
 	### before: $this->getHtml
@@ -751,19 +752,19 @@ sub addSessionCheck {
 	my $issecure = shift;
 
 	if(!defined($sessiongroup)) {
-		die __PACKAGE__."#addSessionCheck, ARG[1] was undef.\n";
+		die __PACKAGE__."#addSessionCheck: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my $session = $TL->getSession($sessiongroup);
 	if(ref($name)) {
-		die __PACKAGE__."#addSessionCheck, ARG[2] was Ref.\n";
+		die __PACKAGE__."#addSessionCheck: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 	if(ref($issecure)) {
-		die __PACKAGE__."#addSessionCheck, ARG[3] was Ref.\n";
+		die __PACKAGE__."#addSessionCheck: arg[3] is a Ref. (第3引数がリファレンスです)\n";
 	}
 
 	my $csrfkey = $TL->INI->get($sessiongroup => 'csrfkey', undef);
 	if(!defined($csrfkey)) {
-		die __PACKAGE__."#addSessionCheck, csrfkey was not set. set INI [$sessiongroup].\n";
+		die __PACKAGE__."#addSessionCheck: csrfkey was not set. set INI [$sessiongroup]. (INI [$sessiongroup] で csrfkey を設定してください)\n";
 	}
 
 	do {
@@ -771,13 +772,13 @@ sub addSessionCheck {
 		eval 'use Digest::HMAC_SHA1 qw(hmac_sha1_hex)';
 	};
 	if($@) {
-		die __PACKAGE__."#addSessionCheck, failed to load HMAC_SHA1.pm [$@]\n";
+		die __PACKAGE__."#addSessionCheck: failed to load HMAC_SHA1.pm [$@] (Digest::HMAC_SHA1が使用できません)\n";
 	}
 
 	my ($key, $sid, $checkval) = $session->getSessionInfo($issecure);
 	
 	if(!defined($sid)) {
-		die __PACKAGE__."#addSessionCheck, Session was not set. need setValue.\n";
+        die __PACKAGE__."#addSessionCheck: no session ID has been created. You must prepare one before. (セッションがありません。事前にセッションを生成してください)\n";
 	}
 	
 	$key = 'C' . $key;
@@ -814,7 +815,7 @@ sub addSessionCheck {
 				$found = 1;
 
 				if(lc($elem->attr('method')) ne 'post') {
-					die __PACKAGE__."#addSessionCheck, form isn't post method.\n"
+					die __PACKAGE__."#addSessionCheck: form isn't post method. (formがpostメソッドではありません)\n"
 				}
 
 				my $e = $context->newElement('input');
@@ -832,7 +833,7 @@ sub addSessionCheck {
 	}
 
 	if(!$found) {
-		die __PACKAGE__."#addSessionCheck, form [$name] does not exist.\n";
+		die __PACKAGE__."#addSessionCheck: form [$name] does not exist. (form [$name] が存在しません)\n";
 	}
 
 	$this->_setHtml($filter->toStr);
@@ -854,9 +855,9 @@ sub _setHtml {
 	my $html = shift;
 
 	if(!defined($html)) {
-		die __PACKAGE__."#setHtml, ARG[1] was undef.\n";
+		die __PACKAGE__."#setHtml: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($html)) {
-		die __PACKAGE__."#setHtml, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setHtml: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	$this->_split($html);
@@ -914,7 +915,8 @@ sub _dieIfDirty {
 	my $method = shift;
 
 	if(my $dirty = $this->_isDirty(1)) {
-		die __PACKAGE__."#$method, node [".$dirty->_nodePath."] was modified but not added to the parent.\n";
+		die __PACKAGE__."#$method: node [".$dirty->_nodePath."] was modified but not added to the parent.".
+			" (node [".$dirty->_nodePath."] は変更されていますがaddされていません)\n";
 	}
 
 	$this;
@@ -932,7 +934,7 @@ sub _dieIfUnexpandTag {
 			{
 				if( !defined($valmap->{${$seg->[2]}}) )
 				{
-					die __PACKAGE__."#$method, tag [$seg->[1]] was left unexpanded.\n";
+					die __PACKAGE__."#$method: tag [$seg->[1]] was left unexpanded. (tag [$seg->[1]] が展開されていません)\n";
 				}
 			}
 	}
@@ -962,7 +964,7 @@ sub _flush {
 				  $_->[0] eq 'mark' &&
 					$_->[1] eq $mark; } @{$this->{tmplvec}}) {
 				
-				die __PACKAGE__."#flush, node [$mark] seems to be already flushed.\n";
+				die __PACKAGE__."#flush: node [$mark] seems to be already flushed. (node [$mark] は既にflush済みです)\n";
 			}
 
 			while(my $seg = shift @{$this->{tmplvec}}) {
@@ -973,7 +975,7 @@ sub _flush {
 						if(defined($$ref)) {
 							$ret .= $$ref;
 						} else {
-							die __PACKAGE__."#flush, tag [$seg->[1]] was left unexpanded.\n";
+							die __PACKAGE__."#flush: tag [$seg->[1]] was left unexpanded. (tag [$seg->[1]] が展開されていません)\n";
 						}
 					} elsif($seg->[0] eq 'mark' || $seg->[0] eq 'copy') {
 						my $ref = \$this->{valmap}{${$seg->[2]}};
@@ -989,7 +991,7 @@ sub _flush {
 							last;
 						}
 					} else {
-						die "internal error: unknown segment type: $seg->[0]";
+						die "internal error: unknown segment type: $seg->[0] (内部エラー:未知の segment type)";
 					}
 				} else {
 					$ret .= $seg; # ただの文字列
@@ -1035,9 +1037,9 @@ sub _expand {
 
 	while(my ($key, $val) = each %$param) {
 		if(!defined($val)) {
-			die __PACKAGE__."#expand, value for key [$key] was undef.\n";
+			die __PACKAGE__."#expand: value for key [$key] is not defined. (key [$key] の値が指定されていません)\n";
 		} elsif(ref($val)) {
-			die __PACKAGE__."#expand, value for key [$key] was a ref. [$val]\n";
+			die __PACKAGE__."#expand: value for key [$key] is a ref. [$val] (key [$key] の値がリファレンスです)\n";
 		}
 		
 		$key = lc($key);
@@ -1053,7 +1055,7 @@ sub _expand {
 				$seg->[0] eq 'tag' or next;
 				
 				unless(defined($this->{valmap}{${$seg->[2]}})) {
-					die __PACKAGE__."#expand, key [$seg->[1]] was left unexpanded.\n";
+					die __PACKAGE__."#expand: key [$seg->[1]] was left unexpanded. (key [$seg->[1]] が展開されていません)\n";
 				}
 			}
 		}
@@ -1086,7 +1088,7 @@ sub _filter {
 			$value =~ s!(\r?\n)!<br>$1!g;
 		}
 	} else {
-		die __PACKAGE__."#_filter, internal state error.\n";
+		die __PACKAGE__."#_filter: internal state error. (内部状態エラー)\n";
 	}
 
 	$value;

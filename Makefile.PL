@@ -9,9 +9,9 @@ my $requires = {
     'Digest::HMAC_SHA1'   => 0,
     'File::Path'          => 0,
     'IO::Scalar'          => 0, # IO-stringy
-    'MIME::Tools'         => 5.411,
+    'MIME::Tools'         => '5.411',
     'PadWalker'           => '1.0',
-    'Unicode::Japanese'   => '0.41',
+    'Unicode::Japanese'   => '0.43',
     'Text::CSV_XS'        => 0, # optional
 };
 

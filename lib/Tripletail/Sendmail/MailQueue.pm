@@ -22,7 +22,7 @@ sub _new {
 
 	$this->{group} = $group;
 	$this->{queuedir} = $TL->INI->get($group => 'queuedir');
-	$this->{queuedir} or die __PACKAGE__."#new, queuedir is not set.\n";
+	$this->{queuedir} or die __PACKAGE__."#new: queuedir is not set. (queuedirが指定されていません)\n";
 	$this->{smtp} = Tripletail::Sendmail::Smtp->_new($group);
 	$this->{erroraddr} = $TL->INI->get($group => 'erroraddr');
 	$this->{errorlog} = $TL->INI->get($group => 'errorlog');
@@ -50,7 +50,7 @@ sub send {
 	my $queuefile = "$this->{queuedir}/queue/$fname";
 
 	open my $fh, '>', $infile
-		or die __PACKAGE__."#send, failed to write file [$infile]\n";
+		or die __PACKAGE__."#send: failed to write file [$infile] (ファイルに書き込めません)\n";
 
 	print $fh "$data->{from}\r\n";
 	foreach my $rcpt (@{$data->{rcpt}}) {
@@ -64,7 +64,7 @@ sub send {
 	close $fh;
 
 	rename $infile => $queuefile
-		or die __PACKAGE__."#send, failed to rename [$infile] => [$queuefile]\n";
+		or die __PACKAGE__."#send: failed to rename [$infile] => [$queuefile] (リネームできません)\n";
 
 	$this;
 }
@@ -79,7 +79,7 @@ sub process {
 
 	my $queue = "$this->{queuedir}/queue";
 	opendir my $dh, $queue
-		or die __PACKAGE__."#process, failed to opendir [$queue].\n";
+		or die __PACKAGE__."#process: failed to opendir [$queue]. (ディレクトリを開けません)\n";
 
 	while(defined($_ = readdir $dh)) {
 		my $fname = $_;
@@ -89,18 +89,18 @@ sub process {
 
 		my $outfile = "$this->{queuedir}/outgoing/$fname.$$";
 		rename $queuefile => $outfile
-			or die __PACKAGE__."#process, failed to rename [$queuefile] => [$outfile]\n";
+			or die __PACKAGE__."#process: failed to rename [$queuefile] => [$outfile] (リネームできません)\n";
 
 		eval {
 			if($this->_tryToSend($outfile)) {
 				# 成功
 				unlink $outfile
-					or die __PACKAGE__."#process, failed to unlink [$outfile]\n";
+					or die __PACKAGE__."#process: failed to unlink [$outfile] (ファイルを削除できません)\n";
 			} else {
 				# 一時的失敗
 				my $deferral = "$this->{queuedir}/queue/$fname.$$";
 				rename $outfile => $deferral
-					or die __PACKAGE__."#process failed to rename [$outfile] => [$deferral]\n";
+					or die __PACKAGE__."#process: failed to rename [$outfile] => [$deferral] (リネームできません)\n";
 			}
 		};
 		if(my $error = $@) {
@@ -109,14 +109,14 @@ sub process {
 				local $/ = undef;
 
 				open my $fh, '<', $outfile
-					or die __PACKAGE__."#process, failed to read [$outfile]\n";
+					or die __PACKAGE__."#process: failed to read [$outfile] (ファイルを読めません)\n";
 				<$fh>;
 			};
 			$data = Unicode::Japanese->new($data, 'auto')->get;
 			$data =~ s/\r?\n|\r/\n/g;
 
 			unlink $outfile
-				or die __PACKAGE__."#process, failed to unlink [$outfile]\n";
+				or die __PACKAGE__."#process: failed to unlink [$outfile] (ファイルを削除できません)\n";
 
 			if($this->{errorlog}) {
 				$TL->log(
@@ -173,7 +173,7 @@ sub _tryToSend {
 		local $/ = undef;
 
 		open my $fh, '<', $fname
-			or die __PACKAGE__."#process, failed to read file [$fname]";
+			or die __PACKAGE__."#process: failed to read file [$fname] (ファイルを読めません)";
 		<$fh>;
 	};
 
@@ -244,7 +244,7 @@ sub _recover_incoming {
 	my $incoming = "$this->{queuedir}/incoming";
 
 	opendir my $dh, $incoming
-		or die __PACKAGE__."#process, failed to opendir [$incoming]\n";
+		or die __PACKAGE__."#process: failed to opendir [$incoming] (ディレクトリを開けません)\n";
 
 	while(defined($_ = readdir $dh)) {
 		my $fname = $_;
@@ -265,7 +265,7 @@ sub _recover_incoming {
 				);
 
 				unlink $fpath
-					or die __PACKAGE__."#process, failed to unlink [$fpath]";
+					or die __PACKAGE__."#process: failed to unlink [$fpath] (ファイルを削除できません)";
 			}
 		}
 	}
@@ -282,7 +282,7 @@ sub _recover_outgoing {
 	my $queue = "$this->{queuedir}/queue";
 
 	opendir my $dh, $outgoing
-		or die __PACKAGE__."#process, failed to opendir [$outgoing]\n";
+		or die __PACKAGE__."#process: failed to opendir [$outgoing] (ディレクトリを開けません)\n";
 
 	while(defined($_ = readdir $dh)) {
 		my $fname = $_;
@@ -304,7 +304,7 @@ sub _recover_outgoing {
 
 				my $requeue = "$queue/$fname";
 				rename $fpath => $requeue
-					or die __PACKAGE__."#process, failed to rename [$fpath] => [$requeue]\n";
+					or die __PACKAGE__."#process: failed to rename [$fpath] => [$requeue] (リネームできません)\n";
 			}
 		}
 	}

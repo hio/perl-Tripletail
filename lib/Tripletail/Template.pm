@@ -75,8 +75,9 @@ sub _checkPathIsAcceptable {
 
 	for(my $i = 0; $i < @rootpath; $i++) {
 		if($rootpath[$i] ne $abspath[$i]) {
-			die __PACKAGE__."#_checkPathIsAcceptable, loading file [$path] was forbidden ".
-				"due to rootpath being [$this->{rootpath}]\n";
+			die __PACKAGE__."#_checkPathIsAcceptable: loading file [$path] was forbidden ".
+				"due to rootpath being [$this->{rootpath}]".
+				" (ファイル[$path]はrootpath[$this->{rootpath}]以下にないので読み込めません)\n";
 		}
 	}
 
@@ -91,7 +92,8 @@ sub _expandInclude {
 
 	$$inccount += 1;
 	if($$inccount > 20) {
-		die __PACKAGE__."#_expandInclude, <!include> file was loop or too deep.\n";
+		die __PACKAGE__."#_expandInclude: <!include> file was loop or too deep.".
+			" (<!include>がループしているか、階層が深すぎます)\n";
 	}
 
 	if(!defined($path)) {
@@ -121,9 +123,9 @@ sub setTemplate {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die __PACKAGE__."#setTemplate, ARG[1] was undef.\n";
+		die __PACKAGE__."#setTemplate: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die __PACKAGE__."#setTemplate, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setTemplate: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	my $inccount = 0;
@@ -146,9 +148,9 @@ sub loadTemplate {
 	my $icode = shift;
 
 	if(!defined($filepath)) {
-		die __PACKAGE__."#loadTemplate, ARG[1] was undef.\n";
+		die __PACKAGE__."#loadTemplate: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($filepath)) {
-		die __PACKAGE__."#loadTemplate, ARG[1] was Ref.\n";
+		die __PACKAGE__."#loadTemplate: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	$filepath = __rel2abs($filepath, $this->{basepath});

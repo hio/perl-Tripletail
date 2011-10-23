@@ -1,5 +1,37 @@
 Revision history for Tripletail
 
+0.33 Mon Sep 10 16:26:55 JST 2007
+	- [[重要:非互換な仕様変更]]
+	　- DateTimeクラスのtai64フォーマットの処理に問題があり、修正が
+	　　難しいため、tai64フォーマットへの対応を削除。
+	　- Tripletail::Filter::MemCachedのtypeオプションはmodeオプションに
+	　　名称を変更し、引数はin/outからwrite/readに変更されました。
+	- Pagerクラスにて、DBセットを利用する手段が無かった為、
+	　Pager#newPager時にdb_objectを渡せるように変更しました。
+	　今後はこちらの形式が推奨方式になります。
+	　db_groupを渡す方法も継続して利用できますが、非推奨な方法となりました。
+	　あわせて、Pager#setDbGroupも非推奨となりました。
+	- ValueクラスのforcePortable、forcePcPortableの記述間違いを修正。
+	　正しい動作は機種依存文字を削除する。
+	- SessionクラスがSQLの実行に失敗した時の処理が適切でなかったので修正。
+	- $TL->sendError のマニュアルのサンプルの記述ミスを修正。
+	- t/value.t が希に失敗することがある問題を修正。
+	- taint 時に動かない箇所の修正.
+	- TLのoutputbufferingを1にすると2重にフィルタがかかるバグを修正。
+	- TLのoutputbufferingが1の場合は、Content-Lengthヘッダを付与するように修正。
+	- Filter::MobileHTMLクラス利用時に、Content-Lengthヘッダを返すように
+	　outputbufferingを強制的に1にセットするように修正。
+	　（携帯向けにコンテンツを返す場合、Content-Lengthヘッダを必須とする
+	　　キャリアがあるため）
+	- errortemplateを指定した場合、そのテンプレートに対してデバッグ出力などの
+	　ノードを展開しようとしていた問題を修正。指定したテンプレートはそのまま
+	　出力するように修正された。
+	　また、errortemplatecharset の設定を追加した。
+	- Windows環境でmail.tのテストに失敗する問題を(たぶん)修正。
+	- 特定の環境でsmime.tのテストに失敗する問題を修正。
+	- セッション利用時、DBとの接続が切れた場合の再接続処理が正しくなく、
+	　接続が切れた次のリクエストでエラーが生じる問題を修正。
+
 0.32	Fri Aug 31 18:22:56 JST 2007
 	- [[重要:非互換な仕様変更]]
 	　- 出力フィルタとしてMobileHTMLを利用しているときに$TL->locationを利用すると

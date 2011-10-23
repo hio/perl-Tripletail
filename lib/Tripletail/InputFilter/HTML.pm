@@ -78,14 +78,14 @@ sub __pairsFromUrlEncoded {
 	if(!defined($input)) {
 		if($ENV{REQUEST_METHOD} eq 'POST') {
 			if(!defined($ENV{CONTENT_LENGTH})) {
-				die __PACKAGE__.", Post Error: no Content-Length given by the user agent.";
+				die __PACKAGE__.": Post Error: no Content-Length given by the user agent. (POSTメソッドにもかかわらずContent-Lengthヘッダがありませんでした)";
 			}
 
 			my $limit = $TL->parseQuantity(
 				$TL->INI->get(TL => 'maxrequestsize', '8Mi'));
 			if ($ENV{CONTENT_LENGTH} > $limit) { # ファイルは無い
 				$TL->log("Post Error: request size [$ENV{CONTENT_LENGTH}] was too big to accept [limit:$limit].");
-				die __PACKAGE__.", Post Error: request size was too big to accept.";
+				die __PACKAGE__.": Post Error: request size was too big to accept. (リクエストサイズが大きすぎます)";
 			}
 
 			my $remaining = $ENV{CONTENT_LENGTH};
@@ -98,10 +98,11 @@ sub __pairsFromUrlEncoded {
 				my $read = read STDIN, $chunk, $size;
 
 				if(!defined($read)) {
-					die __PACKAGE__.", we got IO error while reading from stdin. [$!]\n";
+					die __PACKAGE__.": we got IO error while reading from stdin. [$!] (stdinからの読み込み中にIOエラーが発生しました)\n";
 				} elsif($read == 0) {
-					die __PACKAGE__.", we got EOF while reading from stdin.".
-					  " We read ".length($input)." bytes actually but $remaining bytes remain.\n";
+					die __PACKAGE__.": we got EOF while reading from stdin.".
+					  " We read ".length($input)." bytes actually but $remaining bytes remain. ".
+					  " (stdinからの読み取り途中でEOFを受信しました。".length($input)."バイト読み取りましたが${remaining}バイトが残っています)\n";
 				}
 
 				$input .= $chunk;
@@ -198,20 +199,20 @@ sub __pairsFromMultipart {
 	my $fill = sub {
 		# 一度EOFを検出した後に再びfillしようとしたらdie
 		if ($eof) {
-			die __PACKAGE__.", we got EOF while reading from stdin.\n";
+			die __PACKAGE__.": we got EOF while reading from stdin. (stdinからの読み取り途中でEOFを受信しました)\n";
 		}
 
 		# バッファのサイズが maxrequestsize を越えないようにする。
 		my $size = $chunksize - length($buffer);
 		if ($size == 0) {
-			die __PACKAGE__.", read buffer has been full.\n";
+			die __PACKAGE__.": read buffer has been full. (読み込みバッファがあふれました。maxrequestsizeが小さすぎるか、リクエストが大きすぎます)\n";
 		}
 		if( $size > $rest_len )
 		{
 			$size = $rest_len;
 			if ($size <= 0)
 			{
-				die __PACKAGE__.", already read CONTENT_LENGTH bytes ($ENV{CONTENT_LENGTH}).\n";
+				die __PACKAGE__.": already read CONTENT_LENGTH bytes ($ENV{CONTENT_LENGTH}). (Content-Lengthバイトを読み取りましたがデータが残っています)\n";
 			}
 		}
 		
@@ -219,7 +220,7 @@ sub __pairsFromMultipart {
 		my $read = read STDIN, $chunk, $size;
 
 		if (not defined $read) {
-			die __PACKAGE__.", we got IO error while reading from stdin. [$!]\n";
+			die __PACKAGE__.": we got IO error while reading from stdin. [$!] (stdinからの読み込み中にIOエラーが発生しました)\n";
 		}
 		elsif ($read == 0) {
 			$eof = 1;
@@ -272,7 +273,7 @@ sub __pairsFromMultipart {
 		}
 
 		$buffer =~ s/^(.*?)\x0d\x0a//
-		  or die __PACKAGE__.", Internal Error\n";
+		  or die __PACKAGE__."#__pairsFromMultipart: Internal Error (内部エラー)\n";
 
 		$1;
 	};
@@ -289,10 +290,10 @@ sub __pairsFromMultipart {
 			$TEMPFILE_COUNTER++;
 
 			open my $fh, '+>', $filename
-			  or die __PACKAGE__.", failed to open $filename for writing. [$!]\n";
+			  or die __PACKAGE__.": failed to open $filename for writing. [$!] (${filename}に書き込めません)\n";
 
 			unlink $filename
-			  or die __PACKAGE__.", failed to unlink $filename. [$!]\n";
+			  or die __PACKAGE__.": failed to unlink $filename. [$!] (${filename}を削除できません)\n";
 
 			$fh;
 		}
@@ -308,7 +309,7 @@ sub __pairsFromMultipart {
 		my $filename = shift;
 
 		if (defined $current_key) {
-			die __PACKAGE__.", Internal Error.\n";
+			die __PACKAGE__."#__pairsFromMultipart: Internal Error. (内部エラー)\n";
 		}
 
 		$current_key = $key;
@@ -326,7 +327,7 @@ sub __pairsFromMultipart {
 
 	my $commit = sub {
 		if (not defined $current_key) {
-			die __PACKAGE__.", Internal Error.\n";
+			die __PACKAGE__."#__pairsFromMultipart: Internal Error. (内部エラー)\n";
 		}
 
 		if (ref $current_value) {
@@ -344,13 +345,13 @@ sub __pairsFromMultipart {
 		my $data = shift;
 		
 		if (not defined $current_key) {
-			die __PACKAGE__.", Internal Error.\n";
+			die __PACKAGE__."#__pairsFromMultipart: Internal Error. (内部エラー)\n";
 		}
 
 		if (ref $current_value) {
 			# ファイル
 			if (length($data) + $file_count > $file_limit) {
-				die __PACKAGE__.", we are getting too large file which exceeds the limit.\n";
+				die __PACKAGE__.": we are getting too large file which exceeds the limit. (ファイルサイズが制限を超えました。maxfilesizeを確認してください)\n";
 			}
 			print $current_value $data;
 			$file_count += length($data);
@@ -358,7 +359,7 @@ sub __pairsFromMultipart {
 		else {
 			# ファイル以外
 			if (length($data) + $non_file_count > $req_limit) {
-				die __PACKAGE__.", we are getting too large request which exceeds the limit.\n";
+				die __PACKAGE__.": we are getting too large request which exceeds the limit. (リクエストサイズが大きすぎます。maxrequestsizeを確認してください)\n";
 			}
 			$current_value .= $data;
 			$non_file_count += length($data);
@@ -412,12 +413,12 @@ sub __pairsFromMultipart {
 						$key = $1;
 					}
 					else {
-						die __PACKAGE__.", we got a part with no name.\n";
+						die __PACKAGE__.": we got a part with no name. (名前がないパートがありました)\n";
 					}
 
 					if ($line =~ m/filename="(.*?)"/i or $line =~ m/filename=(\S+)/i) {
 						if (not defined $key) {
-							die __PACKAGE__.", we got isolated filename without name. [$_]\n";
+							die __PACKAGE__.": we got isolated filename without name. [$_] (名前がないのにファイル名がありました)\n";
 						}
 
 						$prepare->($key, $1);

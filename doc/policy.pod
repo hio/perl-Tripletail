@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-TripletaiL 設計方針
+policy 設計方針
 
 =head1 DESCRIPTION
 

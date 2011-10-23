@@ -212,7 +212,7 @@ sub set {
 	if(ref($val))
 	{
 		if( !isa($val, ref($this)) ) {
-			die __PACKAGE__."#set, ARG[1] was Ref.\n";
+			die __PACKAGE__."#set: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 		}
 		$val = $val->toStr();
 	}
@@ -226,26 +226,6 @@ sub set {
 
 	if(!$this->{tz}) {
 		$this->setTimeZone;
-	}
-
-	if($val =~ m/^\@(${re_hex_byte}{8})(?:${re_hex_byte}{4}(?:${re_hex_byte}{4})?)?$/) {
-		# TAI64Nは特殊。
-		my @hex = split(//, $1);
-		my $result = 0;
-		for(my $i = 0; $i < @hex; $i++) {
-			$result += hex($hex[$i]) * (16 ** (@hex - 1 - $i));
-		}
-
-		# 1970 TAI は 1970 UTC と30秒ほど一致していない。
-		# このズレを正しく扱うにはうるう秒への対応が必要。
-		if($result >= 0 && $result < 2 ** 62) {
-			$this->setEpoch(2 ** 62 - $result);
-		} elsif($result >= 2 ** 62 && $result < 2 ** 63) {
-			$this->setEpoch($result - 2 ** 62);
-		} else {
-			die __PACKAGE__."#set, undefined TAI range\n";
-		}
-		return $this;
 	}
 
 	my $greg = {
@@ -277,7 +257,7 @@ sub set {
 		$greg->{tz} = $this->__getTZByName($6);
 		$greg->{year} = $7;
 
-		defined $greg->{tz} or die __PACKAGE__."#set, unknown timezone: $6\n";
+		defined $greg->{tz} or die __PACKAGE__."#set: unknown timezone: $6 (不正なタイムゾーンです)\n";
 	} elsif($val =~ m/^$re_apache_access$/o) {
 		$greg->{day} = $1;
 		$greg->{mon} = $MONTH_HASH{$2};
@@ -328,7 +308,7 @@ sub set {
 			}
 		}
 	} else {
-		die __PACKAGE__."#set, failed to parse date: $val\n";
+		die __PACKAGE__."#set: failed to parse date: $val (不正な日付形式です)\n";
 	}
 
 	$this->setJulianDay($this->__getJulian($greg));
@@ -340,11 +320,11 @@ sub setEpoch {
 	my $epoch = shift;
 
 	if(!defined($epoch)) {
-		die __PACKAGE__."#setEpoch, ARG[1] was undef.\n";
+		die __PACKAGE__."#setEpoch: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($epoch)) {
-		die __PACKAGE__."#setEpoch, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setEpoch: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($epoch !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setEpoch, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setEpoch: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->__getJulianOfEpoch + $epoch / 86400);
@@ -356,11 +336,11 @@ sub setJulianDay {
 	my $jd = shift;
 
 	if(!defined($jd)) {
-		die __PACKAGE__."#setJulianDay, ARG[1] was undef.\n";
+		die __PACKAGE__."#setJulianDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($jd)) {
-		die __PACKAGE__."#setJulianDay, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setJulianDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($jd !~ m/^-?[\d\.]+$/) {
-		die __PACKAGE__."#setJulianDay, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setJulianDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->{jd} = $jd;
@@ -373,11 +353,11 @@ sub setYear {
 	my $year = shift;
 
 	if(!defined($year)) {
-		die __PACKAGE__."#setYear, ARG[1] was undef.\n";
+		die __PACKAGE__."#setYear: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($year)) {
-		die __PACKAGE__."#setYear, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setYear: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($year !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setYear, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setYear: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	my $greg = $this->__getGregorian();
@@ -390,17 +370,17 @@ sub setMonth {
 	my $mon = shift;
 
 	if(!defined($mon)) {
-		die __PACKAGE__."#setMonth, ARG[1] was undef.\n";
+		die __PACKAGE__."#setMonth: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($mon)) {
-		die __PACKAGE__."#setMonth, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setMonth: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($mon !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setMonth, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setMonth: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	} elsif($mon == 0) {
-		die __PACKAGE__."#setMonth, ARG[1] == 0.\n";
+		die __PACKAGE__."#setMonth: arg[1] == 0. (月が0です)\n";
 	} elsif($mon >= 13) {
-		die __PACKAGE__."#setMonth, ARG[1] >= 13.\n";
+		die __PACKAGE__."#setMonth: arg[1] >= 13. (月が13以上です)\n";
 	} elsif($mon <= -13) {
-		die __PACKAGE__."#setMonth, ARG[1] <= -13.\n";
+		die __PACKAGE__."#setMonth: arg[1] <= -13. (月が-13以下です)\n";
 	}
 
 	if($mon < 0) {
@@ -416,22 +396,26 @@ sub setDay {
 	my $day = shift;
 
 	if(!defined($day)) {
-		die __PACKAGE__."#setDay, ARG[1] was undef.\n";
+		die __PACKAGE__."#setDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($day)) {
-		die __PACKAGE__."#setDay, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($day !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setDay, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	} elsif($day == 0) {
-		die __PACKAGE__."#setDay, ARG[1] == 0.\n";
+		die __PACKAGE__."#setDay: arg[1] == 0. (日が0です)\n";
 	}
 
 	my $greg = $this->__getGregorian();
 
 	my $last = $this->__lastDayOfMonth;
 	if($day > $last) {
-		die sprintf(__PACKAGE__."#setDay, %04d-%02d-%02d does not exist.\n",$greg->{year}, $greg->{mon}, $day);
+		die sprintf(__PACKAGE__."#setDay: %04d-%02d-%02d does not exist. (%04d-%02d-%02dの日付は存在しません\n",
+			$greg->{year}, $greg->{mon}, $day,
+			$greg->{year}, $greg->{mon}, $day);
 	} elsif($day < -1 * $last) {
-		die sprintf(__PACKAGE__."#setDay, %04d-%02d-%02d does not exist.\n",$greg->{year}, $greg->{mon}, $day + $last + 1);
+		die sprintf(__PACKAGE__."#setDay: %04d-%02d-%02d does not exist. (%04d-%02d-%02dの日付は存在しません)\n",
+			$greg->{year}, $greg->{mon}, $day + $last + 1,
+			$greg->{year}, $greg->{mon}, $day + $last + 1);
 	}
 
 	if($day < 0) {
@@ -446,15 +430,15 @@ sub setHour {
 	my $hour = shift;
 
 	if(!defined($hour)) {
-		die __PACKAGE__."#setHour, ARG[1] was undef.\n";
+		die __PACKAGE__."#setHour: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($hour)) {
-		die __PACKAGE__."#setHour, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setHour: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($hour !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setHour, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setHour: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	} elsif($hour >= 24) {
-		die __PACKAGE__."#setHour, ARG[1] >= 24.\n";
+		die __PACKAGE__."#setHour: arg[1] >= 24. (第1引数が24以上です)\n";
 	} elsif($hour <= -24) {
-		die __PACKAGE__."#setHour, ARG[1] <= -24.\n";
+		die __PACKAGE__."#setHour: arg[1] <= -24. (第1引数が-24以下です)\n";
 	}
 
 	if($hour < 0) {
@@ -470,15 +454,15 @@ sub setMinute {
 	my $min = shift;
 
 	if(!defined($min)) {
-		die __PACKAGE__."#setMinute, ARG[1] was undef.\n";
+		die __PACKAGE__."#setMinute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($min)) {
-		die __PACKAGE__."#setMinute, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setMinute: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($min !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setMinute, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setMinute: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	} elsif($min >= 60) {
-		die __PACKAGE__."#setHour, ARG[1] >= 60.\n";
+		die __PACKAGE__."#setHour: arg[1] >= 60. (第1引数が60以上です)\n";
 	} elsif($min <= -60) {
-		die __PACKAGE__."#setHour, ARG[1] <= -60.\n";
+		die __PACKAGE__."#setHour: arg[1] <= -60. (第1引数が-60以下です)\n";
 	}
 
 	if($min < 0) {
@@ -494,15 +478,15 @@ sub setSecond {
 	my $sec = shift;
 
 	if(!defined($sec)) {
-		die __PACKAGE__."#setSecond, ARG[1] was undef.\n";
+		die __PACKAGE__."#setSecond: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($sec)) {
-		die __PACKAGE__."#setSecond, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setSecond: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($sec !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setSecond, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#setSecond: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	} elsif($sec >= 60) {
-		die __PACKAGE__."#setSecond, ARG[1] >= 60.\n";
+		die __PACKAGE__."#setSecond: arg[1] >= 60. (第1引数が60以上です)\n";
 	} elsif($sec <= -60) {
-		die __PACKAGE__."#setSecond, ARG[1] <= -60.\n";
+		die __PACKAGE__."#setSecond: arg[1] <= -60. (第1引数が-60以下です)\n";
 	}
 
 	if($sec < 0) {
@@ -520,7 +504,7 @@ sub setTimeZone {
 	local($_);
 
 	if(ref($tz)) {
-		die __PACKAGE__."#setTimeZone, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setTimeZone: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($tz)) {
@@ -539,7 +523,7 @@ sub setTimeZone {
 	} elsif($tz =~ m/^-?\d+$/) {
 		$this->{tz} = $tz * 3600;
 	} else {
-		die __PACKAGE__."#setTimeZone, unrecognized TimeZone: $tz\n";
+		die __PACKAGE__."#setTimeZone: unrecognized TimeZone: $tz (認識できないタイムゾーンです)\n";
 	}
 
 	$this->{greg_cache} = undef;
@@ -687,11 +671,11 @@ sub getCalendarMatrix {
 	}->{lc($opt->{begin})};
 	if( !defined($begin) )
 	{
-		die __PACKAGE__."#getCalendarMatrix, opt[begin] is invalid: $_\n";
+		die __PACKAGE__."#getCalendarMatrix: opt[begin] is invalid: $_ (beginが指定が不正です)\n";
 	}
 
 	if($opt->{type} ne 'normal' && $opt->{type} ne 'fixed') {
-		die __PACKAGE__."#getCalendarMatrix, opt[type] is invalid: $opt->{type}\n";
+		die __PACKAGE__."#getCalendarMatrix: opt[type] is invalid: $opt->{type} (typeの指定が不正です)\n";
 	}
 
 	my $this_month_1st = $this->clone->setDay(1);
@@ -732,7 +716,7 @@ sub minusSecond {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusSecond, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusSecond: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -751,7 +735,7 @@ sub spanSecond {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusSecond, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusSecond: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	$this->minusSecond(@_);
 }
@@ -760,7 +744,7 @@ sub minusMinute {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusMinute, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusMinute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 	
@@ -788,7 +772,7 @@ sub spanMinute {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#spanMinute, ARG[1] was undef.\n";
+		die __PACKAGE__."#spanMinute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -813,7 +797,7 @@ sub minusHour {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusHour, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusHour: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -848,7 +832,7 @@ sub spanHour {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#spanHour, ARG[1] was undef.\n";
+		die __PACKAGE__."#spanHour: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -878,7 +862,7 @@ sub spanDay {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#spanDay, ARG[1] was undef.\n";
+		die __PACKAGE__."#spanDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -943,7 +927,7 @@ sub minusDay {
 	
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusDay, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 	
@@ -985,7 +969,7 @@ sub spanMonth {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#spanMonth, ARG[1] was undef.\n";
+		die __PACKAGE__."#spanMonth: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -1014,7 +998,7 @@ sub minusMonth {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusMonth, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusMonth: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -1028,7 +1012,7 @@ sub spanYear {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#spanYear, ARG[1] was undef.\n";
+		die __PACKAGE__."#spanYear: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -1057,7 +1041,7 @@ sub minusYear {
 	my $this = shift;
 	if( @_==0 )
 	{
-		die __PACKAGE__."#minusYear, ARG[1] was undef.\n";
+		die __PACKAGE__."#minusYear: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my ($dt_base, $dt_sub) = $this->_prepare_biop(@_);
 
@@ -1072,11 +1056,11 @@ sub addSecond {
 	my $sec = shift;
 
 	if(!defined($sec)) {
-		die __PACKAGE__."#addSecond, ARG[1] was undef.\n";
+		die __PACKAGE__."#addSecond: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($sec)) {
-		die __PACKAGE__."#addSecond, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addSecond: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($sec !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addSecond, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addSecond: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $sec / 86400);
@@ -1087,11 +1071,11 @@ sub addMinute {
 	my $min = shift;
 
 	if(!defined($min)) {
-		die __PACKAGE__."#addMinute, ARG[1] was undef.\n";
+		die __PACKAGE__."#addMinute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($min)) {
-		die __PACKAGE__."#addMinute, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addMinute: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($min !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addMinute, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addMinute: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $min / 1440);
@@ -1102,11 +1086,11 @@ sub addHour {
 	my $hour = shift;
 
 	if(!defined($hour)) {
-		die __PACKAGE__."#addHour, ARG[1] was undef.\n";
+		die __PACKAGE__."#addHour: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($hour)) {
-		die __PACKAGE__."#addHour, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addHour: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($hour !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addHour, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addHour: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $hour / 24);
@@ -1117,11 +1101,11 @@ sub addDay {
 	my $day = shift;
 
 	if(!defined($day)) {
-		die __PACKAGE__."#addDay, ARG[1] was undef.\n";
+		die __PACKAGE__."#addDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($day)) {
-		die __PACKAGE__."#addDay, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($day !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addDay, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $day);
@@ -1133,11 +1117,11 @@ sub addMonth {
 	my $greg = { %{$this->__getGregorian()} };
 
 	if(!defined($mon)) {
-		die __PACKAGE__."#addMonth, ARG[1] was undef.\n";
+		die __PACKAGE__."#addMonth: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($mon)) {
-		die __PACKAGE__."#addMonth, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addMonth: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($mon !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addMonth, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addMonth: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$greg->{mon} += $mon;
@@ -1164,11 +1148,11 @@ sub addYear {
 	my $greg = { %{$this->__getGregorian()} };
 
 	if(!defined($year)) {
-		die __PACKAGE__."#addYear, ARG[1] was undef.\n";
+		die __PACKAGE__."#addYear: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($year)) {
-		die __PACKAGE__."#addYear, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addYear: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($year !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addYear, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addYear: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$greg->{year} += $year;
@@ -1207,11 +1191,11 @@ sub addBusinessDay {
 	my $type = shift;
 
 	if(!defined($day)) {
-		die __PACKAGE__."#addBusinessDay, ARG[1] was undef.\n";
+		die __PACKAGE__."#addBusinessDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($day)) {
-		die __PACKAGE__."#addBusinessDay, ARG[1] was Ref.\n";
+		die __PACKAGE__."#addBusinessDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($day !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addBusinessDay, ARG[1] was not numeric.\n";
+		die __PACKAGE__."#addBusinessDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
 	}
 
 	$this->addDay($day);
@@ -1235,7 +1219,7 @@ sub toStr {
 	} elsif($format eq 'w3c') {
 		$this->strFormat('%Y-%m-%dT%H:%M:%S%_z');
 	} else {
-		die __PACKAGE__."#toStr, unsupported format type: $format\n";
+		die __PACKAGE__."#toStr: unsupported format type: $format (サポートしていないフォーマットが指定されました)\n";
 	}
 }
 
@@ -1303,15 +1287,15 @@ sub parseFormat {
 	my $str = shift;
 
 	if(!defined($format)) {
-		die __PACKAGE__."#parseFormat, ARG[1] was undef.\n";
+		die __PACKAGE__."#parseFormat: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($format)) {
-		die __PACKAGE__."#parseFormat, ARG[1] was Ref.\n";
+		die __PACKAGE__."#parseFormat: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($str)) {
-		die __PACKAGE__."#parseFormat, ARG[2] was undef.\n";
+		die __PACKAGE__."#parseFormat: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die __PACKAGE__."#parseFormat, ARG[2] was Ref.\n";
+		die __PACKAGE__."#parseFormat: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 
 	my $f = $format;
@@ -1422,7 +1406,7 @@ sub parseFormat {
 		} elsif($f =~ s/^%%//) {
 			$regex .= '\%';
 		} else {
-			die __PACKAGE__."#parseFormat, failed to parse format: $f\n";
+			die __PACKAGE__."#parseFormat: failed to parse format: $f (フォーマットの指定が不正です)\n";
 		}
 	}
 
@@ -1461,7 +1445,7 @@ sub parseFormat {
 				min  => 'minute',
 				sec  => 'second',
 				tz   => 'timezone'}->{$group};
-			die __PACKAGE__."#parseFormat, the format has multiple ${err}s.\n";
+			die __PACKAGE__."#parseFormat: the format has multiple ${err}s. (複数の${err}が指定されています)\n";
 		}
 	};
 	foreach my $ent (@parse) {
@@ -1478,25 +1462,25 @@ sub parseFormat {
 	# hourが無くampm/12hourの内どちらか片方のみが在ればdie。
 	if($occur{hour}) {
 		if($occur{'12hour'}) {
-			die __PACKAGE__."#parseFormat, the format has both of 24-hour and 12-hour.\n";
+			die __PACKAGE__."#parseFormat: the format has both of 24-hour and 12-hour. (24時間表記の時と12時間表記の時の両方が指定されています)\n";
 		}
 	} else {
 		if($occur{ampm} xor $occur{'12hour'}) {
-			die __PACKAGE__."#parseFormat, the format has only one-half of 12-hour and AM/PM.\n";
+			die __PACKAGE__."#parseFormat: the format has only one-half of 12-hour and AM/PM. (12時間表記の時とAM/PMの両方が必要です)\n";
 		}
 	}
 
 	if(!$occur{year}) {
-		die __PACKAGE__."#parseFormat, the format does not have any years.\n";
+		die __PACKAGE__."#parseFormat: the format does not have any years. (フォーマットに年の指定が必要です)\n";
 	}
 
 	my @matched = ($str =~ m/^$regex$/m);
 	if(!@matched) {
-		die __PACKAGE__."#parseFormat, ARG[2] does not match to ARG[1].\n";
+		die __PACKAGE__."#parseFormat: arg[2] does not match to arg[1]. (指定されたフォーマットに一致しません)\n";
 	}
 
 	if(@matched != @parse) {
-		die __PACKAGE__."#parseFormat, internal error: generated regex must be invalid.\n";
+		die __PACKAGE__."#parseFormat: internal error: generated regex must be invalid. (内部エラー:生成された正規表現が不正です)\n";
 	}
 
 	my $greg = {
@@ -1562,7 +1546,7 @@ sub __parseRFC822TimeZone {
 	} elsif($str =~ m/^([+\-])(\d{2})(\d{2})$/) {
 		($1 eq '-' ? -1 : 1) * ($2 * 3600 + $3 * 60);
 	} else {
-		die __PACKAGE__.", failed to parse RFC822 TimeZone: $str\n";
+		die __PACKAGE__.": failed to parse RFC822 TimeZone: $str (RFC822タイムゾーンの解析に失敗しました)\n";
 	}
 }
 
@@ -1575,7 +1559,7 @@ sub __parseW3CTimeZone {
 	} elsif($str =~ m/^([+\-])(\d{2}):(\d{2})$/) {
 		($1 eq '-' ? -1 : 1) * ($2 * 3600 + $3 * 60);
 	} else {
-		die __PACKAGE__.", failed to parse W3C TimeZone: $str\n";
+		die __PACKAGE__.": failed to parse W3C TimeZone: $str (W3Cタイムゾーンの解析に失敗しました)\n";
 	}
 }
 
@@ -1674,7 +1658,7 @@ sub __parseJPYear {
 		}
 	}
 
-	die __PACKAGE__.", failed to parse japanese year: $str\n";
+	die __PACKAGE__.": failed to parse japanese year: $str (和暦の解析に失敗しました)\n";
 }
 
 sub __lastDayOfMonth {
@@ -1908,12 +1892,6 @@ Tripletail::DateTime オブジェクトを生成。
 
 最後の形式の .s は時刻の端数を表すものであるが、このクラスの精度は秒で
 あるので、端数はパース後に切り捨てられる。
-
-=item B<< TAI64N >>
-
- @4000000043f529721590b6bc
-
-一秒未満は切り捨てられる。
 
 =back
 

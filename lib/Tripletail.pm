@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v 1.211 2007/08/31 05:40:40 mikage Exp $
+# $Id: Tripletail.pm,v 1.223 2007/09/10 07:28:04 hio Exp $
 package Tripletail;
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use File::Spec;
 use Data::Dumper;
 use Cwd ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -57,7 +57,7 @@ sub import {
 		my $inifile = shift;
 		if(!defined($inifile)) {
 			_inside_pod_coverage()
-				or die "use Tripletail, ARG[1]: not defined. Usage: \"use Tripletail qw(config.ini);\"\n";
+				or die "use Tripletail: ini file isn't defined. Usage: \"use Tripletail qw(config.ini);\" (use Tripletail の際にiniファイルの指定が必要です)\n";
 			$inifile = '/dev/null';
 		}
 		if( $inifile ne '/dev/null' && $inifile ne 'nul' )
@@ -75,7 +75,7 @@ sub import {
 
 		my $trap = $TL->{INI}->get(TL => 'trap', 'die');
 		if($trap ne 'none' && $trap ne 'die' && $trap ne 'diewithprint') {
-			die __PACKAGE__."#import, invalid trap option [$trap].\n";
+			die __PACKAGE__."#import: invalid trap option [$trap] (trapオプションの指定が正しくありません).\n";
 		}
 
 
@@ -89,7 +89,7 @@ sub import {
 		*{"$callpkg1\::CGI"} = _gensym(); # dummy to avoid strict.
 	} else {
 		if(defined($_[0])) {
-			die "use Tripletail, ARG[1]: ini file already loaded.";
+			die "use Tripletail: ini file has been already loaded. (iniファイルを指定した use Tripletail は一度しか行えません)";
 		}
 	}
 }
@@ -173,12 +173,14 @@ sub __new {
 	$this->{hook} = {
 		init        => {}, # 優先順位 => CODE
 		term        => {},
+		initRequest => {},
 		preRequest  => {},
 		postRequest => {},
 	};
 	$this->{hooklist} = {
 		init        => [], # [CODE, ...] 優先順位でソート済み
 		term        => [],
+		initRequest => [],
 		preRequest  => [],
 		postRequest => [],
 	};
@@ -218,7 +220,7 @@ sub fork {
     my $pid = CORE::fork();
     
     if (not defined $pid) {
-        die "fork failed: $!";
+        die "TL#fork: failed: $!";
     }
     elsif ($pid == 0) {
         # child
@@ -249,7 +251,7 @@ sub escapeTag {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#escapeTag, ARG[1]: got undef.\n";
+		die "TL#escapeTag: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -267,7 +269,7 @@ sub unescapeTag {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#unescapeTag, ARG[1]: got undef.\n";
+		die "TL#unescapeTag: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -292,7 +294,7 @@ sub escapeJs {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#escapeJs, ARG[1]: got undef.\n";
+		die "TL#escapeJs: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -308,7 +310,7 @@ sub unescapeJs {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#unescapeJs, ARG[1]: got undef.\n";
+		die "TL#unescapeJs: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -322,7 +324,7 @@ sub encodeURL {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#encodeURL, ARG[1]: got undef.\n";
+		die "TL#encodeURL: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -337,7 +339,7 @@ sub decodeURL {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#decodeURL, ARG[1]: got undef.\n";
+		die "TL#decodeURL: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -351,7 +353,7 @@ sub escapeSqlLike {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#escapeSqlLike, ARG[1]: got undef.\n";
+		die "TL#escapeSqlLike: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -367,7 +369,7 @@ sub unescapeSqlLike {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die "TL#unescapeSqlLike, ARG[1]: got undef.\n";
+		die "TL#unescapeSqlLike: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = "$str"; # stringify.
@@ -417,7 +419,7 @@ sub startCgi {
 		}
 
 		if(!defined($param->{'-main'})) {
-			die __PACKAGE__."#startCgi, -main handler was undef.\n";
+			die __PACKAGE__."#startCgi: -main handler is not defined. (-main引数が指定されていません)\n";
 		}
 
 		# ここでフィルタ類のデフォルトを設定
@@ -453,7 +455,7 @@ sub startCgi {
 				eval 'use FCGI';
 			};
 			if($@) {
-				die __PACKAGE__."#startCgi, failed to load FCGI.pm [$@]\n";
+				die __PACKAGE__."#startCgi: failed to load FCGI.pm [$@] (FCGI.pmがロードできません)\n";
 			}
 
 			my $exit_requested;
@@ -691,10 +693,11 @@ sub trapError {
 		}
 
 		if(!defined($param->{'-main'})) {
-			die __PACKAGE__."#trapError, -main handler was undef.\n";
+			die __PACKAGE__."#trapError: -main handler is not defined. (-main引数が指定されていません)\n";
 		}
 
 		$this->__executeHook('init');
+		$this->__executeHook('initRequest');
 		$this->__executeHook('preRequest');
 		$this->_saveContentFilter;
 
@@ -727,7 +730,7 @@ sub trapError {
 
 		# このevalでキャッチされたという事は、-mainの外で例外が起きた。
 		$this->log(trapError => "Died outside the `-main': $err");
-		print STDERR __PACKAGE__."#trapError, Died outside the `-main': $err\n";
+		print STDERR __PACKAGE__."#trapError: died outside the `-main': $err (main関数の外側でdieしました)\n";
 	}
 	!$@ && $main_err and $@ = $main_err;
 
@@ -741,17 +744,17 @@ sub dispatch {
 
 	if(!defined($name)) {
 		if(!defined($param->{'default'})) {
-			die __PACKAGE__."#dispatch, ARG[1] was undef and default was not set.\n";
+			die __PACKAGE__."#dispatch： arg[1] is not defined and default is not set. (第1引数もdefaultも指定されていません)\n";
 		} elsif(ref($param->{'default'})) {
-			die __PACKAGE__."#dispatch, ARG[1] was undef and default was a Ref [$param->{'default'}].\n";
+			die __PACKAGE__."#dispatch: arg[1] is not defined and default is a Ref [$param->{'default'}]. (default指定がリファレンスです)\n";
 		} else {
 			$name = $param->{'default'};
 		}
 	} elsif(ref($name)) {
-		die __PACKAGE__."#dispatch, ARG[1] was a Ref. [$name]\n";
+		die __PACKAGE__."#dispatch: arg[1] is a Ref. [$name] (第1引数がリファレンスです)\n";
 	} elsif( $name !~ /^[A-Z]/ )
 	{
-		die __PACKAGE__."#dispatch, ARG[1] must start with upper case character";
+		die __PACKAGE__."#dispatch: arg[1] must start with upper case character. (第1引数は大文字から始まる必要があります)\n";
 	}
 
 	# 呼ばれる関数のあるパッケージはcallerから得る。
@@ -769,7 +772,7 @@ sub dispatch {
 				$param->{'onerror'}();
 			};
 			if($@) {
-				die __PACKAGE__."#dispatch, onerror handler. [$@]\n";
+				die __PACKAGE__."#dispatch: onerror handler. [$@] (onerrorの関数でエラーが発生しました)\n";
 			}
 		}
 	}
@@ -806,14 +809,14 @@ sub log {
         $message = $stringify->(shift);
     }
     else {
-        die "TL#log, invalid call of \$TL->log().\n";
+        die "TL#log: invalid call of \$TL->log(). (引数の数が正しくありません)\n";
     }
 
 	if(!defined($group)) {
-		die "TL#log, ARG[1]: got undef.\n";
+		die "TL#log: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(!defined($message)) {
-		die "TL#log, ARG[2]: got undef.\n";
+		die "TL#log: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 
 	$this->getDebug->_tlLog(
@@ -830,10 +833,10 @@ sub _log {
 	my $log = shift;
 
 	if(!defined($group)) {
-		die "TL#_log, ARG[1]: got undef.\n";
+		die "TL#_log: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(!defined($log)) {
-		die "TL#_log, ARG[2]: got undef.\n";
+		die "TL#_log: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 
 	my $time = time;
@@ -872,8 +875,8 @@ sub _log {
 		};
 		if ($@){
 			print "Content-Type: text/plain\n\n";
-			print "Can't create directory [$path]\n";
-			warn "Can't create directory [$path]";
+			print "Can't create directory for logdir [$path]\n";
+			warn "Can't create directory for logdir [$path] (logdirで指定されたログ用のディレクトリを作成できません)";
 			$this->sendError(
 				title => "TL LogError",
 				error => "Failed to create a directory [$path]($!)",
@@ -893,7 +896,7 @@ sub _log {
 		if(!open($fh, ">>$path")) {
 			print "Content-Type: text/plain\n\n";
 			print "Can't open [$path]\n";
-			warn "Can't open [$path]";
+			warn "Can't open [$path] (logdirで指定されたログ用のディレクトリにアクセスできません)";
 			$this->sendError(
 				title => "TL LogError",
 				error => "Failed to open a log [$path]($!)",
@@ -944,25 +947,25 @@ sub setHook {
 	my $code = shift;
 
 	if(!defined($type)) {
-		die __PACKAGE__."#setHook, ARG[1] was Undef.\n";
+		die __PACKAGE__."#setHook: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(ref($type)) {
-		die __PACKAGE__."#setHook, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setHook: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 	if(!exists($this->{hook}{$type})) {
-		die __PACKAGE__."#setHook, hook type [$type] is not allowed.\n";
+		die __PACKAGE__."#setHook: hook type [$type] is not allowed. (hook type の指定が不正です)\n";
 	}
 	if(!defined($priority)) {
-		die __PACKAGE__."#setHook, ARG[2] was not defined.\n";
+		die __PACKAGE__."#setHook: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 	if(ref($priority)) {
-		die __PACKAGE__."#setHook, ARG[2] was Ref.\n";
+		die __PACKAGE__."#setHook: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 	if($priority !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setHook, invalid priority. [$priority]\n";
+		die __PACKAGE__."#setHook: invalid priority. [$priority] (priorityは整数のみ指定できます)\n";
 	}
 	if(ref($code) ne 'CODE') {
-		die __PACKAGE__."#setHook, ARG[3] was not CODE Ref.\n";
+		die __PACKAGE__."#setHook: arg[3] is not CODE Ref. (第3引数がコードリファレンスではありません)\n";
 	}
 
 	$this->{hook}{$type}{$priority} = $code;
@@ -982,19 +985,19 @@ sub removeHook {
 	my $priority = shift;
 
 	if(!defined($type)) {
-		die __PACKAGE__."#removeHook, ARG[1] was Undef.\n";
+		die __PACKAGE__."#removeHook: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(ref($type)) {
-		die __PACKAGE__."#removeHook, ARG[1] was Ref.\n";
+		die __PACKAGE__."#removeHook: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 	if(!exists($this->{hook}{$type})) {
-		die __PACKAGE__."#removeHook, hook type [$type] is not allowed.\n";
+		die __PACKAGE__."#removeHook: hook type [$type] is not allowed. (hook type の指定が不正です)\n";
 	}
 	if(!defined($priority)) {
-		die __PACKAGE__."#setHook, ARG[2] was not defined.\n";
+		die __PACKAGE__."#setHook: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 	if(ref($priority)) {
-		die __PACKAGE__."#setHook, ARG[2] was Ref.\n";
+		die __PACKAGE__."#setHook: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 
 	delete $this->{hook}{$type}{$priority};
@@ -1015,24 +1018,24 @@ sub setContentFilter {
 	my %option = @_;
 
 	if(!defined($classname)) {
-		die __PACKAGE__."#setContentFilter, ARG[1] was undef.\n";
+		die __PACKAGE__."#setContentFilter: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($classname) eq 'ARRAY') {
 		($classname, $priority) = @$classname;
 		if(!defined($classname)) {
-			die __PACKAGE__."#setContentFilter, ARG[1][0] was undef.\n";
+			die __PACKAGE__."#setContentFilter: arg[1][0] is not defined. (第1引数の配列の1番目の要素にクラス名が指定されていません)\n";
 		} elsif(ref($classname)) {
-			die __PACKAGE__."#setContentFilter, ARG[1][0] was Ref.\n";
+			die __PACKAGE__."#setContentFilter: arg[1][0] is a Ref. (第1引数の配列の1番目の要素がリファレンスです)\n";
 		}
 
 		if (!defined($priority)) {
-			die __PACKAGE__."#setContentFilter, ARG[1][1] was undef.\n";
+			die __PACKAGE__."#setContentFilter: arg[1][1] is not defined. (第1引数の配列の2番目の要素にプライオリティが指定されていません)\n";
 		} elsif(ref($priority)) {
-			die __PACKAGE__."#setContentFilter, ARG[1][1] was Ref.\n";
+			die __PACKAGE__."#setContentFilter: arg[1][1] is a Ref. (第1引数の配列の2番目の要素がリファレンスです)\n";
 		} elsif($priority !~ m/^\d+$/) {
-			die __PACKAGE__."#setContentFilter, invalid priority. [$priority]\n";
+			die __PACKAGE__."#setContentFilter: invalid priority. [$priority] (priorityは整数のみ指定できます)\n";
 		}
 	} elsif(ref($classname)) {
-		die __PACKAGE__."#setContentFilter, ARG[1] was not scalar nor ARRAY ref.\n";
+		die __PACKAGE__."#setContentFilter: arg[1] is not scalar nor ARRAY ref. (第1引数がスカラでも配列のリファレンスでもありません)\n";
 	}
 
 	do {
@@ -1078,24 +1081,24 @@ sub setInputFilter {
 	my %option = @_;
 
 	if (!defined($classname)) {
-		die __PACKAGE__."#setInputFilter, ARG[1] was undef.\n";
+		die __PACKAGE__."#setInputFilter: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($classname) eq 'ARRAY') {
 		($classname, $priority) = @$classname;
 		if(!defined($classname)) {
-			die __PACKAGE__."#setInputFilter, ARG[1][0] was undef.\n";
+			die __PACKAGE__."#setInputFilter: arg[1][0] is not defined. (第1引数の配列の1番目の要素にクラス名が指定されていません)\n";
 		} elsif(ref($classname)) {
-			die __PACKAGE__."#setInputFilter, ARG[1][0] was Ref.\n";
+			die __PACKAGE__."#setInputFilter: arg[1][0] is a Ref. (第1引数の配列の1番目の要素がリファレンスです)\n";
 		}
 
 		if(!defined($priority)) {
-			die __PACKAGE__."#setInputFilter, ARG[1][1] was undef.\n";
+			die __PACKAGE__."#setInputFilter: arg[1][1] is not defined. (第1引数の配列の2番目の要素にプライオリティが指定されていません)\n";
 		} elsif(ref($priority)) {
-			die __PACKAGE__."#setInputFilter, ARG[1][1] was Ref.\n";
+			die __PACKAGE__."#setInputFilter: arg[1][1] is a Ref. (第1引数の配列の2番目の要素がリファレンスです)\n";
 		} elsif($priority !~ m/^\d+$/) {
-			die __PACKAGE__."#setInputFilter, invalid priority. [$priority]\n";
+			die __PACKAGE__."#setInputFilter: invalid priority. [$priority] (priorityは整数のみ指定できます)\n";
 		}
 	} elsif(ref($classname)) {
-		die __PACKAGE__."#setInputFilter, ARG[1] was not scalar nor ARRAY ref.\n";
+		die __PACKAGE__."#setInputFilter: arg[1] is not scalar nor ARRAY ref. (第1引数がスカラでも配列のリファレンスでもありません)\n";
 	}
 
 	do {
@@ -1243,23 +1246,22 @@ sub print {
 	local $| = 1;
 
 	if(!defined($data)) {
-		die __PACKAGE__."#print, ARG[1] was undef.\n";
+		die __PACKAGE__."#print: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	if(@{$this->{filterlist}} == 0) {
 		# フィルタが一つも無い時はprintできない。
-		die __PACKAGE__."#print, we have no content-filters. Set at least one filter.\n";
+		die __PACKAGE__."#print: we have no content-filters. Set at least one filter. (コンテンツフィルタが指定されていません)\n";
 	}
 
 	$this->{printflag} = 1;
 
-	foreach my $filter (@{$this->{filterlist}}) {
-		$data = $filter->print($data);
-	}
-
 	if($this->{outputbuffering}) {
 		$this->{outputbuff} .= $data;
 	} else {
+		foreach my $filter (@{$this->{filterlist}}) {
+			$data = $filter->print($data);
+		}
 		print $data;
 	}
 
@@ -1271,7 +1273,7 @@ sub location {
 	my $url = shift;
 	
 	if(exists($this->{printflag})) {
-		die __PACKAGE__."#location, location called after print.\n";
+		die __PACKAGE__."#location: location called after print. (printを実行後にlocationが呼び出されました)\n";
 	}
 	
 	$this->getContentFilter->_location($url);
@@ -1285,7 +1287,7 @@ sub parsePeriod {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die __PACKAGE__."#parsePeriod, ARG[1] was undef.\n";
+		die __PACKAGE__."#parsePeriod: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = lc($str);
@@ -1297,8 +1299,8 @@ sub parsePeriod {
 			my $unit = shift;
 
 		if(!defined($lastnum)) {
-			die __PACKAGE__."#parsePeriod, invalid time string [$str]:".
-			" It has an isolated unit that does not follow any digits.\n";
+			die __PACKAGE__."#parsePeriod: invalid time string [$str]:".
+			" It has an isolated unit that does not follow any digits. (時刻指定が正しくありません。単位の前に数字がありません)\n";
 		}
 
 		$result += $lastnum * $unit;
@@ -1325,13 +1327,13 @@ sub parsePeriod {
 			commit(60 * 60 * 24 * 365.2425);
 		} elsif(s/^(\d+)//) {
 			if(defined($lastnum)) {
-				die __PACKAGE__."#parsePeriod, invalid time string [$str]:".
-				" It has digits followed by another digits instead of unit.\n";
+				die __PACKAGE__."#parsePeriod: invalid time string [$str]:".
+				" It has digits followed by another digits instead of unit. (時刻指定が正しくありません。単位の指定が足りません)\n";
 			}
 
 			$lastnum = $1;
 		} else {
-			die __PACKAGE__."#parsePeriod, invalid format: [$_]\n";
+			die __PACKAGE__."#parsePeriod: invalid format: [$_] (形式が不正です)\n";
 		}
 	}
 
@@ -1348,7 +1350,7 @@ sub parseQuantity {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die __PACKAGE__."#parseQuantity, ARG[1] was undef.\n";
+		die __PACKAGE__."#parseQuantity: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
 	$str = lc($str);
@@ -1360,8 +1362,8 @@ sub parseQuantity {
 		my $unit = shift;
 
 		if(!defined($lastnum)) {
-			die __PACKAGE__."#parsePeriod, invalid quantity string [$str]:".
-			" It has an isolated unit that does not follow any digits.\n";
+			die __PACKAGE__."#parsePeriod: invalid quantity string [$str]:".
+			" It has an isolated unit that does not follow any digits. (量指定が正しくありません。単位の前に数字がありません)\n";
 		}
 
 		$result += $lastnum * $unit;
@@ -1400,13 +1402,13 @@ sub parseQuantity {
 			commit(1000 * 1000 * 1000 * 1000 * 1000 * 1000);
 		} elsif(s/^(\d+)//) {
 			if(defined($lastnum)) {
-				die __PACKAGE__."#parseQuantity, invalid quantity string [$str]:".
-				" It has digits followed by another digits instead of unit.\n";
+				die __PACKAGE__."#parseQuantity: invalid quantity string [$str]:".
+				" It has digits followed by another digits instead of unit. (量指定が正しくありません。単位の指定が足りません)\n";
 			}
 
 			$lastnum = $1;
 		} else {
-			die __PACKAGE__."#parsePeriod, invalid format: [$_]\n";
+			die __PACKAGE__."#parsePeriod, invalid format: [$_] (形式が不正です)\n";
 		}
 	}
 
@@ -1673,7 +1675,7 @@ sub _fetchFileCache
 		}
 		
 		my @st = stat($fpath);
-		@st or die __PACKAGE__."#_fetchFileCache, Failed to stat file [$fpath]: $!\n";
+		@st or die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません)\n";
 		($inode, $size, $mtime) = @st[1, 7, 9];
 		if( $inode==$cache->{inode} && $size==$cache->{size} && $mtime==$cache->{mtime} )
 		{
@@ -1687,7 +1689,7 @@ sub _fetchFileCache
 	}else
 	{
 		my @st = stat($fpath);
-		@st or die __PACKAGE__."#_fetchFileCache, Failed to stat file [$fpath]: $!\n";
+		@st or die __PACKAGE__."#_fetchFileCache: failed to stat file [$fpath]: $! (ファイルをstatできません)\n";
 		($inode, $size, $mtime) = @st[1, 7, 9];
 	}
 	
@@ -1718,16 +1720,16 @@ sub readFile {
 	my $fpath = shift;
 
 	if(!defined($fpath)) {
-		die __PACKAGE__."#readFile, ARG[1] was undef.\n";
+		die __PACKAGE__."#readFile: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($fpath)) {
-		die __PACKAGE__."#readFile, ARG[1] was a Ref. [$fpath]\n";
+		die __PACKAGE__."#readFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	my $cache = $this->_fetchFileCache($fpath);
 	if( !defined($cache->{data}) )
 	{
 		open my $fh, '<', $fpath
-			or die __PACKAGE__."#readFile, Failed to read file [$fpath]: $!\n";
+			or die __PACKAGE__."#readFile: failed to read file [$fpath]: $! (ファイルをstatできません)\n";
 
 		local $/ = undef;
 		$cache->{data} = <$fh>;
@@ -1780,9 +1782,9 @@ sub writeFile {
 	my $fmode = shift;
 
 	if(!defined($fpath)) {
-		die __PACKAGE__."#writeFile, ARG[1] was undef.\n";
+		die __PACKAGE__."#writeFile: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($fpath)) {
-		die __PACKAGE__."#writeFile, ARG[1] was a Ref. [$fpath]\n";
+		die __PACKAGE__."#writeFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 	
 	$fmode = 0 if(!defined($fmode));
@@ -1791,7 +1793,7 @@ sub writeFile {
 	$fmode_str = '>>' if($fmode == 1);
 
 	open my $fh, $fmode_str, $fpath
-	  or die __PACKAGE__."#writeFile, Failed to read file [$fpath]: $!\n";
+	  or die __PACKAGE__."#writeFile: failed to read file [$fpath]: $! (ファイルを読めません)\n";
 	print $fh $fdata;
 	close $fh;
 
@@ -1808,7 +1810,7 @@ sub writeTextFile {
 		$coding = 'utf8';
 	}
 	if(ref($coding)) {
-		die __PACKAGE__."#writeTextFile, ARG[4] was a Ref. [$coding]\n";
+		die __PACKAGE__."#writeTextFile: arg[4] is a Ref. (第4引数がリファレンスです)\n";
 	}
 
 	$this->charconv(
@@ -1848,7 +1850,7 @@ sub dump {
     };
 
     if (@_ == 0 || @_ > 3) {
-        die __PACKAGE__."#dump, invalid call of \$TL->dump().\n";
+        die __PACKAGE__."#dump: invalid call of \$TL->dump(). (引数の数が正しくありません)\n";
     }
     elsif (@_ == 1) {
         $group = $auto_group->();
@@ -1893,9 +1895,9 @@ sub printCacheUnlessModified {
 	my $charset = shift;
 
 	if(!defined($key)) {
-		die __PACKAGE__."#printCacheUnlessModified, ARG[1] was undef.\n";
+		die __PACKAGE__."#printCacheUnlessModified: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#printCacheUnlessModified, ARG[1] was a Ref. [$key]\n";
+		die __PACKAGE__."#printCacheUnlessModified: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	$flag = 'on' if(!defined($flag));
@@ -1911,7 +1913,7 @@ sub printCacheUnlessModified {
 			$TL->getContentFilter->setHeader('Last-Modified' => $TL->newDateTime->setEpoch($cachetime)->toStr('rfc822'));
 			return undef;
 		} else {
-			$TL->setContentFilter('Tripletail::Filter::MemCached',key => $key, type => 'out');
+			$TL->setContentFilter('Tripletail::Filter::MemCached',key => $key, mode => 'read');
 			if(defined($param)) {
 				foreach my $key2 ($param->getKeys){
 					my $val = $TL->charconv($param->get($key2), 'UTF-8' => $charset);
@@ -1933,17 +1935,17 @@ sub setCache {
 	my $priority = shift;
 
 	if(!defined($key)) {
-		die __PACKAGE__."#setCache, ARG[1] was undef.\n";
+		die __PACKAGE__."#setCache: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#setCache, ARG[1] was a Ref. [$key]\n";
+		die __PACKAGE__."#setCache: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	$priority = 1500 if(!defined($priority));
 	
 	if(defined($charset)) {
-		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, type => 'in', param => $param,  charset => $charset);
+		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, mode => 'write', param => $param,  charset => $charset);
 	} else {
-		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, type => 'in', param => $param);
+		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, mode => 'write', param => $param);
 	}
 }
 
@@ -1952,9 +1954,9 @@ sub deleteCache {
 	my $key = shift;
 
 	if(!defined($key)) {
-		die __PACKAGE__."#deleteCache, ARG[1] was undef.\n";
+		die __PACKAGE__."#deleteCache: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#deleteCache, ARG[1] was a Ref. [$key]\n";
+		die __PACKAGE__."#deleteCache: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	$TL->newMemCached->delete($key);
@@ -1991,7 +1993,7 @@ sub _decodeFromURL {
 
 	if(@{$this->{inputfilterlist}} == 0) {
 		# フィルタが一つも無い時はデコードできない。
-		die __PACKAGE__."#_decodeFromURL, we have no input-filters. Set at least one filter.\n";
+		die __PACKAGE__."#_decodeFromURL: we have no input-filters. Set at least one filter. (入力フィルタが1つも指定されていません)\n";
 	}
 
 	# フラグメントを除去
@@ -2040,7 +2042,7 @@ sub __decodeCgi {
 
 	if(@{$this->{inputfilterlist}} == 0) {
 		# フィルタが一つも無い時はデコードできない。
-		die __PACKAGE__."#__decodeCgi, we have no input-filters. Set at least one filter.\n";
+		die __PACKAGE__."#__decodeCgi: we have no input-filters. Set at least one filter. (入力フィルタが1つも指定されていません)\n";
 	}
 
 	# 最初に空のTripletail::Formを作り、それを順々にフィルタに通して行く。
@@ -2070,8 +2072,14 @@ sub __dispError {
 	isa($err, 'Tripletail::Error') or
 	  $err = $TL->newError('error' => $err);
 
+	my $errortemplate = $TL->INI->get(TL => 'errortemplate', '');
 	my $html;
-	{
+	if (length $errortemplate) {
+		my $t = $TL->newTemplate($errortemplate);
+		my $errortemplatecharset = $this->INI->get(TL => 'errortemplatecharset', 'UTF-8');
+		$html = $TL->charconv($html, 'UTF-8', $errortemplatecharset);
+		$html = "Content-Type: text/html; charset=$errortemplatecharset\n\n" . $html;
+	} else {
 		my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
 		$html = $err->toHtml;
 		$html =~ s|</html>$|$popup</html>|;
@@ -2096,6 +2104,8 @@ sub __executeCgi {
 	my $mainfunc = shift;
 
 	$LOG_SERIAL++;
+	
+	$this->__executeHook('initRequest');
 	
 	# ここで$CGIを作り、constにする。
 	$this->{CGIORIG} = $this->__decodeCgi->const;
@@ -2142,6 +2152,12 @@ sub __flushContentFilter {
 		$str = $filter->print($str);
 		$str .= $filter->flush;
 	}
+	
+	if($this->{outputbuffering}) {
+		my $body = $str;
+		$body =~ s/^.*\r\n\r\n//sm;
+		print "Content-Length: " . length($body) . "\r\n";
+	}
 
 	print $str;
 }
@@ -2154,6 +2170,30 @@ sub _clearCwd
 {
 	$CWD = undef;
 }
+
+sub _readcmd
+{
+	my $this = shift;
+	my $cmd = shift;
+	my $secure_env = $this->_secure_env();
+	local(%ENV) = %$secure_env;
+	`$cmd`;
+}
+sub _secure_env
+{
+	my $this = shift;
+	my $uid = $<;
+	my $username = getpwuid($uid);
+	my $home = (getpwuid($uid))[7];
+	+{
+		LANG => 'C',
+		PATH => '/bin:/usr/bin',
+		USER => $username,
+		HOME => $home,
+		SHELL => '/bin/sh',
+	};
+}
+
 
 __END__
 
@@ -2301,11 +2341,14 @@ servers = localhost:11211
 
 =item 読み込み側例（ページ全体をキャッシュ）
 
-  #topはキャッシュするキー。画面毎にキーを設定する。ページャーなどを利用する場合、画面毎になる点を注意する（page-1等にする）
-  #キャッシュにヒットした場合、時間を比較して、304でリダイレクトするか、メモリから読み込んで表示する
+  #まず、画面毎にキーを設定する。例のケースではtopという名称を付けている。
+  #ページャーなどを利用する場合、キーはページ毎に設定する必要がある点を注意する（page-1等にする）
+  #キーで検索を行い、キャッシュにヒットした場合、時間を比較して304でリダイレクトするか、
+  #メモリから読み込んで表示する
   #printCacheUnlessModifiedでundefが返ってきた後は、printやflushなど出力する操作は不可なため注意する事
   return if(!defined($TL->printCacheUnlessModified('top')));
-  #キャッシュすることを宣言する。なお、宣言はprintCacheUnlessModifiedより後でprintより前であれば、どの時点で行ってもかまわない
+  #キャッシュすることを宣言する。なお、宣言はprintCacheUnlessModifiedより後で
+  #printより前であれば、どの時点で行ってもかまわない
   $TL->setCache('top');
 
   #実際のスクリプトを記述し、出力を行う
@@ -2315,20 +2358,23 @@ servers = localhost:11211
 =item 書き込み側例（ページ全体をキャッシュ）
 
   #書き込みを行った場合、そのデータを表示する可能性があるキャッシュを全て削除する
-  #削除漏れがあると、キャッシュしている内容が必要な為注意が必要。
+  #削除漏れがあると、キャッシュしている内容が表示され、更新されてないように見えるので注意する事。
   $TL->deleteCache('top');
   $TL->deleteCache('top2');
 
 =item 読み込み側例（ユーザー名等一部に固有の情報を埋め込んでいる場合）
 
-  #クッキーデータの取得、クッキーに固有の情報を入れておくと高速に動作出来る（DB等から読み込みTripletail::Formクラスにセットしても可）
+  #クッキーデータの取得、クッキーに固有の情報を入れておくと高速に動作出来る
+  #（DB等から読み込みTripletail::Formクラスにセットしても可）
   my $cookiedata = $TL->getCookie->get('TLTEST');
-  $cookiedata->set('<&NAME>' => $name) if(!$cookiedata->exists('name'));
-  $cookiedata->set('<&POINT>' => $point) if(!$cookiedata->exists('point'));
+  $cookiedata->set('#NAME' => $name) if(!$cookiedata->exists('name'));
+  $cookiedata->set('#POINT' => $point) if(!$cookiedata->exists('point'));
 
-  #topはキャッシュするキー。固有情報が変更された場合、キャッシュ情報をクリアしないと永遠に情報が変わらない為、
-  #304は通常無効にする必要がある。
-  #固有の情報を置換するための情報をセットする。キーがそのまま置換される。
+  #まず、画面毎にキーを設定する。例のケースではtopという名称を付けている。
+  #固有情報が変更された場合、ブラウザ側のキャッシュ情報をクリアしないと情報が変わらない為、
+  #固有情報が変更される恐れがある場合は、304によるキャッシュは無効にする必要がある。
+  #
+  #固有の情報を置換するための情報をセットすると、キーがそのまま置換される。
   #その他の条件はページ全体をキャッシュする場合と同様。
   return if(!defined($TL->printCacheUnlessModified('top','off',$cookiedata)));
   #キャッシュすることを宣言する。その際、固有の情報を置換するための情報をセットする。
@@ -2337,22 +2383,22 @@ servers = localhost:11211
   #実際のスクリプトを記述し、出力を行う
   #この際、固有の情報の部分に関しては、特殊タグ（文字列）に置換する。特殊タグはどのような形でもかまわないが、
   #出力文字列中の全ての同様の特殊タグが変換対象になるため、ユーザーや管理者が任意に変更出来る部分に注意する。
-  #（タグエスケープする、その特殊タグが入力された場合エラーにするetc）
+  #（エスケープする、その特殊タグが入力された場合エラーにするetc）
   
   $t->expand(
-    NAME => '<&NAME>',
-    POINT => '<&POINT>',
+    NAME => '#NAME',
+    POINT => '#POINT',
   );
 
   
-  $TL->print('test code.');
+  $t->flush;
 
 =item 書き込み側例（ユーザー名等一部に固有の情報を埋め込んでいる場合）
 
   #書き込みを行った場合、そのデータを表示する可能性があるキャッシュを全て削除する
   #削除漏れがあると、キャッシュしている内容が必要な為注意が必要。
-  #また、固有の文字列を出力用にクッキーなどに書き出したりする。
-  $TL->getCookie->set(TLTEST => $TL->newForm('<&NAME>' => $CGI->get('name'),'<&POINT>' => 1000));
+  #必要があれば、固有の文字列を出力用にクッキーなどに書き出したりする。
+  $TL->getCookie->set(TLTEST => $TL->newForm('#NAME' => $CGI->get('name'),'#POINT' => 1000));
 
   $TL->deleteCache('top');
   $TL->deleteCache('top2');
@@ -2424,20 +2470,34 @@ L<< $TL->setHook|/"setHook" >> メソッドを用いてフックを掛ける事�
 =item init
 
 L</"startCgi"> もしくは L</"trapError"> が呼ばれ、最初に L</"Main関数"> が
-呼ばれる前。
+呼ばれる前。FastCGIの場合は最初の1回だけ呼ばれる。
+
+=item initRequest
+
+L</"startCgi"> 利用時は、リクエストを受け取った直後、フォームがデコードされる前に呼ばれる。
+リクエストごとに呼び出される。
+
+L</"trapError"> 利用時は L</"postRequest"> フックの前に呼び出される。
 
 =item preRequest
 
-L</"Main関数"> が呼ばれる直前。
+L</"startCgi"> 利用時は、フォームをデコードした後、L</"Main関数"> が呼ばれる前に呼ばれる。
+リクエストごとに呼び出される。
+
+L</"trapError"> 利用時は L</"initRequest"> フックの後、L</"Main関数"> が呼ばれる前に呼ばれる。
 
 =item postRequest
 
-L</"Main関数"> が呼ばれた直後。
+L</"startCgi"> 利用時は、L</"Main関数"> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
+リクエストごとに呼び出される。
+
+L</"trapError"> 利用時は L</"Main関数"> が呼ばれた後に呼び出される。
 
 =item term
 
 最後に L</"Main関数"> が呼ばれた後。termフック呼出し後に L</"startCgi">
 もしくは L</"trapError"> が終了する。
+FastCGIの場合は最後の1回だけ呼ばれる。
 
 =back
 
@@ -2771,7 +2831,7 @@ L</"出力フィルタ"> を設定する。
 
 返される値は、指定された L<Tripletail::Filter> のサブクラスのインスタンスである。
 
-設定したフィルタは、L</"preRequest"> のタイミングで保存され、
+設定したフィルタは、L</"preRequest"> 実行後のタイミングで保存され、
 L</"postRequest"> のタイミングで元に戻される。従って、L</"Main関数">内
 で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
 されない。
@@ -2804,7 +2864,7 @@ L</"postRequest"> のタイミングで元に戻される。従って、L</"Main
 既に同一タイプで同一プライオリティのフックが設定されていた場合、
 古いフックの設定は解除される。
 
-typeは、L</"init">, L</"term">, L</"preRequest">, L</"postRequest">
+typeは、L</"init">, L</"term">, L</"initRequest">, L</"preRequest">, L</"postRequest">
 の４種類が存在する。
 
 なお、1万の整数倍のプライオリティは Tripletail 内部で使用される。アプリ
@@ -2837,7 +2897,7 @@ L</"startCgi"> の前に実行する必要がある。
 
 =head4 C<< sendError >>
 
-  $TL->sendError(-title => "タイトル", -error => "エラー")
+  $TL->sendError(title => "タイトル", error => "エラー")
 
 L<ini|Tripletail::Ini> で指定されたアドレスにエラーメールを送る。
 設定が無い場合は何もしない。
@@ -2922,7 +2982,7 @@ C<$coding> が省略された場合、utf8として扱う。
 第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
 利用するには、memcached が必須となる。
 
-第2引数がonの場合、304を返す動作を行う。offの場合、304を返す動作を行わない。省略可能。
+第2引数がonの場合、304レスポンスを送る動作を行う。offの場合、動作を行わない。省略可能。
 
 デフォルトはon。
 
@@ -2937,15 +2997,16 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 デフォルトはShift_JIS。
 
-第2引数がonの場合で、第3引数が省略された場合、以下の動作を行う。
-
+この関数は次のような動作を行っている。
+	
 1.memcachedからキーに割り当てられたキャッシュデータを読み込む。
 データが無ければ、1を返す。
 
 2.キャッシュデータの保存された時間と前回アクセスされた時間を比較し、
 キャッシュデータが新しければキャッシュデータを出力し、undefを返す。
 
-3.アクセスされた時間が新しければ、304ステータスを出力し、undefを返す。
+3.アクセスされた時間が新しければ、304レスポンスを出力し、undefを返す。
+（第2引数がonの場合のみ、offの場合はキャッシュデータを出力する）
 
 この関数からundefを返された場合、以後出力を行う操作を行ってはならない。
 
@@ -3006,6 +3067,7 @@ Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるた
   [TL]
   logdir = /home/www/cgilog/
   errortemplate = /home/www/error.html
+  errortemplatecharset = Shift_JIS
 
 =over 4
 
@@ -3182,6 +3244,14 @@ FastCGIモード時に、1つのプロセスで何回まで処理を行うかを
 エラー発生時に、通常のエラー表示ではなく、指定された
 テンプレートファイルを表示する。
 
+=item errortemplatecharset
+
+  errortemplatecharset = Shift_JIS
+
+errortemplate指定時に、エラーメッセージを返す際の charset を指定する。
+
+UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP が指定できる。デフォルトは UTF-8。
+
 =item outputbuffering
 
   outputbuffering = 0
@@ -3190,7 +3260,10 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 
 バッファリングしない場合、print した内容はすぐに表示されるが、少しでも表示を行った後にエラーが発生した場合は、エラーテンプレートが綺麗に表示されない。
 
-バッファリングを行った場合、print した内容はリクエスト終了時まで表示されないが、処理中にエラーが発生した場合、出力内容は破棄され，エラーテンプレートの内容に差し替えられる。
+バッファリングを行った場合、print した内容はリクエスト終了時まで表示されないが、処理中にエラーが発生した場合、出力内容は破棄され、エラーテンプレートの内容に差し替えられる。
+また、Content-Length ヘッダが付与される。
+
+L<Tripletail::Filter::MobileHTML> を利用した場合、outputbuffering は1にセットされる。
 
 =back
 

@@ -85,7 +85,8 @@ Tripletail::Pager - ページング処理
 
 </span></a></h1>
 
-<pre class="pod_verbatim"><code>  my $pager = $TL-&gt;newPager('DB');
+<pre class="pod_verbatim"><code>  my $DB = $TL-&gt;getDB('DB');
+  my $pager = $TL-&gt;newPager($DB);
   $pager-&gt;setCurrentPage($CGI-&gt;get('pageid'));
 
   my $t = $TL-&gt;newTemplate('template.html');
@@ -161,6 +162,55 @@ Tripletail::Pager - ページング処理
 </span>
 </p>
 
+<p>
+<span class="pod_lang">Rowノードは <a href="#paging">&quot;paging&quot;</a> メソッドを利用する場合のみ使用される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="#pagingArray">&quot;pagingArray&quot;</a> や <a href="#pagingArray">&quot;pagingArray&quot;</a> メソッドを利用する場合、
+メソッド実行によって paging ノードが展開されるため、
+その外側にデータ用のノードをおかなければならないことに注意する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">例えば以下のようなテンプレートとなり、メソッドの戻値を
+ループの中で Rowノードに展開するような形となる。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  &lt;!begin:paging&gt;
+    &lt;!begin:PrevLink&gt;&lt;a href=&quot;&lt;&amp;PREVLINK&gt;&quot;&gt;←前ページ&lt;/a&gt;&lt;!end:PrevLink&gt;
+    &lt;!begin:NoPrevLink&gt;←前ページ&lt;!end:NoPrevLink&gt;
+    &lt;!begin:PageNumLinks&gt;
+      &lt;!begin:ThisPage&gt;&lt;&amp;PAGENUM&gt;&lt;!end:ThisPage&gt;
+      &lt;!begin:OtherPage&gt;
+        &lt;a href=&quot;&lt;&amp;PAGELINK&gt;&quot;&gt;&lt;&amp;PAGENUM&gt;&lt;/a&gt;
+      &lt;!end:OtherPage&gt;
+    &lt;!end:PageNumLinks&gt;
+    &lt;!begin:NextLink&gt;&lt;a href=&quot;&lt;&amp;NEXTLINK&gt;&quot;&gt;次ページ→&lt;/a&gt;&lt;!end:NextLink&gt;
+    &lt;!begin:NoNextLink&gt;次ページ→&lt;!end:NoNextLink&gt;
+    ...
+    &lt;!begin:MaxRows&gt;全&lt;&amp;MAXROWS&gt;件&lt;!end:MaxRows&gt;
+    &lt;!begin:FirstRow&gt;&lt;&amp;FIRSTROW&gt;件目から&lt;!end:FirstRow&gt;
+    &lt;!begin:LastRow&gt;&lt;&amp;LASTROW&gt;件目までを表示中&lt;!end:LastRow&gt;
+    &lt;!begin:MaxPages&gt;全&lt;&amp;MAXPAGES&gt;ページ&lt;!end:MaxPages&gt;
+    &lt;!begin:CurPage&gt;現在&lt;&amp;CURPAGE&gt;ページ目&lt;!end:CurPage&gt;
+    ...
+    ...
+  &lt;!end:paging&gt;
+  &lt;!begin:Row&gt;
+    &lt;!-- 行データを展開する &lt;&amp;XXX&gt; タグを記述する --&gt;
+  &lt;!end:Row&gt;
+  &lt;!-- 以下は Pager クラスの処理とは関係ないため、無くても良い --&gt;
+  &lt;!begin:nodata&gt;
+    一件もありません
+  &lt;!end:nodata&gt;</code></pre>
+
 <h2><a id="METHODS">
 <span class="pod_lang">METHODS
 
@@ -171,20 +221,29 @@ Tripletail::Pager - ページング処理
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $pager = $TL-&gt;newPager
-  $pager = $TL-&gt;newPager($db_group)</code></pre>
+<pre class="pod_verbatim"><code>  $pager = $TL-&gt;newPager($db_object)</code></pre>
 
 <p>
 <span class="pod_lang">Pagerオブジェクトを作成。
-2番目の形式では、 <a href=".././Tripletail/DB.html#setDefaultSet">デフォルト</a> の
-<a href=".././Tripletail/DB.html#DBXe3X82XbbXe3X83X83Xe3X83X88">DBセット</a> が使われる。デフォルトが設定されていなければ
-paging開始の時点でエラーとなる。
+DBオブジェクトを渡す。
 
 </span>
 </p>
 
 <p>
 <span class="pod_lang">DB は MySQL のみをサポートしている。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">DBのグループ名を渡すこともできるが、この指定方法は今後削除される可能性がある。(obsolute)
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">引数を指定しなかった場合、デフォルトのDBグループが使用されるが、将来はエラーに変更される可能性がある。
 
 </span>
 </p>
@@ -197,7 +256,8 @@ paging開始の時点でエラーとなる。
 <pre class="pod_verbatim"><code>  $pager-&gt;setDbGroup($db_group)</code></pre>
 
 <p>
-<span class="pod_lang">使用するDBのグループ名を指定する。
+<span class="pod_lang">非推奨。DBのオブジェクトをnewPagerで渡すことを推奨する。
+使用するDBのグループ名を指定する。
 
 </span>
 </p>
@@ -313,12 +373,18 @@ paging開始の時点でエラーとなる。
 </p>
 
 <dl>
-<dt><a id="X$info->X7bdbgroupX7d"><span class="pod_lang">$info-&gt;{dbgroup}
+<dt><a id="X$info->X7bdbX7d"><span class="pod_lang">$info-&gt;{db}
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">使用するグループ名
+<span class="pod_lang">DBオブジェクト。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">または、使用するグループ名。（obsolute）
 
 </span>
 </p>
@@ -611,7 +677,7 @@ Tripletail::Pager - ページング処理
 <li><a href="#X$TL->newPager">$TL-&gt;newPager</a></li>
 <li><a href="#X$info->X7bbeginrowX7d">$info-&gt;{beginrow}</a></li>
 <li><a href="#X$info->X7bcurrentX7d">$info-&gt;{current}</a></li>
-<li><a href="#X$info->X7bdbgroupX7d">$info-&gt;{dbgroup}</a></li>
+<li><a href="#X$info->X7bdbX7d">$info-&gt;{db}</a></li>
 <li><a href="#X$info->X7bformkeyX7d">$info-&gt;{formkey}</a></li>
 <li><a href="#X$info->X7bformparamX7d">$info-&gt;{formparam}</a></li>
 <li><a href="#X$info->X7blinkendX7d">$info-&gt;{linkend}</a></li>

@@ -8,7 +8,7 @@ use Tripletail;
 require Time::HiRes;
 use DBI qw(:sql_types);
 
-sub _PRE_REQUEST_HOOK_PRIORITY()  { -1_000_000 } # 順序は問わない
+sub _INIT_REQUEST_HOOK_PRIORITY() { -1_000_000 } # 順序は問わない
 sub _POST_REQUEST_HOOK_PRIORITY() { -1_000_000 } # セッションフックの後
 sub _TERM_HOOK_PRIORITY()         { -1_000_000 } # セッションフックの後
 
@@ -28,12 +28,12 @@ sub _getInstance {
 	if(!defined($group)) {
 		$group = 'DB';
 	} elsif(ref($group)) {
-		die "TL#getDB, ARG[1] was Ref.\n";
+		die "TL#getDB: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	my $obj = $INSTANCES->{$group};
 	if(!$obj) {
-		die "TL#getDB, DB [$group] was not specified in the startCgi() / trapError().\n";
+		die "TL#getDB: DB [$group] is not specified in the startCgi() / trapError(). (startCgi/trapErrorのDBに指定されていない${group}が指定されました)\n";
 	}
 
 	$obj;
@@ -134,7 +134,7 @@ sub _closewait_broken
 		$where = (caller(1))[3];
 		$where =~ s/.*:://;
 	}
-	die __PACKAGE__."#$where, act something on close-wait transaction";
+	die __PACKAGE__."#$where: act something on close-wait transaction. (txの中でrollback/commitした後はSQLを実行できません)\n";
 }
 sub inTx
 {
@@ -160,10 +160,12 @@ sub _requireTx
 			return 1;
 		}
 		# another transaction running, always die.
-		die __PACKAGE__."#$where, attempted to begin a".
+		die __PACKAGE__."#$where: attempted to begin a".
 			" new transaction on DB Set [$set] but".
 			" another DB Set [$trans_set] were already in transaction.".
-			" Commit or rollback it before begin another one.\n";
+			" Commit or rollback it before begin another one.".
+			" (DB Set [$trans_set] でトランザクションを実行中に DB Set [$set] でトランザクションを開始しようとしました。".
+			"別の DB Set でトランザクションを開始する前にcommit/rollbackする必要があります)\n";
 	}else
 	{
 		# no transaction.
@@ -208,7 +210,7 @@ sub rollback {
 	
 	my $dbh = $this->{trans_dbh};
 	if(!defined($dbh)) {
-		die __PACKAGE__."#rollback, not in transaction.\n";
+		die __PACKAGE__."#rollback: not in transaction. (トランザクションの実行中ではありません)\n";
 	}
 
 	my $begintime = [Time::HiRes::gettimeofday()];
@@ -243,7 +245,7 @@ sub commit {
 
 	my $dbh = $this->{trans_dbh};
 	if (!defined($dbh)) {
-		die __PACKAGE__."#commit, not in transaction.\n";
+		die __PACKAGE__."#commit: not in transaction. (トランザクションの実行中ではありません)\n";
 	}
 
 	my $begintime = [Time::HiRes::gettimeofday()];
@@ -300,13 +302,14 @@ sub execute {
 	my $sql_backup = $sql; # デバッグ用
 
 	if(!defined($sql)) {
-		die __PACKAGE__."#execute, ARG[1] was undef.\n";
+		die __PACKAGE__."#execute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($sql)) {
-		die __PACKAGE__."#execute, ARG[1] was Ref.\n";
+		die __PACKAGE__."#execute: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	} elsif($sql =~ m/^\s*(LOCK|UNLOCK|BEGIN|ROLLBACK|COMMIT)/i) {
 		# これらのSQL文をexecuteすると整合性が失われる。
-		die __PACKAGE__."#execute, attempted to execute [$1] statement directly.".
-			" Use particular methods not to ruin consistency of Tripletail::DB totally.\n";
+		die __PACKAGE__."#execute: attempted to execute [$1] statement directly.".
+			" Use particular methods not to ruin consistency of Tripletail::DB totally.".
+			" ($1はTripletail::DBの状態管理に影響を与えるためexecuteで実行できません。専用のメソッドを利用してください)\n";
 	}
 
 	my @params;
@@ -318,7 +321,7 @@ sub execute {
 			} elsif(ref($param) eq 'ARRAY') {
 				if(@$param == 0) {
 					# 0要素の配列があってはならない。
-					die __PACKAGE__."#execute, some argument was an empty array.\n";
+					die __PACKAGE__."#execute: some argument is an empty array. (空の配列へのリファレンスが渡されました)\n";
 				}
 
 				my $n_params = @$param;
@@ -344,22 +347,23 @@ sub execute {
 				unless($sql =~ s{\?\?}{
 					join(', ', ('?') x $n_params);
 				}e) {
-					die __PACKAGE__."#execute, the number of `??' is fewer than ARRAY params.\n";
+					die __PACKAGE__."#execute: the number of `??' is fewer than ARRAY params. (??の数が不足しています)\n";
 				}
 			} else {
-				die __PACKAGE__."#execute, ARG[$param] was not a scalar nor ARRAY Ref.\n";
+				die __PACKAGE__."#execut: arg[$param] is not a scalar nor ARRAY Ref. (arg[$param]はスカラでも配列へのリファレンスでもありません)\n";
 			}
 		}
 
 		if($sql =~ m/\?\?/) {
-			die __PACKAGE__."#execute, parameters are too few. `??' still remains.\n";
+			die __PACKAGE__."#execute: parameters are too few. `??' still remains. (??の数に対して引数の数が不足しています)\n";
 		}
 	} else {
 		@params = @_;
 
 		# この中にARRAY Refが入っていてはならない。
 		if(grep {ref eq 'ARRAY'} @params) {
-			die __PACKAGE__."#execute, use `??' instead of `?' if you want to use ARRAY Ref as a bind parameter.\n";
+			die __PACKAGE__."#execute: use `??' instead of `?' if you want to use ARRAY Ref as a bind parameter.".
+				" (配列へのリファレンスは ?? に対してのみ使用できます)\n";
 		}
 	}
 	
@@ -369,7 +373,7 @@ sub execute {
 		#DBセットが明示的に指定された
 		$dbh = $this->{dbh}{$dbset};
 		if(!$dbh) {
-			die __PACKAGE__."#execute, dbset error. cannot set [$dbset].\n";
+			die __PACKAGE__."#execute: dbset error. cannot set [$dbset]. (DB Set [$dbset] の指定が不正です)\n";
 		}
 	} else {
 		$dbh = $this->{trans_dbh};
@@ -397,25 +401,26 @@ sub execute {
 	# 全てのパラメータをbind_paramする。
 	for(my $i = 0; $i < @params; $i++) {
 		my $p = $params[$i];
+		my $argno = $i + 2;
 
 		if(!ref($p)) {
 			$sth->{sth}->bind_param($i + 1, $p);
 		} elsif(ref($p) eq 'ARRAY') {
 			if(@$p != 2 || ref($p->[1]) ne 'SCALAR') {
-				die __PACKAGE__."#execute, attempted to bind an invalid array: [".join(', ', @$p)."]\n";
+				die __PACKAGE__."#execute: arg[$argno]: attempted to bind an invalid array: [".join(', ', @$p)."]".
+				" (第${argno}引数に不正な形式の配列が渡されました)\n";
 			}
 
 			my $type = ${$p->[1]};
 			my $typeconst = $this->{types_symtable}{$type};
 			if(!$typeconst) {
-				die __PACKAGE__."#execute, invalid sql type: [$type]\n";
+				die __PACKAGE__."#execute: arg[$argno] is invalid sql type: [$type] (第${argno}引数のSQL型指定が不正です)\n";
 			}
 			$p->[1] = *{$typeconst}{CODE}->();
 
 			$sth->{sth}->bind_param($i + 1, @$p);
 		} else {
-			my $argno = $i + 2;
-			die __PACKAGE__."#execute, ARG[$argno] was bad Ref. [$p]\n";
+			die __PACKAGE__."#execute: arg[$argno] is bad Ref. [$p] (第${argno}引数に不正なリファレンスが渡されました)\n";
 		}
 	}
 
@@ -527,15 +532,15 @@ sub lock {
 			} elsif (ref($table) eq 'ARRAY') {
 				push @tables, map {
 					if(!defined) {
-						die __PACKAGE__."#lock, $type => [...] contains an undef.\n";
+						die __PACKAGE__."#lock: $type => [...] contains an undef. (${type}にundefが含まれています)\n";
 					} elsif(ref) {
-						die __PACKAGE__."#lock, $type => [...] contains a Ref. [$_]\n";
+						die __PACKAGE__."#lock: $type => [...] contains a Ref. [$_] (${type}にリファレンスが含まれています)\n";
 					}
 
 					[$_, uc $type];
 				} @$table;
 			} else {
-				die __PACKAGE__."#lock, ARG[$type] is a bad Ref. [$table]\n";
+				die __PACKAGE__."#lock: arg[$type] is a bad Ref. [$table] (arg[$type]は不正なリファレンスです)\n";
 			}
 		}
 	};
@@ -543,7 +548,7 @@ sub lock {
 	add('write');
 
 	if(!@tables) {
-		die __PACKAGE__."#lock, no tables are being locked. Specify at least one table.\n";
+		die __PACKAGE__."#lock: no tables are being locked. Specify at least one table. (テーブルが1つも指定されていません)\n";
 	}
 
 	my $sql = 'LOCK TABLES '.join(
@@ -562,10 +567,12 @@ sub lock {
 	if(my $locked = $this->{locked_dbh}) {
 		my $locked_set = $locked->getSetName;
 		if($locked_set ne $set) {
-			die __PACKAGE__."#lock, attempted to lock DB Set [$set] but ".
-			"another DB Set [$locked_set] were locked. Unlock old one before lock new one.\n";
+			die __PACKAGE__."#lock: attempted to lock DB Set [$set] but ".
+			"another DB Set [$locked_set] were locked. Unlock old one before lock new one.".
+			" (他の DB Set [$locked_set] でロック中なので DB Set [$set] でロックをすることができません)\n";
 		} else {
-			die __PACKAGE__."#lock, already some tables are locked. Unlock it first before lock another tables.\n";
+			die __PACKAGE__."#lock: already some tables are locked. Unlock it first before lock another tables.".
+			" (既に他のテーブルをロック中です)\n";
 		}
 	}
 
@@ -599,7 +606,7 @@ sub unlock {
 
 	my $dbh = $this->{locked_dbh};
 	if(!defined($dbh)) {
-		die __PACKAGE__."#unlock, no tables are locked.\n";
+		die __PACKAGE__."#unlock: no tables are locked. (ロックされているテーブルはありません)\n";
 	}
 
 	my $sql = $this->__nameQuery('UNLOCK TABLES', $dbh);
@@ -628,7 +635,7 @@ sub setBufferSize {
 	my $kib = shift;
 
 	if(ref($kib)) {
-		die __PACKAGE__."#setBufferSize, ARG[1] was Ref.\n";
+		die __PACKAGE__."#setBufferSize: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	$this->{bufsize} = defined $kib ? $kib * 1024 : undef;
@@ -659,11 +666,11 @@ sub symquote {
 	my $str = shift;
 
 	if(!defined($str)) {
-		die __PACKAGE__."#symquote, ARG[1] was undef.\n";
+		die __PACKAGE__."#symquote: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die __PACKAGE__."#symquote, ARG[1] was Ref. [$str]\n";
+		die __PACKAGE__."#symquote: arg[1] is a Ref. [$str] (第1引数がリファレンスです)\n";
 	} elsif($str =~ m/[\'\"\`]/) {
-		die __PACKAGE__."#symquote, ARG[1] contains a quote character. [$str]\n";
+		die __PACKAGE__."#symquote: arg[1] contains a quote character. [$str] (第1引数がquote記号\'\"\`を含んでいます)\n";
 	}
 
 	if($this->getType eq 'mysql') {
@@ -692,7 +699,7 @@ sub _getDbSetName {
 	my $setname = shift;
 
 	if(ref($setname)) {
-		die __PACKAGE__."#_getDbSetName, ARG[1] was a Ref. [$setname]\n";
+		die __PACKAGE__."#_getDbSetName: arg[1] is a Ref. [$setname] (第1引数がリファレンスです)\n";
 	}
 
 	my $set;
@@ -700,14 +707,16 @@ sub _getDbSetName {
 		if($this->{default_set}) {
 			$set = $this->{default_set};
 		} else {
-			die __PACKAGE__."#_getDbSetName, default DB set has not been set.".
-				" Therefore we can't omit the name of one.\n";
+			die __PACKAGE__."#_getDbSetName: default DB set has not been set.".
+				" Therefore we can't omit the name of one.".
+				" (デフォルトの DB Set が指定されていない場合は、DB Set の指定を省略できません)\n";
 		}
 	} else {
 		if($this->{dbh}{$setname}) {
 			$set = $setname;
 		} else {
-			die __PACKAGE__."#_getDbSetName, DB set [$setname] was not defined. Please check the INI file.\n";
+			die __PACKAGE__."#_getDbSetName: DB set [$setname] was not defined. Please check the INI file.".
+			" (DB Set [$setname] が存在しません)\n";
 		}
 	}
 
@@ -721,19 +730,19 @@ sub _connect {
 
 	foreach my $group (@$groups) {
 		if (!defined($group)) {
-			die "TL#startCgi, -DB had an undef value.\n";
+			die "TL#startCgi: -DB had an undef value. (DB指定にundefが含まれます)\n";
 		} elsif(ref($group)) {
-			die "TL#startCgi, -DB had a Ref.\n";
+			die "TL#startCgi: -DB had a Ref. (DB指定にリファレンスが含まれます)\n";
 		}
 
 		$INSTANCES->{$group} = $class->_new($group)->connect;
 	}
 
-	# preRequest, postRequest, term をフックする
+	# initRequest, postRequest, term をフックする
 	$TL->setHook(
-		'preRequest',
-		_PRE_REQUEST_HOOK_PRIORITY,
-		\&__preRequest,
+		'initRequest',
+		_INIT_REQUEST_HOOK_PRIORITY,
+		\&__initRequest,
 	);
 
 	$TL->setHook(
@@ -790,7 +799,7 @@ sub _new {
 		my @db = split /\s*,\s*/, $TL->INI->get($group => $setname);
 		if (!scalar(@db)) {
 			# ゼロ個のDBから構成されるDBセットを作ってはならない。
-			die __PACKAGE__."#new, DB Set [$setname] has no DBs.\n";
+			die __PACKAGE__."#new: DB Set [$setname] has no DBs. (DB Set [$setname] にDBが1つもありません)\n";
 		}
 
 		my $dbname = $db[$$ % scalar(@db)];
@@ -831,7 +840,7 @@ sub __nameQuery {
 	$query;
 }
 
-sub __preRequest {
+sub __initRequest {
 	# $INSTANCESの中から、接続が確立していないものを接続する。
 	foreach my $db (values %$INSTANCES) {
 		$db->connect;
@@ -861,7 +870,8 @@ sub __postRequest {
 			$TL->log(
 				__PACKAGE__,
 				"DB [$db->{group}] (DB Set [$setname]) has been left locked after the last request.".
-				" Tripletail::DB unlocked it automatically for safe."
+				" Tripletail::DB unlocked it automatically for safe.".
+				" (DB [$db->{group}] (DB Set [$setname]) はロックしたままリクエスト処理を終えました。安全のため自動的にunlockしました)"
 			);
 		}
 		if(my $dbh = $db->{trans_dbh}) {
@@ -871,7 +881,8 @@ sub __postRequest {
 			$TL->log(
 				__PACKAGE__,
 				"DB [$db->{group}] (DB Set [$setname]) has been left in transaction after the last request.".
-				" Tripletail::DB rollbacked it automatically for safe."
+				" Tripletail::DB rollbacked it automatically for safe.".
+				" (DB [$db->{group}] (DB Set [$setname]) はトランザクション中のままリクエスト処理を終えました。安全のため自動的にrollbackしました)"
 			);
 		}
 
@@ -925,13 +936,13 @@ sub connect {
 	my $this = shift;
 	my $type = shift;
 
-	$type or die __PACKAGE__."#connect, type is not set.\n";
+	$type or die __PACKAGE__."#connect: type is not set. (typeが指定されていません)\n";
 	$this->{type} = $type;
 	if($type eq 'mysql') {
 		my $opts = {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
 		};
-		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 
 		my $host = $TL->INI->get($this->{inigroup} => 'host');
 		if(defined($host)) {
@@ -955,7 +966,7 @@ sub connect {
 		my $opts = {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
 		};
-		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 
 		my $host = $TL->INI->get($this->{inigroup} => 'host');
 		if(defined($host)) {
@@ -977,9 +988,9 @@ sub connect {
 		});
 	} elsif($type eq 'oracle') {
 		$ENV{ORACLE_SID} = $TL->INI->get($this->{inigroup} => 'sid');
-		$ENV{ORACLE_SID} or die __PACKAGE__."#connect, sid is not set.\n";
+		$ENV{ORACLE_SID} or die __PACKAGE__."#connect: sid is not set. (sidが指定されていません)\n";
 		$ENV{ORACLE_HOME} = $TL->INI->get($this->{inigroup} => 'home');
-		$ENV{ORACLE_HOME} or die __PACKAGE__."#connect, home is not set.\n";
+		$ENV{ORACLE_HOME} or die __PACKAGE__."#connect: home is not set. (homeが指定されていません)\n";
 		$ENV{ORACLE_TERM} = 'vt100';
 		$ENV{PATH} = $ENV{PATH} . ':' . $ENV{ORACLE_HOME} . '/bin';
 		$ENV{LD_LIBRARY_PATH} = $ENV{LD_LIBRARY_PATH} . ':'
@@ -987,8 +998,8 @@ sub connect {
 		$ENV{ORA_NLS33} = $ENV{ORACLE_HOME} . '/ocommon/nls/admin/data';
 		$ENV{NLS_LANG} = 'JAPANESE_JAPAN.UTF8';
 
-		$TL->INI->get($this->{inigroup} => 'user') or die __PACKAGE__."#connect, user is not set.\n";
-		$TL->INI->get($this->{inigroup} => 'password') or die __PACKAGE__."#connect, password is not set.\n";
+		$TL->INI->get($this->{inigroup} => 'user') or die __PACKAGE__."#connect: user is not set. (userが指定されていません)\n";
+		$TL->INI->get($this->{inigroup} => 'password') or die __PACKAGE__."#connect: password is not set. (passwordが指定されていません)\n";
 		my $option = $TL->INI->get($this->{inigroup} => 'user') . '/' . $TL->INI->get($this->{inigroup} => 'password');
 		my $host = $TL->INI->get($this->{inigroup} => 'host');
 		if(defined($host)) {
@@ -1008,7 +1019,7 @@ sub connect {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
 			ib_charset => 'UNICODE_FSS',
 		};
-		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 
 		my $host = $TL->INI->get($this->{inigroup} => 'host');
 		if(defined($host)) {
@@ -1032,7 +1043,7 @@ sub connect {
 		my $opts = {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
 		};
-		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 
 		$this->{dbh} = DBI->connect(
 			'dbi:SQLite:' . join(';', map { "$_=$opts->{$_}" } keys %$opts),
@@ -1050,7 +1061,7 @@ sub connect {
 				qw(dbname host port tdsname odbcdsn odbcdriver),
 				qw(bindconvert fetchconvert)
 		};
-		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 
 		# build data source string.
 		my $dsn;
@@ -1068,7 +1079,7 @@ sub connect {
 				$dsn = $odbcdsn;
 			}else
 			{
-				die __PACKAGE__."#connect, unknown odbcdsn.\n";
+				die __PACKAGE__."#connect: unknown odbcdsn. (対応していないodbcdsnが指定されました)\n";
 			}
 		}
 		# odbc driver.
@@ -1114,7 +1125,7 @@ sub connect {
 			$opts->{$key} or next;
 			$opts->{$key} eq 'no' and next;
 			my $sub = $this->can("_${key}_$opts->{$key}");
-			$sub or die __PACKAGE__."#connect, no such $key: $opts->{$key}";
+			$sub or die __PACKAGE__."#connect: no such $key: $opts->{$key} (${key}が指定されていません)";
 			$this->{$key} = $sub;
 		}
 		
@@ -1152,11 +1163,11 @@ sub connect {
 			$this->$sub(undef, connect => undef);
 		}
 	} else {
-		die __PACKAGE__."#connect, DB type [$type] is not supported.\n";
+		die __PACKAGE__."#connect: DB type [$type] is not supported. (DB type [$type] はサポートされていません)\n";
 	}
 
 	if(!$this->{dbh}) {
-		die __PACKAGE__."#connect, DBI->connect returned undef.\n";
+		die __PACKAGE__."#connect: DBI->connect returned undef. (DBI->connectに失敗しました)\n";
 	}
 
 	$this;
@@ -1165,7 +1176,8 @@ sub connect {
 sub getLastInsertId
 {
 	my $this = shift;
-	my $type = $this->{type} or die __PACKAGE__."#getLastInsertId(), no type set";
+	# $this->{type}はconnect時にセットされる
+	my $type = $this->{type} or die __PACKAGE__."#getLastInsertId: no type set (接続されていません)";
 	my $obj  = shift; # for sequence on pgsql and oracle?
 	if( $type eq 'mysql' )
 	{
@@ -1178,7 +1190,9 @@ sub getLastInsertId
 		return $curval;
 	}elsif($type eq 'oracle')
 	{
-		$obj =~ /^((?:\w+\.)\w+)$/ or die __PACKAGE__."#getLastInsertId(), TODO: symquote for oracle is under construction";
+		$obj =~ /^((?:\w+\.)\w+)$/
+			or die __PACKAGE__."#getLastInsertId: TODO: symquote for oracle is under construction.".
+				" (内部エラー:Oracle用のquote処理は未実装です)\n";
   		my $obj_sym = $1;
 		my ($curval) = $this->{dbh}->selectrow_array(q{
 			SELECT $obj_sym.curval
@@ -1196,7 +1210,7 @@ sub getLastInsertId
 		return $curval;
 	}else
 	{
-		die __PACKAGE__."#getLastInsertId(), $type is not supported.";
+		die __PACKAGE__."#getLastInsertId: $type is not supported. (${type}ではサポートされていません)";
 	}
 }
 
@@ -1357,6 +1371,8 @@ sub disconnect {
 	my $this = shift;
 
 	$this->{dbh} and $this->{dbh}->disconnect;
+	$this->{dbh} = undef; # DBI-dbh
+	$this->{type} = undef; # set on connect().
 	$this;
 }
 
@@ -1428,7 +1444,7 @@ sub fetchHash {
 		}
 
 		if($size > $lim) {
-			die __PACKAGE__."#fetchHash, buffer size exceeded: size [$size] / limit [$lim]\n";
+			die __PACKAGE__."#fetchHash: buffer size exceeded: size [$size] / limit [$lim] (バッファサイズを超過しました。size [$size] / limit [$lim])\n";
 		}
 	}
 
@@ -1461,7 +1477,7 @@ sub fetchArray {
 		}
 
 		if($size > $lim) {
-			die __PACKAGE__."#fetchArray, buffer size exceeded: size [$size] / limit [$lim]\n";
+			die __PACKAGE__."#fetchArray: buffer size exceeded: size [$size] / limit [$lim] (バッファサイズを超過しました。size [$size] / limit [$lim])\n";
 		}
 	}
 

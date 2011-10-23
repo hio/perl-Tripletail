@@ -27,6 +27,8 @@ sub _new {
 	my $class = shift;
 	my $this = $class->SUPER::_new(@_);
 	
+	$TL->{outputbuffering} = 1;
+	
 	$this;
 }
 
@@ -126,7 +128,7 @@ HTMLに対して以下の処理を行う。
 
 =item *
 
-HTTPヘッダの管理
+HTTPヘッダの管理。TLのIni設定のoutputbufferingを強制的に1にセットし、Content-Lengthヘッダを出力させる。（携帯では必須）
 
 =item *
 
@@ -188,9 +190,12 @@ toExtLink メソッドを利用すると、INT キーは付与されない。
 
 フォームの場合は、基本的にセッション情報を付与する。
 
-セッション情報を付与したくない場合は、フォームタグを以下のように記述する。
+セッション情報を付与したくない場合は、L<Tripletail::Template/extForm> を使用するか、
+フォームタグを以下のように記述する。
 
  <form action="" EXT="1">
+
+L<Tripletail::Template/extForm> を使用すると、C<EXT="1"> が付与される。
 
 C<EXT="1"> が付与されているフォームに関しては、セッション情報の付与を行わない。
 また、C<EXT="1"> は出力時には削除される。

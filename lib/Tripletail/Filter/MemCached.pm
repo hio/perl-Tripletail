@@ -11,7 +11,7 @@ our @ISA = qw(Tripletail::Filter);
 # このフィルタは必ず最後に呼び出されなければならない。
 # オプション一覧:
 # * key     => MemCachedから読み込む際のキー
-# * type     => MemCachedへの書き込み(in)か、MemCachedからの出力(out)か。
+# * mode     => MemCachedへの書き込み(write)か、MemCachedからの出力(read)か。
 # * param    => 書き込み時に埋め込むデータ。Tripletail::Fromクラスの形で渡す。
 # * charset     => 書き込み時に埋め込むデータを変換するための、出力の文字コード。(UTF-8から変換される)
 #                  Encode.pmが利用可能なら利用する。(UniJP一部互換エンコード名、sjis絵文字使用不可)
@@ -28,7 +28,7 @@ sub _new {
 	my $defaults = [
 		[charset => 'Shift_JIS'],
 		[key     => undef],
-		[type    => 'in'],
+		[mode    => 'in'],
 		[param   => undef],
 	];
 	$this->_fill_option_defaults($defaults);
@@ -37,14 +37,15 @@ sub _new {
 	my $check = {
 		charset     => [qw(defined no_empty scalar)],
 		key     => [qw(defined no_empty scalar)],
-		type     => [qw(defined no_empty scalar)],
+		mode     => [qw(defined no_empty scalar)],
 		param     => [qw(no_empty)],
 	};
 	$this->_check_options($check);
 
-	if($this->{option}{type} ne 'in' && $this->{option}{type} ne 'out') {
-		die "TL#setContentFilter, option [type] for [Tripletail::Filter::MemCache] ".
-			"must be 'in' or 'out' instead of [$this->{option}{type}].\n";
+	if($this->{option}{mode} ne 'write' && $this->{option}{mode} ne 'read') {
+		die "TL#setContentFilter: option [mode] for [Tripletail::Filter::MemCache] ".
+			"must be 'write' or 'read' instead of [$this->{option}{mode}].".
+			" (modeはwriteかreadのいずれかを指定してください)\n";
 	}
 
 	$this->{buffer} = '';
@@ -57,18 +58,18 @@ sub print {
 	my $data = shift;
 
 	if(ref($data)) {
-		die __PACKAGE__."#print, ARG[1] was a Ref. [$data]\n";
+		die __PACKAGE__."#print: arg[1] is a Ref. [$data] (第1引数がリファレンスです)\n";
 	}
 	
 	return '' if($data eq '');
 	
-	if($this->{option}{type} eq 'in') {
+	if($this->{option}{mode} eq 'write') {
 		$this->{buffer} .= $data;
 	} else {
 		if($this->{buffer} eq '') {
 			$this->{buffer} = $data;
 		} else {
-			die __PACKAGE__."#print, already output.\n";
+			die __PACKAGE__."#print: already output. (既に何らかの出力がされています)\n";
 		}
 	}
 	
@@ -79,7 +80,7 @@ sub flush {
 	my $this = shift;
 
 	my $output;
-	if($this->{option}{type} eq 'in') {
+	if($this->{option}{mode} eq 'write') {
 		my $nowtime = time;
 		$output = q{Last-Modified: } . $TL->newDateTime->setEpoch($nowtime)->toStr('rfc822') . qq{\r\n} . $this->{buffer};
 		my $value = $nowtime . q{,} . $output;
@@ -120,7 +121,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 
 =head1 SYNOPSIS
 
-  $TL->setContentFilter('Tripletail::Filter::MemCached',key => 'key', type => 'out', param => $param,  charset => 'Shift_JIS');
+  $TL->setContentFilter('Tripletail::Filter::MemCached',key => 'key', mode => 'read', param => $param,  charset => 'Shift_JIS');
 
 =head1 DESCRIPTION
 
@@ -149,13 +150,13 @@ L<Tripletail::Filter>参照
 
 MemCachedで使用するkeyを設定する。
 
-=item type
+=item mode
 
-MemCachedへの書き込みか、MemCachedからの出力かを選択する。
+MemCachedへの書き込みか、MemCachedからの読み込みかを選択する。
 
-inで書き込み、outで出力。省略可能。
+writeで書き込み、readで読み込み。省略可能。
 
-デフォルトはin。
+デフォルトはwrite。
 
 =item param
 

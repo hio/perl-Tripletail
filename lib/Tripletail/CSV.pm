@@ -28,7 +28,7 @@ sub _new {
 		require Text::CSV_XS;
 	};
 	if ($@) {
-		die __PACKAGE__."#new, Text::CSV_XS is unavailable.\n";
+		die __PACKAGE__."#new: Text::CSV_XS is unavailable. (Text::CSV_XSが使用できません)\n";
 	}
 
 	require IO::Handle;
@@ -61,7 +61,7 @@ sub makeCsv {
 	my $row = shift;
 
 	if (ref($row) ne 'ARRAY') {
-		die __PACKAGE__."#makeCsv, Arg[1] is not an ARRAY ref.\n";
+		die __PACKAGE__."#makeCsv: arg[1] is not an ARRAY ref. (第1引数が配列のリファレンスではありません)\n";
 	}
 
 	$this->{csv}->combine(@$row);
@@ -95,7 +95,7 @@ sub next {
 			$row;
 		}
 		else {
-			die __PACKAGE__."#next, parse error.\n";
+			die __PACKAGE__."#next: parse error. (不正なCSV形式です)\n";
 		}
 	}
 }

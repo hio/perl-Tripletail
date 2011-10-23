@@ -32,15 +32,15 @@ sub setHeader {
 	my $value = shift;
 
 	if(!defined($key)) {
-		die __PACKAGE__."#setHeader, ARG[1] was undef.\n";
+		die __PACKAGE__."#setHeader: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#setHeader, ARG[1] was Ref. [$key]\n";
+		die __PACKAGE__."#setHeader: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($value)) {
-		die __PACKAGE__."#setHeader, ARG[2] was undef.\n";
+		die __PACKAGE__."#setHeader: arg[2] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($value)) {
-		die __PACKAGE__."#setHeader, ARG[2] was Ref. [$value]\n";
+		die __PACKAGE__."#setHeader: arg[2] is a Ref. [$value] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{replacement}{$key} = $value;
@@ -53,15 +53,15 @@ sub addHeader {
 	my $value = shift;
 
 	if(!defined($key)) {
-		die __PACKAGE__."#addHeader, ARG[1] was undef.\n";
+		die __PACKAGE__."#addHeader: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#addHeader, ARG[1] was Ref. [$key]\n";
+		die __PACKAGE__."#addHeader: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($value)) {
-		die __PACKAGE__."#addHeader, ARG[2] was undef.\n";
+		die __PACKAGE__."#addHeader: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($value)) {
-		die __PACKAGE__."#addHeader, ARG[2] was Ref. [$value]\n";
+		die __PACKAGE__."#addHeader: arg[2] is a Ref. [$value] (第2引数がリファレンスです)\n";
 	}
 
 	my $old = $this->{addition}{$key};
@@ -80,7 +80,7 @@ sub print {
 	my $data = shift;
 
 	if(ref($data)) {
-		die __PACKAGE__."#print, ARG[1] was a Ref. [$data]\n";
+		die __PACKAGE__."#print: arg[1] is a Ref. [$data] (第1引数がリファレンスです)\n";
 	}
 
 	my $output = $this->_flush_header;
@@ -210,28 +210,28 @@ sub _check_options {
 		my $list = $check->{$key};
 		if(!defined($list)) {
 			# このオプションは許されていない。
-			die "TL#setContentFilter, ".ref($this)." does not accept option [$key].\n";
+			die "TL#setContentFilter: ".ref($this)." does not accept option [$key]. (${key}は使用できないオプションです)\n";
 		}
 
 		foreach(@$list) {
 			if($_ eq 'defined') {
 				if(!defined($val)) {
-					die "TL#setContentFilter, ".ref($this).": option [$key] has to be defined.\n";
+					die "TL#setContentFilter: ".ref($this).": option [$key] has to be defined. (${key}オプションが指定されていません)\n";
 				}
 			} elsif($_ eq 'no_empty') {
 				if(defined($val) && !ref($val) && $val eq '') {
-					die "TL#setContentFilter, ".ref($this).": option [$key] has to be not empty.\n";
+					die "TL#setContentFilter: ".ref($this).": option [$key] has to be not empty. (${key}オプションが空です)\n";
 				}
 			} elsif($_ eq 'scalar') {
 				if(defined($val) && ref($val)) {
-					die "TL#setContentFilter, ".ref($this).": option [$key] has to be not a Ref. [$val]\n";
+					die "TL#setContentFilter: ".ref($this).": option [$key] has to be not a Ref. [$val] (${key}オプションがリファレンスです)\n";
 				}
 			} elsif($_ eq 'array') {
 				if(defined($val) && ref($val) ne 'ARRAY') {
-					die "TL#setContentFilter, ".ref($this).": option [$key] has to be an ARRAY Ref. [$val]\n";
+					die "TL#setContentFilter: ".ref($this).": option [$key] has to be an ARRAY Ref. [$val] (${key}オプションが配列のリファレンスではありません)\n";
 				}
 			} else {
-				die "TL#setContentFilter, ".ref($this).": internal error; unknown check type [$_].\n";
+				die "TL#setContentFilter: ".ref($this).": internal error; unknown check type [$_]. (内部エラー:${key}オプションのチェック方法が不明です)\n";
 			}
 		}
 	}

@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 2+2+4+4+4;
+use lib '.';
 require t::make_ini;
 
 &test01_get;    # 2

@@ -157,6 +157,7 @@ sample/session/logindouble.cgi
 sample/session/logindouble.html
 sample/session/logindouble.ini
 t/00.load.t
+t/0.prereq.t
 t/FaultHandler.pm
 t/charconv.t
 t/cookie.t

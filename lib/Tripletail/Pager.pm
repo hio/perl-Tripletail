@@ -11,8 +11,9 @@ use Tripletail;
 sub _new {
 	my $class = shift;
 	my $this = bless {} => $class;
+	my $db = shift;
+	$this->{db} = $db;
 
-	$this->{dbgroup} = undef;
 	$this->{pagesize} = 30;
 	$this->{current} = 1;
 	$this->{maxlinks} = 10;
@@ -28,9 +29,6 @@ sub _new {
 	$this->{beginrow} = undef;
 	$this->{rows} = undef;
 	
-	if(@_) {
-		$this->setDbGroup(@_);
-	}
 
 	$this->setFormParam(undef);
 	$this;
@@ -41,10 +39,10 @@ sub setDbGroup {
 	my $dbgroup = shift;
 
 	if(ref($dbgroup)) {
-		die __PACKAGE__."#setDbGroup, ARG[1] was a Ref. [$dbgroup]\n";
+		die __PACKAGE__."#setDbGroup: arg[1] is a Ref. [$dbgroup] (第1引数がリファレンスです)\n";
 	}
 
-	$this->{dbgroup} = $dbgroup;
+	$this->{db} = $dbgroup;
 	$this;
 }
 
@@ -53,11 +51,11 @@ sub setPageSize {
 	my $size = shift;
 
 	if(!defined($size)) {
-		die __PACKAGE__."#setPageSize, ARG[1] was undef.\n";
+		die __PACKAGE__."#setPageSize: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($size)) {
-		die __PACKAGE__."#setPageSize, ARG[1] was a Ref. [$size]\n";
+		die __PACKAGE__."#setPageSize: arg[1] is a Ref. [$size] (第1引数がリファレンスです)\n";
 	} elsif($size !~ /^\d+$/ || $size <= 0) {
-		die __PACKAGE__."#setPageSize, ARG[1] was not a positive number. [$size]\n";
+		die __PACKAGE__."#setPageSize: arg[1] is not a positive number. [$size] (第1引数が正の整数ではありません)\n";
 	}
 
 	$this->{pagesize} = $size;
@@ -69,11 +67,11 @@ sub setCurrentPage {
 	my $page = shift;
 
 	if(!defined($page)) {
-		die __PACKAGE__."#setCurrentPage, ARG[1] was undef.\n";
+		die __PACKAGE__."#setCurrentPage: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($page)){
-		die __PACKAGE__."#setCurrentPage, ARG[1] was a Ref. [$page]\n";
+		die __PACKAGE__."#setCurrentPage: arg[1] is a Ref. [$page] (第1引数がリファレンスです)\n";
 	} elsif($page !~ /^\d+$/ || $page <= 0) {
-		die __PACKAGE__."#setCurrentPage, ARG[1] was not a positive number. [$page]\n";
+		die __PACKAGE__."#setCurrentPage: arg[1] is not a positive number. [$page] (第1引数が正の整数ではありません)\n";
 	}
 
 	$this->{current} = $page;
@@ -85,11 +83,11 @@ sub setMaxLinks {
 	my $maxlinks = shift;
 
 	if(!defined($maxlinks)) {
-		die __PACKAGE__."#setMaxLinks, ARG[1] was undef.\n";
+		die __PACKAGE__."#setMaxLinks: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($maxlinks)){
-		die __PACKAGE__."#setMaxLinks, ARG[1] was a Ref. [$maxlinks]\n";
+		die __PACKAGE__."#setMaxLinks: arg[1] is a Ref. [$maxlinks] (第1引数がリファレンスです)\n";
 	} elsif($maxlinks !~ /^\d+$/ || $maxlinks <= 0) {
-		die __PACKAGE__."#setMaxLinks, ARG[1] was not a positive number. [$maxlinks]\n";
+		die __PACKAGE__."#setMaxLinks: arg[1] is not a positive number. [$maxlinks] (第1引数が正の整数ではありません)\n";
 	}
 
 	$this->{maxlinks} = $maxlinks;
@@ -101,9 +99,9 @@ sub setFormKey {
 	my $key = shift;
 
 	if(!defined($key)) {
-		die __PACKAGE__."#setFormKey, ARG[1] was undef.\n";
+		die __PACKAGE__."#setFormKey: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#setFormKey, ARG[1] was a Ref. [$key]\n";
+		die __PACKAGE__."#setFormKey: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{formkey} = $key;
@@ -118,7 +116,7 @@ sub setFormParam {
 		$this->{formparam} = $TL->newForm;
 	} else {
 		if(ref($form) ne 'Tripletail::Form') {
-			die __PACKAGE__."#setFormParam, ARG[1] was not an instance of Tripletail::Form. [$form]\n";
+			die __PACKAGE__."#setFormParam: arg[1] is not an instance of Tripletail::Form. [$form] (第1引数がFormオブジェクトではありません)\n";
 		} else {
 			$this->{formparam} = $form->clone;
 		}
@@ -132,11 +130,11 @@ sub setPagingType {
 	my $type = shift;
 
 	if(!defined($type)) {
-		die __PACKAGE__."#setPagingType, ARG[1] was undef.\n";
+		die __PACKAGE__."#setPagingType: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($type)) {
-		die __PACKAGE__."#setPagingType, ARG[1] was a Ref. [$type]\n";
+		die __PACKAGE__."#setPagingType: arg[1] is a Ref. [$type] (第1引数がリファレンスです)\n";
 	} elsif($type !~ /^[01]$/) {
-		die __PACKAGE__."#setPagingType, ARG[1] was not 0 or 1. [$type]\n";
+		die __PACKAGE__."#setPagingType: arg[1] is not 0 or 1. [$type] (第1引数は0か1のみ指定できます)\n";
 	}
 
 	$this->{pagingtype} = $type;
@@ -172,31 +170,36 @@ sub _paging {
 	my @params = @_;
 	my $result;
 
-	my $DB = $TL->getDB($this->{dbgroup});
+	my $DB;
+	if(ref($this->{db}) eq 'Tripletail::DB') {
+		$DB = $this->{db};
+	} else {
+		$DB = $TL->getDB($this->{db});
+	}
 
 	if(ref($query) eq 'ARRAY') {
 		($query, $this->{maxrows}) = @$query;
 	}
 
 	if(!defined($node)) {
-		die __PACKAGE__."#paging, ARG[2] was undef.\n";
+		die __PACKAGE__."#paging: ARG[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($node) ne 'Tripletail::Template::Node') {
-		die __PACKAGE__."#paging, ARG[2] was a Ref. [$node]\n";
+		die __PACKAGE__."#paging: ARG[2] is a Ref. [$node] (第2引数がリファレンスです)\n";
 	}
 	
 	if(!defined($query)) {
-		die __PACKAGE__."#paging, ARG[3] was undef.\n";
+		die __PACKAGE__."#paging: ARG[3] is not defined. (第3引数が指定されていません)\n";
 	} elsif(ref($query)) {
-		die __PACKAGE__."#paging, ARG[3] was a Ref. [$query]\n";
+		die __PACKAGE__."#paging: ARG[3] is a Ref. [$query] (第3引数がリファレンスです)\n";
 	}
 
 	my $query_back = $query;
 
 	if(defined($this->{maxrows})) {
 		if(ref($this->{maxrows})) {
-			die __PACKAGE__."#paging, ARG[3] was a Ref. [$this->{maxrows}]\n";
+			die __PACKAGE__."#paging: ARG[3] is a Ref. [$this->{maxrows}] (第3引数がリファレンスです)\n";
 		} elsif($this->{maxrows} !~ /^\d+$/ || $this->{maxrows} < 0) {
-			die __PACKAGE__."#paging, ARG[3] was not a positive number. [$this->{maxrows}]\n";
+			die __PACKAGE__."#paging: ARG[3] is not a positive number. [$this->{maxrows}] (第3引数が正の整数ではありません)\n";
 		}
 	} else {
 	# SQL_CALC_FOUND_ROWSを勝手に付ける。
@@ -378,7 +381,8 @@ Tripletail::Pager - ページング処理
 
 =head1 SYNOPSIS
 
-  my $pager = $TL->newPager('DB');
+  my $DB = $TL->getDB('DB');
+  my $pager = $TL->newPager($DB);
   $pager->setCurrentPage($CGI->get('pageid'));
 
   my $t = $TL->newTemplate('template.html');
@@ -430,26 +434,66 @@ Tripletail::Pager - ページング処理
 
 これらのノードが存在しない場合は、単に無視される。
 
+Rowノードは L</paging> メソッドを利用する場合のみ使用される。
+
+L</pagingArray> や L</pagingArray> メソッドを利用する場合、
+メソッド実行によって paging ノードが展開されるため、
+その外側にデータ用のノードをおかなければならないことに注意する必要がある。
+
+例えば以下のようなテンプレートとなり、メソッドの戻値を
+ループの中で Rowノードに展開するような形となる。
+
+  <!begin:paging>
+    <!begin:PrevLink><a href="<&PREVLINK>">←前ページ</a><!end:PrevLink>
+    <!begin:NoPrevLink>←前ページ<!end:NoPrevLink>
+    <!begin:PageNumLinks>
+      <!begin:ThisPage><&PAGENUM><!end:ThisPage>
+      <!begin:OtherPage>
+        <a href="<&PAGELINK>"><&PAGENUM></a>
+      <!end:OtherPage>
+    <!end:PageNumLinks>
+    <!begin:NextLink><a href="<&NEXTLINK>">次ページ→</a><!end:NextLink>
+    <!begin:NoNextLink>次ページ→<!end:NoNextLink>
+    ...
+    <!begin:MaxRows>全<&MAXROWS>件<!end:MaxRows>
+    <!begin:FirstRow><&FIRSTROW>件目から<!end:FirstRow>
+    <!begin:LastRow><&LASTROW>件目までを表示中<!end:LastRow>
+    <!begin:MaxPages>全<&MAXPAGES>ページ<!end:MaxPages>
+    <!begin:CurPage>現在<&CURPAGE>ページ目<!end:CurPage>
+    ...
+    ...
+  <!end:paging>
+  <!begin:Row>
+    <!-- 行データを展開する <&XXX> タグを記述する -->
+  <!end:Row>
+  <!-- 以下は Pager クラスの処理とは関係ないため、無くても良い -->
+  <!begin:nodata>
+    一件もありません
+  <!end:nodata>
+
 =head2 METHODS
 
 =over 4
 
 =item $TL->newPager
 
-  $pager = $TL->newPager
-  $pager = $TL->newPager($db_group)
+  $pager = $TL->newPager($db_object)
 
 Pagerオブジェクトを作成。
-2番目の形式では、 L<デフォルト|Tripletail::DB/"setDefaultSet"> の
-L<DBセット|Tripletail::DB/"DBセット"> が使われる。デフォルトが設定されていなければ
-paging開始の時点でエラーとなる。
+DBオブジェクトを渡す。
 
 DB は MySQL のみをサポートしている。
+
+DBのグループ名を渡すこともできるが、この指定方法は今後削除される可能性がある。(obsolute)
+
+引数を指定しなかった場合、デフォルトのDBグループが使用されるが、将来はエラーに変更される可能性がある。
 
 =item setDbGroup
 
   $pager->setDbGroup($db_group)
- 
+
+
+非推奨。DBのオブジェクトをnewPagerで渡すことを推奨する。
 使用するDBのグループ名を指定する。
 
 =item setPageSize
@@ -503,9 +547,11 @@ DB は MySQL のみをサポートしている。
 
 =over 4
 
-=item $info->{dbgroup}
+=item $info->{db}
 
-使用するグループ名
+DBオブジェクト。
+
+または、使用するグループ名。（obsolute）
 
 =item $info->{pagesize}
 

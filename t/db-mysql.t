@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-mysql.t,v 1.3 2007/04/16 02:42:45 hio Exp $
+# $Id: db-mysql.t,v 1.5 2007/09/06 05:46:18 mikage Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -22,6 +22,7 @@ BEGIN{
 	);
 };
 
+use lib '.';
 use t::make_ini {
 	ini => {
 		TL => {
@@ -299,10 +300,10 @@ sub test_tx_transaction
 			)){
 				throws_ok {
 					$DB->tx(sub{ $DB->commit(); $DB->$meth("SELECT 1"); })
-				} qr/^$pkg#$meth, $msg\b/, "[tx_tran] execute on commit close-wait tx";
+				} qr/^$pkg#$meth: $msg\b/, "[tx_tran] execute on commit close-wait tx";
 				throws_ok {
 					$DB->tx(sub{ $DB->rollback(); $DB->$meth("SELECT 1"); })
-				} qr/^$pkg#$meth, $msg\b/, "[tx_tran] $meth on rollback close-wait tx";
+				} qr/^$pkg#$meth: $msg\b/, "[tx_tran] $meth on rollback close-wait tx";
 			}
 		},
 	);
@@ -364,9 +365,9 @@ sub test_locks
 			lives_ok { $DB->execute(q{SELECT COUNT(*) FROM test_colors}) } "[locks] table test_colors exists";
 			lives_ok { $DB->lock(read=>'test_colors') } "[locks] lock test_colors";
 			
-			throws_ok { $DB->lock } qr/Tripletail::DB#lock, no tables are being locked. Specify at least one table./, "[locks] lock no tables";
+			throws_ok { $DB->lock } qr/Tripletail::DB#lock: no tables are being locked. Specify at least one table./, "[locks] lock no tables";
 			lives_ok { $DB->unlock } "[locks] unlock ok";
-			throws_ok { $DB->unlock } qr/Tripletail::DB#unlock, no tables are locked/, "[locks] unlock w/o lock";
+			throws_ok { $DB->unlock } qr/Tripletail::DB#unlock: no tables are locked/, "[locks] unlock w/o lock";
 			
 		},
 	);

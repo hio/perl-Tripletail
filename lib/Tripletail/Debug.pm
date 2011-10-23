@@ -1135,7 +1135,7 @@ sub __findCommand {
 		} elsif($sql =~ m|^(\w+)|) {
 			return uc $1;
 		} else {
-			die __PACKAGE__."#__findCommand, failed to find the command in sql [$sql]\n";
+			die __PACKAGE__."#__findCommand: failed to find the command in sql [$sql] (SQLからコマンドを見つけることができませんでした)\n";
 		}
 	}
 }

@@ -5,13 +5,14 @@
 #
 # Copyright 2006 YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: v021_spaces.t,v 1.1 2006/11/16 07:33:26 hio Exp $
+# $Id: v021_spaces.t,v 1.2 2007/09/04 04:24:48 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
 use Test::More;
 use Test::Exception;
 use Config;
+use lib '.';
 use t::test_server;
 
 &setup;

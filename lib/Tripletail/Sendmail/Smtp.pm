@@ -33,7 +33,7 @@ sub setTimeout {
 	my $sec = shift;
 
 	if(ref($sec)) {
-		die __PACKAGE__."#setTimeout, ARG[1] was a Ref. [$sec]\n";
+		die __PACKAGE__."#setTimeout: arg[1] is a Ref. [$sec] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{timeout} = $sec;
@@ -49,7 +49,7 @@ sub connect {
 		# iniで指定されたものを使う
 		$host = $this->{host};
 	} elsif(ref($host)) {
-		die __PACKAGE__."#connect, ARG[1] was a Ref. [$host]\n";
+		die __PACKAGE__."#connect: arg[1] is a Ref. [$host] (第1引数がリファレンスです)\n";
 	}
 
 	$this->_connect($host);
@@ -73,7 +73,7 @@ sub send {
 
 	$this->_sendCommand("RSET");
 	if($this->{status}{resultcode} =~ m/^[45]/) {
-		die __PACKAGE__."#send, RSET Failed...\n";
+		die __PACKAGE__."#send: RSET Failed. (RSETコマンドが失敗しました)\n";
 	}
 
 	# send from
@@ -81,7 +81,7 @@ sub send {
 	$this->_resetBufferedNum;
 	$this->_sendCommand("MAIL From:<$data->{from}>");
 	if($this->{status}{resultcode} =~ m/^[45]/) {
-		die __PACKAGE__."#send, MAIL From Failed...\n";
+		die __PACKAGE__."#send: MAIL From Failed. (MAIL From コマンドが失敗しました)\n";
 	}
 
 	# send rcpt
@@ -102,7 +102,7 @@ sub send {
 	$this->_waitReply;
 	if($this->{status}{resultcode} =~ m/^[45]/) {
 		$this->_sendCommand("RSET");
-		die __PACKAGE__."#send, DATA Command Failed...\n";
+		die __PACKAGE__."#send: DATA Command Failed. (DATAコマンドが失敗しました)\n";
 	}
 
 	$this->_sendData($data->{data});
@@ -150,7 +150,7 @@ sub _connect {
 
 	local($SIG{ALRM});
 
-	$SIG{ALRM} = sub { die __PACKAGE__."#_connect, connection timed out.\n"; };
+	$SIG{ALRM} = sub { die __PACKAGE__."#connect: connection timed out. (接続がタイムアウトしました)\n"; };
 	alarm($this->{timeout_period});
 
 	$this->{sock} = IO::Socket::INET->new(
@@ -162,7 +162,7 @@ sub _connect {
 
 	alarm(0);
 	if(!$this->{sock}) {
-		die __PACKAGE__."#_connect, failed to connect: [$this->{host}:$this->{port}][$!]\n";
+		die __PACKAGE__."#connect: failed to connect: [$this->{host}:$this->{port}][$!] (接続に失敗しました)\n";
 	}
 
 	$this->_log("--> ok.");
@@ -219,12 +219,12 @@ sub _disconnect {
 
 	local($SIG{ALRM});
 
-	$SIG{ALRM} = sub { die __PACKAGE__."#_disconnect, closure timed out\n"; };
+	$SIG{ALRM} = sub { die __PACKAGE__."#disconnect: close timed out. (closeがタイムアウトしました)\n"; };
 	alarm($this->{timeout_period});
 	my $closeresult = close($this->{sock});
 	alarm(0);
 	if(!$closeresult) {
-		die __PACKAGE__."#_disconnect, failed to close. [$!]\n";
+		die __PACKAGE__."#disconnect: failed to close. [$!] (接続のcloseに失敗しました)\n";
 	}
 
 	delete $this->{sock};
@@ -254,7 +254,7 @@ sub _sendCommand {
 
 	local($SIG{ALRM});
 
-	$SIG{ALRM} = sub { die __PACKAGE__."#_sendCommand: command sending timed out: [$command]($nowaitflag)\n"; };
+	$SIG{ALRM} = sub { die __PACKAGE__."#_sendCommand: command sending timed out: [$command]($nowaitflag) (コマンド送信がタイムアウトしました)\n"; };
 	$this->_log("send>> $command");
 	alarm($this->{timeout_period});
 	print $sock "$command\r\n";
@@ -279,7 +279,7 @@ sub _sendData {
 
 	local($SIG{ALRM});
 
-	$SIG{ALRM} = sub { die __PACKAGE__."#_sendData, data sending timed out.\n"; };
+	$SIG{ALRM} = sub { die __PACKAGE__."#_sendData: data sending timed out. (データ送信がタイムアウトしました)\n"; };
 	alarm($this->{timeout_period});
 
 	foreach my $line (split(/\r?\n/, $data)) {
@@ -306,7 +306,7 @@ sub _waitReply {
 
 	local($SIG{ALRM});
 
-	$SIG{ALRM} = sub { die __PACKAGE__."#_waitReply: reply waiting timed out.\n"; };
+	$SIG{ALRM} = sub { die __PACKAGE__."#_waitReply: reply waiting timed out. (応答待ちでタイムアウトしました)\n"; };
 	alarm($this->{timeout_period});
 
 	my $line;

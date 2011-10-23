@@ -4,6 +4,7 @@ use warnings;
 use Test::Exception;
 use Test::More tests => 148;
 
+use lib '.';
 use t::make_ini {
 	ini => {
 		TL => {

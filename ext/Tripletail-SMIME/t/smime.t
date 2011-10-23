@@ -36,7 +36,7 @@ CONFIG
     foreach my $i (1 .. 2) {
 	system(qq{$openssl genrsa > tmp-$$-$i.key 2>$devnull}) and die $!;
         system(qq{$openssl req -new -key tmp-$$-$i.key -out tmp-$$-$i.csr -config tmp-$$.config >$devnull}) and die $!;
-	system(qq{$openssl x509 -in tmp-$$-$i.csr -out tmp-$$-$i.crt -req -signkey tmp-$$-$i.key 2>$devnull >$devnull}) and die $!;
+	system(qq{$openssl x509 -in tmp-$$-$i.csr -out tmp-$$-$i.crt -req -signkey tmp-$$-$i.key -set_serial $i 2>$devnull >$devnull}) and die $!;
     }
 }
 

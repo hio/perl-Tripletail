@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-TripletaiL セキュリティ
+security セキュリティ
 
 =head1 DESCRIPTION
 

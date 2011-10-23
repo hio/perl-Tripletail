@@ -248,7 +248,7 @@ foreach my $iter (
 }
 ok($v->genRandomString(10), "genRandomString, without type");
 {
-  my $iter = ['mix/long', 200, [qw(alpha ALPHA num _)], undef];
+  my $iter = ['mix/long', 100000, [qw(alpha ALPHA num _)], undef];
   my ($name, $len, $type, $pat) = @$iter;
   my $s = $v->genRandomString($len, $type);
   ok($s, "genRandomString($name)");

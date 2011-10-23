@@ -49,9 +49,9 @@ sub get {
 	my $name = shift;
 
 	if(!defined($name)) {
-		die __PACKAGE__."#get, ARG[1] was undef.\n";
+		die __PACKAGE__."#get: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#get, ARG[1] was Ref.\n";
+		die __PACKAGE__."#get: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	if(my $data = $this->{set_cookies}{$name}) {
@@ -70,13 +70,13 @@ sub set {
 	my $value = shift;
 
 	if(!defined($name)) {
-		die __PACKAGE__."#set, ARG[1] was undef.\n";
+		die __PACKAGE__."#set: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#set, ARG[1] was Ref.\n";
+		die __PACKAGE__."#set: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	if(ref($value)) {
-		die __PACKAGE__."#set, ARG[2] was Ref.\n";
+		die __PACKAGE__."#set: arg[2] is a Ref. (第2引数がリファレンスです)\n";
 	}
 
 	$this->{set_cookies}{$name} = $value;
@@ -88,9 +88,9 @@ sub delete {
 	my $name = shift;
 
 	if(!defined($name)) {
-		die __PACKAGE__."#delete, ARG[1] was undef.\n";
+		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#delete, ARG[1] was Ref.\n";
+		die __PACKAGE__."#delete: arg[1] is a Ref. (第1引数がリファレンスです)\n";
 	}
 
 	$this->{set_cookies}{$name} = undef;
@@ -212,7 +212,7 @@ sub __makeSetCookie {
 
 		my $line = join '; ', @parts;
 		if(length($line) > 1024 * 4) {
-			die __PACKAGE__."#_makeSetCookies, we have a too big cookie. [$line]";
+			die __PACKAGE__."#_makeSetCookies: we have a too big cookie. [$line] (クッキーが大きくなりすぎました。保存するデータを減らしてください)";
 		}
 
 		push @result, $line;

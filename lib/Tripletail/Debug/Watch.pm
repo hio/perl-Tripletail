@@ -21,7 +21,7 @@ sub _watch {
     {
       if(tied($$data))
 	{
-	  die "TL#watch, ARG[1]: already tied.\n" if($dieflag);
+	  die "TL#watch: arg[1]: already tied. (既にtieされています)\n" if($dieflag);
 	}
       tie $$data, 'Tripletail::Debug::Watch::Scalar', $data, $name, $level;
     }
@@ -29,7 +29,7 @@ sub _watch {
     {
       if(tied(@$data))
 	{
-	  die "TL#watch, ARG[1]: already tied.\n" if($dieflag);
+	  die "TL#watch: arg[1]: already tied. (既にtieされています)\n" if($dieflag);
 	}
       tie @$data, 'Tripletail::Debug::Watch::Array', $data, $name, $level;
     }
@@ -37,13 +37,15 @@ sub _watch {
     {
       if(tied(%$data))
 	{
-	  die "TL#watch, ARG[1]: already tied.\n" if($dieflag);
+	  die "TL#watch: arg[1]: already tied. (既にtieされています)\n" if($dieflag);
 	}
       tie %$data, 'Tripletail::Debug::Watch::Hash', $data, $name, $level;
     }
   else
     {
-      die "TL#watch, ARG[1]: is not support type. TL#watch support SCALAR, ARRAY, HASH.\n" if($dieflag);
+      die "TL#watch: arg[1]: is not support type. TL#watch support SCALAR, ARRAY, HASH.".
+      	" (サポートされていないタイプです。SCALAR/ARRAY/HASHのみサポートしています)\n"
+      		if($dieflag);
     }
 
   $data;

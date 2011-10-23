@@ -752,11 +752,14 @@ servers = localhost:11211
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  #topはキャッシュするキー。画面毎にキーを設定する。ページャーなどを利用する場合、画面毎になる点を注意する（page-1等にする）
-  #キャッシュにヒットした場合、時間を比較して、304でリダイレクトするか、メモリから読み込んで表示する
+<pre class="pod_verbatim"><code>  #まず、画面毎にキーを設定する。例のケースではtopという名称を付けている。
+  #ページャーなどを利用する場合、キーはページ毎に設定する必要がある点を注意する（page-1等にする）
+  #キーで検索を行い、キャッシュにヒットした場合、時間を比較して304でリダイレクトするか、
+  #メモリから読み込んで表示する
   #printCacheUnlessModifiedでundefが返ってきた後は、printやflushなど出力する操作は不可なため注意する事
   return if(!defined($TL-&gt;printCacheUnlessModified('top')));
-  #キャッシュすることを宣言する。なお、宣言はprintCacheUnlessModifiedより後でprintより前であれば、どの時点で行ってもかまわない
+  #キャッシュすることを宣言する。なお、宣言はprintCacheUnlessModifiedより後で
+  #printより前であれば、どの時点で行ってもかまわない
   $TL-&gt;setCache('top');
 
   #実際のスクリプトを記述し、出力を行う
@@ -769,7 +772,7 @@ servers = localhost:11211
 </span></a></dt>
 <dd>
 <pre class="pod_verbatim"><code>  #書き込みを行った場合、そのデータを表示する可能性があるキャッシュを全て削除する
-  #削除漏れがあると、キャッシュしている内容が必要な為注意が必要。
+  #削除漏れがあると、キャッシュしている内容が表示され、更新されてないように見えるので注意する事。
   $TL-&gt;deleteCache('top');
   $TL-&gt;deleteCache('top2');</code></pre>
 
@@ -778,14 +781,17 @@ servers = localhost:11211
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  #クッキーデータの取得、クッキーに固有の情報を入れておくと高速に動作出来る（DB等から読み込みTripletail::Formクラスにセットしても可）
+<pre class="pod_verbatim"><code>  #クッキーデータの取得、クッキーに固有の情報を入れておくと高速に動作出来る
+  #（DB等から読み込みTripletail::Formクラスにセットしても可）
   my $cookiedata = $TL-&gt;getCookie-&gt;get('TLTEST');
-  $cookiedata-&gt;set('&lt;&amp;NAME&gt;' =&gt; $name) if(!$cookiedata-&gt;exists('name'));
-  $cookiedata-&gt;set('&lt;&amp;POINT&gt;' =&gt; $point) if(!$cookiedata-&gt;exists('point'));
+  $cookiedata-&gt;set('#NAME' =&gt; $name) if(!$cookiedata-&gt;exists('name'));
+  $cookiedata-&gt;set('#POINT' =&gt; $point) if(!$cookiedata-&gt;exists('point'));
 
-  #topはキャッシュするキー。固有情報が変更された場合、キャッシュ情報をクリアしないと永遠に情報が変わらない為、
-  #304は通常無効にする必要がある。
-  #固有の情報を置換するための情報をセットする。キーがそのまま置換される。
+  #まず、画面毎にキーを設定する。例のケースではtopという名称を付けている。
+  #固有情報が変更された場合、ブラウザ側のキャッシュ情報をクリアしないと情報が変わらない為、
+  #固有情報が変更される恐れがある場合は、304によるキャッシュは無効にする必要がある。
+  #
+  #固有の情報を置換するための情報をセットすると、キーがそのまま置換される。
   #その他の条件はページ全体をキャッシュする場合と同様。
   return if(!defined($TL-&gt;printCacheUnlessModified('top','off',$cookiedata)));
   #キャッシュすることを宣言する。その際、固有の情報を置換するための情報をセットする。
@@ -794,15 +800,15 @@ servers = localhost:11211
   #実際のスクリプトを記述し、出力を行う
   #この際、固有の情報の部分に関しては、特殊タグ（文字列）に置換する。特殊タグはどのような形でもかまわないが、
   #出力文字列中の全ての同様の特殊タグが変換対象になるため、ユーザーや管理者が任意に変更出来る部分に注意する。
-  #（タグエスケープする、その特殊タグが入力された場合エラーにするetc）
+  #（エスケープする、その特殊タグが入力された場合エラーにするetc）
   
   $t-&gt;expand(
-    NAME =&gt; '&lt;&amp;NAME&gt;',
-    POINT =&gt; '&lt;&amp;POINT&gt;',
+    NAME =&gt; '#NAME',
+    POINT =&gt; '#POINT',
   );
 
   
-  $TL-&gt;print('test code.');</code></pre>
+  $t-&gt;flush;</code></pre>
 
 </dd>
 <dt><a id="Xe6X9bXb8Xe3X81X8dXe8XbeXbcXe3X81XbfXe5X81Xb4Xe4XbeX8bXefXbcX88Xe3X83Xa6Xe3X83XbcXe3X82Xb6Xe3X83XbcXe5X90X8dXe7XadX89Xe4Xb8X80Xe9X83Xa8Xe3X81XabXe5X9bXbaXe6X9cX89Xe3X81XaeXe6X83X85Xe5Xa0Xb1Xe3X82X92Xe5X9fX8bXe3X82X81Xe8XbeXbcXe3X82X93Xe3X81Xa7Xe3X81X84Xe3X82X8bXe5Xa0Xb4Xe5X90X88XefXbcX89"><span class="pod_lang">書き込み側例（ユーザー名等一部に固有の情報を埋め込んでいる場合）
@@ -811,8 +817,8 @@ servers = localhost:11211
 <dd>
 <pre class="pod_verbatim"><code>  #書き込みを行った場合、そのデータを表示する可能性があるキャッシュを全て削除する
   #削除漏れがあると、キャッシュしている内容が必要な為注意が必要。
-  #また、固有の文字列を出力用にクッキーなどに書き出したりする。
-  $TL-&gt;getCookie-&gt;set(TLTEST =&gt; $TL-&gt;newForm('&lt;&amp;NAME&gt;' =&gt; $CGI-&gt;get('name'),'&lt;&amp;POINT&gt;' =&gt; 1000));
+  #必要があれば、固有の文字列を出力用にクッキーなどに書き出したりする。
+  $TL-&gt;getCookie-&gt;set(TLTEST =&gt; $TL-&gt;newForm('#NAME' =&gt; $CGI-&gt;get('name'),'#POINT' =&gt; 1000));
 
   $TL-&gt;deleteCache('top');
   $TL-&gt;deleteCache('top2');</code></pre>
@@ -949,7 +955,25 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 <dd>
 <p>
 <span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> もしくは <a href="#trapError">&quot;trapError&quot;</a> が呼ばれ、最初に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が
-呼ばれる前。
+呼ばれる前。FastCGIの場合は最初の1回だけ呼ばれる。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="initRequest"><span class="pod_lang">initRequest
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、リクエストを受け取った直後、フォームがデコードされる前に呼ばれる。
+リクエストごとに呼び出される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#postRequest">&quot;postRequest&quot;</a> フックの前に呼び出される。
 
 </span>
 </p>
@@ -960,7 +984,14 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれる直前。
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、フォームをデコードした後、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれる前に呼ばれる。
+リクエストごとに呼び出される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#initRequest">&quot;initRequest&quot;</a> フックの後、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれる前に呼ばれる。
 
 </span>
 </p>
@@ -971,7 +1002,14 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang"><a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれた直後。
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
+リクエストごとに呼び出される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="#trapError">&quot;trapError&quot;</a> 利用時は <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれた後に呼び出される。
 
 </span>
 </p>
@@ -984,6 +1022,7 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 <p>
 <span class="pod_lang">最後に <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれた後。termフック呼出し後に <a href="#startCgi">&quot;startCgi&quot;</a>
 もしくは <a href="#trapError">&quot;trapError&quot;</a> が終了する。
+FastCGIの場合は最後の1回だけ呼ばれる。
 
 </span>
 </p>
@@ -1697,7 +1736,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">設定したフィルタは、<a href="#preRequest">&quot;preRequest&quot;</a> のタイミングで保存され、
+<span class="pod_lang">設定したフィルタは、<a href="#preRequest">&quot;preRequest&quot;</a> 実行後のタイミングで保存され、
 <a href="#postRequest">&quot;postRequest&quot;</a> のタイミングで元に戻される。従って、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a>内
 で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
 されない。
@@ -1762,7 +1801,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">typeは、<a href="#init">&quot;init&quot;</a>, <a href="#term">&quot;term&quot;</a>, <a href="#preRequest">&quot;preRequest&quot;</a>, <a href="#postRequest">&quot;postRequest&quot;</a>
+<span class="pod_lang">typeは、<a href="#init">&quot;init&quot;</a>, <a href="#term">&quot;term&quot;</a>, <a href="#initRequest">&quot;initRequest&quot;</a>, <a href="#preRequest">&quot;preRequest&quot;</a>, <a href="#postRequest">&quot;postRequest&quot;</a>
 の４種類が存在する。
 
 </span>
@@ -1829,7 +1868,7 @@ $value は大文字で始まらなければならない。
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $TL-&gt;sendError(-title =&gt; &quot;タイトル&quot;, -error =&gt; &quot;エラー&quot;)</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;sendError(title =&gt; &quot;タイトル&quot;, error =&gt; &quot;エラー&quot;)</code></pre>
 
 <p>
 <span class="pod_lang"><a href="././Tripletail/Ini.html">ini</a> で指定されたアドレスにエラーメールを送る。
@@ -2012,7 +2051,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">第2引数がonの場合、304を返す動作を行う。offの場合、304を返す動作を行わない。省略可能。
+<span class="pod_lang">第2引数がonの場合、304レスポンスを送る動作を行う。offの場合、動作を行わない。省略可能。
 
 </span>
 </p>
@@ -2051,8 +2090,8 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </p>
 
 <p>
-<span class="pod_lang">第2引数がonの場合で、第3引数が省略された場合、以下の動作を行う。
-
+<span class="pod_lang">この関数は次のような動作を行っている。
+	
 </span>
 </p>
 
@@ -2071,7 +2110,8 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </p>
 
 <p>
-<span class="pod_lang">3.アクセスされた時間が新しければ、304ステータスを出力し、undefを返す。
+<span class="pod_lang">3.アクセスされた時間が新しければ、304レスポンスを出力し、undefを返す。
+（第2引数がonの場合のみ、offの場合はキャッシュデータを出力する）
 
 </span>
 </p>
@@ -2203,7 +2243,8 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <pre class="pod_verbatim"><code>  [TL]
   logdir = /home/www/cgilog/
-  errortemplate = /home/www/error.html</code></pre>
+  errortemplate = /home/www/error.html
+  errortemplatecharset = Shift_JIS</code></pre>
 
 <dl>
 <dt><a id="maxrequestsize"><span class="pod_lang">maxrequestsize
@@ -2525,6 +2566,25 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
+<dt><a id="errortemplatecharset"><span class="pod_lang">errortemplatecharset
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  errortemplatecharset = Shift_JIS</code></pre>
+
+<p>
+<span class="pod_lang">errortemplate指定時に、エラーメッセージを返す際の charset を指定する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP が指定できる。デフォルトは UTF-8。
+
+</span>
+</p>
+
+</dd>
 <dt><a id="outputbuffering"><span class="pod_lang">outputbuffering
 
 </span></a></dt>
@@ -2544,7 +2604,14 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <p>
-<span class="pod_lang">バッファリングを行った場合、print した内容はリクエスト終了時まで表示されないが、処理中にエラーが発生した場合、出力内容は破棄され，エラーテンプレートの内容に差し替えられる。
+<span class="pod_lang">バッファリングを行った場合、print した内容はリクエスト終了時まで表示されないが、処理中にエラーが発生した場合、出力内容は破棄され、エラーテンプレートの内容に差し替えられる。
+また、Content-Length ヘッダが付与される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> を利用した場合、outputbuffering は1にセットされる。
 
 </span>
 </p>
@@ -3173,6 +3240,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#errormail">errormail</a></li>
 <li><a href="#errormailtype">errormailtype</a></li>
 <li><a href="#errortemplate">errortemplate</a></li>
+<li><a href="#errortemplatecharset">errortemplatecharset</a></li>
 <li><a href="#escapeJs">escapeJs</a></li>
 <li><a href="#escapeSqlLike">escapeSqlLike</a></li>
 <li><a href="#escapeTag">escapeTag</a></li>
@@ -3191,6 +3259,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#getRawCookie">getRawCookie</a></li>
 <li><a href="#getSession">getSession</a></li>
 <li><a href="#init">init</a></li>
+<li><a href="#initRequest">initRequest</a></li>
 <li><a href="#location">location</a></li>
 <li><a href="#log">log</a></li>
 <li><a href="#logdir">logdir</a></li>

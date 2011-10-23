@@ -35,7 +35,7 @@ sub watch {
 
 	my $lastmod = (stat($fpath))[9];
 	if(!$lastmod) {
-		die __PACKAGE__."#watch, failed to stat [$fpath]: $!\n";
+		die __PACKAGE__."#watch: failed to stat [$fpath]: $! (ファイルをstatできませんでした)\n";
 	}
 
 	$TL->log(
@@ -74,7 +74,7 @@ sub __postRequest {
 	while(my ($fpath, $lastmod) = each %{$this->{lastmod}}) {
 		my $current = (stat($fpath))[9];
 		if(!$current) {
-			die __PACKAGE__."#postRequest, failed to stat [$fpath]: $!\n";
+			die __PACKAGE__."#postRequest: failed to stat [$fpath]: $! (ファイルをstatできませんでした)\n";
 		}
 
 		if($current != $lastmod) {

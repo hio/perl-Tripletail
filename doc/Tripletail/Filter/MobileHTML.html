@@ -123,7 +123,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </li>
 <li>
 <p>
-<span class="pod_lang">HTTPヘッダの管理
+<span class="pod_lang">HTTPヘッダの管理。TLのIni設定のoutputbufferingを強制的に1にセットし、Content-Lengthヘッダを出力させる。（携帯では必須）
 
 </span>
 </p>
@@ -234,12 +234,19 @@ toExtLink メソッドを利用すると、INT キーは付与されない。
 </p>
 
 <p>
-<span class="pod_lang">セッション情報を付与したくない場合は、フォームタグを以下のように記述する。
+<span class="pod_lang">セッション情報を付与したくない場合は、<a href="../.././Tripletail/Template.html#extForm">&quot;extForm&quot; in Tripletail::Template</a> を使用するか、
+フォームタグを以下のように記述する。
 
 </span>
 </p>
 
 <pre class="pod_verbatim"><code> &lt;form action=&quot;&quot; EXT=&quot;1&quot;&gt;</code></pre>
+
+<p>
+<span class="pod_lang"><a href="../.././Tripletail/Template.html#extForm">&quot;extForm&quot; in Tripletail::Template</a> を使用すると、<code class="pod_iseq_C">EXT=&quot;1&quot;</code> が付与される。
+
+</span>
+</p>
 
 <p>
 <span class="pod_lang"><code class="pod_iseq_C">EXT=&quot;1&quot;</code> が付与されているフォームに関しては、セッション情報の付与を行わない。

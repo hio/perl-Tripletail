@@ -68,21 +68,21 @@ sub _charconv {
 	local($_);
 
 	if(!defined($str)) {
-		die "TL#charconv, ARG[1] was undef.\n";
+		die "TL#charconv: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die "TL#charconv, ARG[1] was a Ref. [$str]\n";
+		die "TL#charconv: arg[1] is a Ref. [$str] (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($from)) {
 		$from = 'auto';
 	} elsif(ref($from)) {
-		die "TL#charconv, ARG[2] was Ref. [$from]\n";
+		die "TL#charconv: arg[2] is a Ref. [$from] (第2引数がリファレンスです)\n";
 	}
 
 	if(!defined($to)) {
 		$to = 'UTF-8';
 	} elsif(ref($to)) {
-		die "TL#charconv, ARG[3] was a Ref. [$to]\n";
+		die "TL#charconv: arg[3] is a Ref. [$to] (第3引数がリファレンスです)\n";
 	}
 
 	my $fromuj = $MAP_ENCODE_TO_UNIJP{$from} ? $MAP_ENCODE_TO_UNIJP{$from} : $from;
@@ -93,17 +93,17 @@ sub _charconv {
 		Unicode::Japanese->new($str, $fromuj)->conv($touj);
 	} elsif($UNICODE_JAPANESE_CODE{$fromuj}) {
 		# 片方サポートなのでutf8経由で変換
-		$this->_encodeAvailable or die "TL#charconv, Can't use Encode module.\n";
+		$this->_encodeAvailable or die "TL#charconv: can't use Encode module. (Encodeモジュールが使用できません)\n";
 		my $utf8 = Unicode::Japanese->new($str, $fromuj)->utf8;
 		Encode::find_encoding($to)->encode($utf8);
 	} elsif($UNICODE_JAPANESE_CODE{$touj}) {
 		# 片方サポートなのでutf8経由で変換
-		$this->_encodeAvailable or die "TL#charconv, Can't use Encode module.\n";
+		$this->_encodeAvailable or die "TL#charconv: can't use Encode module. (Encodeモジュールが使用できません)\n";
 		my $utf8 = Encode::find_encoding($from)->decode($str);
 		Unicode::Japanese->new($str, 'utf8')->conv($touj);
 	} else {
 		# 両方ともサポート外
-		$this->_encodeAvailable or die "TL#charconv, Can't use Encode module.\n";
+		$this->_encodeAvailable or die "TL#charconv: can't use Encode module. (Encodeモジュールが使用できません)\n";
 		my $utf8 = Encode::find_encoding($from)->decode($str);
 		Encode::find_encoding($to)->encode($utf8);
 	}

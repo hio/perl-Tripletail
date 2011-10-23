@@ -55,7 +55,8 @@ sub check {
 	foreach my $key ( keys %{ $this->{_filters} } ) {
 		foreach my $filter ( @{ $this->{_filters}->{$key} } ) {
 			if(Tripletail::Validator::FilterFactory::getFilter($filter->{filter})->isCorrectFilter) {
-				die "Tripletail::Validator#check, Can't use correct filter.\n";
+				die __PACKAGE__."#check: Can't use correct filter.".
+					" (checkメソッドではcorrentフィルタを使用することは出来ません。correctメソッドを利用してください)\n";
 			}
 		}
 	}
@@ -66,7 +67,8 @@ sub correct {
 	my $this = shift;
 	my $form = shift;
 	if($form->isConst) {
-		die "Tripletail::Validator#correct, Form instance is const object.\n";
+		die __PACKAGE__."#correct: Form instance is const object.".
+			" (Formオブジェクトの変更が禁止されています)\n";
 	}
 	$this->_execFilter($form, 1);
 }
