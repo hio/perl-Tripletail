@@ -1,4 +1,7 @@
-use Test::More tests => 108;
+use Test::More tests =>
+  108
+  +2 # trim.
+  ;
 use Test::Exception;
 use strict;
 use warnings;
@@ -493,3 +496,56 @@ abcde
 </textarea>
 </form>
 EOF
+
+# -----------------------------------------------------------------------------
+# trim.
+#
+test_trim();
+sub test_trim
+{
+  my $tmpl;
+  my $src = <<EOF;
+  <table>
+  <!begin:row>
+  <tr>
+    <!begin:item>
+    <td><&LABEL></td>
+    <!end:item>
+  </tr>
+  <!end:row>
+  </table>
+EOF
+
+  $tmpl = $TL->newTemplate();
+  $tmpl->setTemplate($src);
+  $tmpl->node('row')->node('item')->trim();
+  $tmpl->node('row')->node('item')->add({LABEL=>1});
+  $tmpl->node('row')->node('item')->add({LABEL=>2});
+  $tmpl->node('row')->trim->add;
+
+  is($tmpl->toStr, <<EOF, "trim");
+  <table>
+  <tr>
+    <td>1</td>
+    <td>2</td>
+  </tr>
+  </table>
+EOF
+
+  $tmpl = $TL->newTemplate();
+  $tmpl->setTemplate($src);
+  $tmpl->node('row')->node('item')->trim('-join');
+  $tmpl->node('row')->node('item')->add({LABEL=>1});
+  $tmpl->node('row')->node('item')->add({LABEL=>2});
+  $tmpl->node('row')->trim->add;
+
+  is($tmpl->toStr, <<EOF, "trim(join)");
+  <table>
+  <tr><td>1</td><td>2</td></tr>
+  </table>
+EOF
+}
+
+# -----------------------------------------------------------------------------
+# End of File.
+# -----------------------------------------------------------------------------

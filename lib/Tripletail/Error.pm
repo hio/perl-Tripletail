@@ -312,7 +312,7 @@ sub toHtml {
 			MESSAGE => 'br',
 		})->expand(
 			TYPE    => $this->{type},
-			MESSAGE => $msg,
+			MESSAGE => "$msg",
 		   );
 	}
 	else {
@@ -321,7 +321,7 @@ sub toHtml {
 			MESSAGE => 'br',
 		})->add(
 			TYPE    => $this->{type},
-			MESSAGE => $this->{message},
+			MESSAGE => "$this->{message}",
 		   );
 
 		$t->expand(

@@ -354,6 +354,24 @@ XHTMLを出力する際に、このパラメータをhtmlのままにした場�
 </p>
 
 </dd>
+<dt><a id="contenttype"><span class="pod_lang">contenttype
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter(
+    &quot;Tripletail::Filter::MobileHTML&quot;,
+    contenttype =&gt; 'text/x-hdml; charset=Shift_JIS',
+    charset     =&gt; 'Shift_JIS',
+  );</code></pre>
+
+<p>
+<span class="pod_lang">HDML 使用時に指定.
+それ以外の値の場合はフィルタが自動判定した値で上書きされる.
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h2><a id="METHODS">
@@ -415,6 +433,17 @@ XHTMLを出力する際に、このパラメータをhtmlのままにした場�
 
 </dd>
 <dt><a id="print"><span class="pod_lang">print
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang"><a href="../.././Tripletail/Filter.html">Tripletail::Filter</a>参照
+
+</span>
+</p>
+
+</dd>
+<dt><a id="reset"><span class="pod_lang">reset
 
 </span></a></dt>
 <dd>
@@ -521,8 +550,10 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <li><a href="#X__01">Tripletail::Filter::HTML</a></li>
 <li><a href="#X__02">Tripletail::Form</a></li>
 <li><a href="#addHeader">addHeader</a></li>
+<li><a href="#contenttype">contenttype</a></li>
 <li><a href="#getSaveForm">getSaveForm</a></li>
 <li><a href="#print">print</a></li>
+<li><a href="#reset">reset</a></li>
 <li><a href="#setHeader">setHeader</a></li>
 <li><a href="#type">type</a></li>
 <li><a href="#Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3">セッション</a></li>

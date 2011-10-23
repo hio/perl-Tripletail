@@ -99,7 +99,11 @@ sub set {
 		die __PACKAGE__."#set: ARG[1] is a Ref.\n";
     }
 
-    @{$this->[HTML]} = split m/(<.+?>)/s, $html;
+    #@{$this->[HTML]} = split m/(<.+?>)/s, $html;
+    # ↑では、<!-- <hoge> -->を正しく解析できない。真面目にパーズする必要がある
+    # しかし、perlで真面目にパーザを書くのは非常に面倒なので正規表現で誤魔化す
+    # NB: 他にも、正しく解析できないパターンが存在するかも
+    @{$this->[HTML]} = split m/((?:<!--.*?-->)|(?:<.+?>))/s, $html;
     @{$this->[OUTPUT]} = ();
     $this;
 }

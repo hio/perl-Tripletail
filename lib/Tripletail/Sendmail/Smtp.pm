@@ -210,10 +210,11 @@ sub _hello {
 sub _getHostname {
 	my $this = shift;
 
-	use vars qw($hostname);
+	# state var.
+	our $hostname;
 
 	if(!defined($hostname)) {
-		$hostname = `hostname`;
+		$hostname = $TL->_hostname();
 		chomp $hostname;
 	}
 

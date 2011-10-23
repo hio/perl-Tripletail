@@ -27,13 +27,13 @@ sub send {
 	my $this = shift;
 	my $data = $this->_getoptSend(@_);
 
+	open my $sendmail, '|' . $this->{commandline}
+	  or die __PACKAGE__."#send: failed to execute the sendmail command. [$this->{commandline}] (sendmailコマンドを使用できません)\n";
 	
-	foreach my $rcpt (@{$data->{rcpt}}) {
-		open my $sendmail, '|' . $this->{commandline}
-			or die __PACKAGE__."#send: failed to execute the sendmail command. [$this->{commandline}] (sendmailコマンドを使用できません)\n";
-		
-		print $sendmail $data->{data};
-	}
+	my $senddata = $data->{data};
+	$senddata =~ tr/\r//d;
+	
+	print $sendmail $senddata;
 
 	$this;
 }

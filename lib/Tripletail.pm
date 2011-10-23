@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 42251 2008-06-11 06:56:36Z hio $
+# $Id: Tripletail.pm,v c533de1af141 2008/09/16 07:28:32 hio $
 package Tripletail;
 use 5.008_000;
 use strict;
@@ -14,7 +14,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.43';
+our $VERSION = '0.44';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -309,6 +309,50 @@ sub unescapeTag {
 	$str;
 }
 
+our $JSSTRING_SPLIT_RE = sub {
+	# </script と --> を分割する為の正規表現
+	# 要は、"111</script>222-->333"のような文字列をsplitすると、
+	# [ "111</scr", "ipt>222-", "->333" ]
+	# のように分割されるような正規表現を用意する
+	# (これは最終的には'"111</scr"+"ipt>222-"+"->333"'のように加工される)
+	# TODO: もう少し緩い判定にすべきかも知れない
+	#       (「< / script>」等が有り得る？)
+	my $scr = quotemeta('</scr');
+	my $ipt = quotemeta('ipt');
+	my $comment_end1 = quotemeta('-');
+	my $comment_end2 = quotemeta('->');
+	qr/(?:(?<=${scr})(?=${ipt}))|(?:(?<=${comment_end1})(?=${comment_end2}))/i;
+}->();
+
+sub escapeJsString {
+	my $this = shift;
+	my $str = shift;
+
+	if(!defined($str)) {
+		die "TL#escapeJsString: arg[1] is not defined. (第1引数が指定されていません)\n";
+	}
+
+	my $splitted = [ split($JSSTRING_SPLIT_RE, $str) ];
+	# 分割した文字列をJavaScriptの'"</scr"+"ipt>"'状態にする
+	my $result = join('"+"', (map { $this->escapeJs($_) } grep { defined } (@$splitted)));
+	'"' . $result . '"';
+}
+
+sub unescapeJsString {
+	my $this = shift;
+	my $str = shift;
+
+	if(!defined($str)) {
+		die "TL#unescapeJsString: arg[1] is not defined. (第1引数が指定されていません)\n";
+	}
+
+	die "TL#unescapeJsString: arg[1] is not JsString. (第1引数がJsString形式になっていません)\n" if not ($str =~ /^['"](.*)['"]$/);
+	my $body = $1;
+	$body =~ s/(?:\"\+\")|(?:\'\+\')//g;
+	$this->unescapeJs($body);
+
+	$body;
+}
 sub escapeJs {
 	my $this = shift;
 	my $str = shift;
@@ -333,8 +377,15 @@ sub unescapeJs {
 		die "TL#unescapeJs: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 
+	my $map = {
+	  'r' => "\r",
+	  'n' => "\n",
+	  "'" => "'",
+	  '"' => '"',
+	  "\\" => "\\",
+	};
 	$str = "$str"; # stringify.
-	$str =~ s/\\(['"\\])/$1/g;
+	$str =~ s/\\([rn'"\\])/$map->{$1}/ge;
 
 	$str;
 }
@@ -788,7 +839,14 @@ sub dispatch {
 			if($@) {
 				die __PACKAGE__."#dispatch: onerror handler threw an error. [$@] (onerrorの関数でエラーが発生しました)\n";
 			}
+			return;
 		}
+	}
+
+	my $args = $param->{args} || [];
+	if( !UNIVERSAL::isa($args, 'ARRAY') )
+	{
+		die __PACKAGE__."#dispatch： arg{args} is not array-ref. (args 引数がarray-refではありません)\n";
 	}
 
 	# 呼ばれる関数のあるパッケージはcallerから得る。
@@ -796,7 +854,7 @@ sub dispatch {
 	my $func = $pkg->can("Do$name");
 
 	if($func && defined(&$func)) {
-		$func->();
+		$func->(@$args);
 		1;
 	} else {
 		if(!defined($param->{'onerror'})) {
@@ -1199,7 +1257,9 @@ sub _sendErrorIfNeeded {
 
 sub _hostname
 {
-	my $host = `hostname -f 2>&1` || `hostname 2>&1`;
+	my $this = shift;
+	my $host = $this->_readcmd("hostname -f 2>&1");
+	$host ||= $this->_readcmd("hostname 2>&1");
 	$host && $host=~/^\s*([\w.-]+)\s*$/ ? $1 : '';
 }
 
@@ -1236,13 +1296,13 @@ sub sendError {
 	push @lines, '';
 	push @lines, '----';
 
-	my $host = _hostname();
+	my $host = $this->_hostname();
 	if($host) {
 		chomp $host;
 		unshift @lines, "HOST: $host";
 	}
 
-	my $locinfo = '@' . $host;
+	my $locinfo = '@' . ($host || '-');
 	if(defined $0) {
 		$locinfo = $0 . $locinfo;
 
@@ -1296,12 +1356,12 @@ sub print {
 		die __PACKAGE__."#print: we have no content-filters. Set at least one filter. (コンテンツフィルタが指定されていません)\n";
 	}
 
+	foreach my $filter (@{$this->{filterlist}}) {
+		$data = $filter->print($data);
+	}
 	if($this->{outputbuffering}) {
 		$this->{outputbuff} .= $data;
 	} else {
-		foreach my $filter (@{$this->{filterlist}}) {
-			$data = $filter->print($data);
-		}
 		print $data;
 	}
 
@@ -2207,7 +2267,8 @@ sub __dispError {
     if ($this->{printflag} and not $this->{outputbuffering}) {
         $html = "<p>$err</p>";
         $html =~ s!\n!<br />!g;
-        $http_headers = '';
+        my $filter = $this->getContentFilter();
+        $http_headers = $filter->{header_flushed} ? '' : $filter->_flush_header();
     }
 	elsif (length $errortemplate) {
 		my $t = $TL->newTemplate($errortemplate);
@@ -2298,8 +2359,9 @@ sub __executeCgi {
 		} else {
 			$this->__flushContentFilter;
 		}
+		$this->__resetContentFilter();
 
-		$this->_restoreContentFilter;
+		$this->_restoreContentFilter();
 		$this->__executeHook('postRequest');
 	}
 
@@ -2326,21 +2388,37 @@ sub __flushContentFilter {
 	}
 
 
-	my $str = $this->{outputbuff};
+	my $str = '';
 	foreach my $filter (@{$this->{filterlist}}) {
 		$str = $filter->print($str);
 		$str .= $filter->flush;
 	}
+	$str = $this->{outputbuff} . $str;
 
 	if( $add_clen )
 	{
 		my $body = $str;
-		$body =~ s/^.*?(?:\r?\n|\r){2}//sm;
+		$body =~ s/^.*?(?:\r?\n\r?\n|\r\r)//s;
 		my $clen = length($body);
 		$str = "Content-Length: $clen\r\n" . $str;
 	}
 
 	print $str;
+}
+
+sub __resetContentFilter {
+	my $this = shift;
+
+	delete $this->{printflag};
+
+	foreach my $filter (@{$this->{filterlist}})
+	{
+		my $sub = $filter->can('reset');
+		if( $sub )
+		{
+			$filter->$sub();
+		}
+	}
 }
 
 sub _cwd
@@ -2452,7 +2530,7 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
   logdir = /home/tl/logs
   errormail = tl@example.org
   [TL@server:Debughost]
-  logdir = /home/tl/logs/regist
+  logdir = /home/tl/logs/register
 
 マスクは空白で区切って複数個指定する事が可能。
 
@@ -2469,27 +2547,28 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
   [HOST]
   Debughost = 192.168.10.0/24
   Testuser = 192.168.11.5 192.168.11.50
-  [TL:regist@server:Debughost]
-  logdir = /home/tl/logs/regist/debug
+  [TL:register@server:Debughost]
+  logdir = /home/tl/logs/register/debug
   [TL@server:Debughost]
   logdir = /home/tl/logs
   errormail = tl@example.org
   [TL]
   logdir = /home/tl/logs
-  [TL:regist]
-  logdir = /home/tl/logs/regist
+  [TL:register]
+  logdir = /home/tl/logs/register
   [Debug@remote:Testuser]
   enable_debug=1
 
 というtl.iniが存在している場合に
 
-  use Tripletail qw(/home/www/ini/tl.ini regist);
+  use Tripletail qw(/home/www/ini/tl.ini register);
+
 で、起動した場合、次のような動作になる。
 
 プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
 
   [TL]
-  logdir = /home/tl/logs/regist/debug
+  logdir = /home/tl/logs/register/debug
   errormail = tl@example.org
   [Debug]
   enable_debug=1
@@ -2497,10 +2576,12 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
 プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50では無い場合
 
   [TL]
-  logdir = /home/tl/logs/regist
+  logdir = /home/tl/logs/register
 
+また、
 
-  use Tripletail qw(/home/www/ini/tl.ini regist);
+  use Tripletail qw(/home/www/ini/tl.ini);
+
 で、起動した場合、次のような動作になる。
 
 プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
@@ -2786,11 +2867,19 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
 
 =head4 C<< dispatch >>
 
-  $result = $TL->dispatch($value, default => $default, onerror => \&Error)
+  $result = $TL->dispatch($value, %params)
+
+  $params{default} = $scalar.
+  $params{onerror} = \&error.
+  $params{args}    = \@args.
 
 'Do' と $value を繋げた関数名の関数を呼び出す。
 $valueがundefの場合、defaultを指定していた場合、defaultに設定される。
 $value は大文字で始まらなければならない。
+
+args 引数が指定されていた場合、関数にその内容を渡す。
+指定されていなければ関数は引数なしで呼び出される。
+(0.44以降)
 
 onerrorが未設定で関数が存在しなければ undef、存在すれば1を返す。
 
@@ -2857,6 +2946,28 @@ CGIモードの時、指定されたURLへリダイレクトする。
   $result = $TL->unescapeJs($value)
 
 escapeJs した文字列を元に戻す。
+
+=head4 C<< escapeJsString >>
+
+  $result = $TL->escapeJsString($value)
+
+JavaScriptの文字列コードになるようにエスケープする。
+その際には、html内にJavaScriptを埋め込んだ際に終端と誤認される「E<lt>/scriptE<gt>」「--E<gt>」を考慮する。
+例えば、
+
+  $TL->escapeJsString("ab\"cd </script> def")
+
+を評価すると、
+
+  '"ab\"cd </scr"+"ipt> def"'
+
+が得られる。
+
+=head4 C<< unescapeJsString >>
+
+  $result = $TL->unescapeJsString($value)
+
+escapeJsString した文字列を元に戻す。
 
 =head4 C<< encodeURL >>
 
@@ -3519,7 +3630,10 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP が指定できる。デフォルトは
 
   outputbuffering = 0
 
-startCgi メソッド中で出力をバッファリングする。デフォルトは0。
+startCgi メソッド中で出力をバッファリングするかどうか。
+0 だとバッファリングを行わず、
+1 だとバッファリングを行う。
+デフォルトは0。
 
 バッファリングしない場合、print した内容はすぐに表示されるが、少しでも表示を行った後にエラーが発生した場合は、エラーテンプレートが綺麗に表示されない。
 

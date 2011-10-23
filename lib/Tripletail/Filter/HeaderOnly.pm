@@ -30,14 +30,12 @@ sub flush {
 
 	my $data = $this->_flush_header;
 
-	$this->_reset;
-
 	$data;
 }
 
-sub _reset {
+sub reset {
 	my $this = shift;
-	$this->SUPER::_reset;
+	$this->SUPER::reset;
 
 	$this;
 }
@@ -73,6 +71,10 @@ Tripletail::Filter::HeaderOnly - ヘッダのみ出力
 L<Tripletail::Filter>参照
 
 =item print
+
+L<Tripletail::Filter>参照
+
+=item reset
 
 L<Tripletail::Filter>参照
 

@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: test_server.pm 4932 2007-11-22 10:29:03Z hio $
+# $Id: test_server.pm,v 54de5addc4ae 2008/09/11 08:57:49 pho $
 # -----------------------------------------------------------------------------
 package t::test_server;
 use strict;
@@ -278,10 +278,19 @@ sub _run_script
     };
 	$resp->code($retval);
 	$resp->message(status_message($resp->code));
-	
-	foreach my $key ($msg->headers->header_field_names) {
-		$resp->headers->header(
+
+	if (defined &HTTP::Headers::header_field_names) {
+		foreach my $key ($msg->headers->header_field_names) {
+			$resp->headers->header(
 				$key => $msg->headers->header($key));
+		}
+	}
+	else {
+		foreach my $key (keys %{ $msg->headers }) {
+			# Workaround for old HTTP::Headers. !! UNSAFE !!
+			$resp->headers->header(
+				$key => $msg->headers->header($key));
+		}
 	}
 	
 	$resp->content($msg->content);

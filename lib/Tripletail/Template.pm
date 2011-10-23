@@ -511,6 +511,10 @@ L<< $TL->escapeTag|Tripletail/"escapeTag" >> を適用後、
 
 L<< $TL->escapeJs|Tripletail/"escapeJs" >> を適用後、出力する
 
+=item jsstring
+
+L<< $TL->escapeJsString|Tripletail/"escapeJsString" >> を適用後、出力する
+
 
 =back
 
@@ -665,6 +669,13 @@ Templateの場合、全体を出力する。
 
 テンプレートの最初から順にflushしていかないと、テンプレートの
 一部分が重複出力されるので注意が必要。
+
+=item trim
+
+  $t->trim()
+
+C<< <!begin:????> >>, C<< <!end:????> >> タグ前後の空白を削除する。
+ある行にタグのみが書かれていた場合に、行ごと取り除かれたようにみえる。
 
 =item toStr
 

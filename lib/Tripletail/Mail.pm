@@ -36,7 +36,9 @@ sub _new {
 	my $pkg = shift;
 	my $this = bless {} => $pkg;
 
-	$this->{entity} = MIME::Entity->new;
+	$this->{entity} = MIME::Entity->new(
+		Modify => 0,
+	);
 
 	$this;
 }
@@ -657,7 +659,7 @@ sub _encodeHeader {
 				$result =~ s/\s\z//;
 				if( $result ne '' )
 				{
-					$result .= "\n\t";
+					$result .= "\n ";
 				}
 				$length = 0;
 			}
@@ -684,7 +686,7 @@ sub _encodeHeader {
 				
 				if( $result ne '' )
 				{
-					$result .= "\n\t";
+					$result .= "\n ";
 				}
 				$result .= $encdata;
 				$length = length($encdata);

@@ -687,6 +687,52 @@ sub __updateSession {
 }
 
 
+# -----------------------------------------------------------------------------
+# ($key, $val, $err) = $sess->_createSessionCheck($issecure).
+# $issecure ::= bool.
+#
+# 現在の実装では, 検証キーとして sid(とcheckval) から固定のハッシュ値が
+# 生成される.
+# このキーが奪取可能であればそれはセッションキーそのものも同様に
+# 奪取可能な自体であるため, セッション内で固定値であることは特に問題にならない.
+# 
+sub _createSessionCheck
+{
+	my $this     = shift;
+	my $issecure = shift;
+
+	do {
+		local $SIG{__DIE__} = 'DEFAULT';
+		eval 'use Digest::HMAC_SHA1 qw(hmac_sha1_hex)';
+	};
+	if($@)
+	{
+		my $err = "failed to load Digest::HMAC_SHA1 [$@] (Digest::HMAC_SHA1が使用できません)\n";
+		return (undef, undef, $err);
+	}
+
+	my $sessiongroup = $this->{group};
+	my $csrfkey = $TL->INI->get($sessiongroup => 'csrfkey', undef);
+	if( !defined($csrfkey) )
+	{
+		my $err = "csrfkey is not defined for the INI group [$sessiongroup]. (INI [$sessiongroup] で csrfkey を設定してください)\n";
+		return (undef, undef, $err);
+	}
+
+	my ($key, $sid, $checkval) = $this->getSessionInfo($issecure);
+
+	if( !defined($sid) )
+	{
+		my $err = "no session ID has been created. You must prepare one before. (セッションがありません。事前にセッションを生成してください)\n";
+		return (undef, undef, $err);
+	}
+
+	$key = 'C' . $key;
+	my $value = hmac_sha1_hex(join('.', $sid, $checkval), $csrfkey);
+
+	($key, $value, undef);
+}
+
 __END__
 
 =encoding utf-8
@@ -742,8 +788,30 @@ Tripletail::Session - セッション
 
 64bit符号無し整数値の管理機能を持ったセッション管理クラス。
 
-セッションは64bit符号無し整数以外のデータを取り扱えない為、その他のデータを管理したい場合は、
+セッションは64bit符号無し整数以外のデータを取り扱えない為、
+その他のデータを管理したい場合は、
 セッションキーを用い別途管理する必要がある。 
+
+セッションの管理は L<DB|Tripletail::DB> を利用して行われる。
+
+また、保存に利用するテーブルは自動的に作成される。
+デフォルトでは C<tl_session_Session> という名前になる。
+(Ini 項目 L</sessiontable> 参照)
+
+
+プログラム本体とDB接続を共有するため、以下の点に注意しなければならない。
+
+=over 4
+
+=item *
+
+セッションの操作は、トランザクション中及びテーブルロック中には行わない。
+
+=item *
+
+コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
+
+=back
 
 セッションキーは、 L<出力フィルタ|Tripletail/"出力フィルタ"> に L<Tripletail::Filter::HTML>
 を使用している場合は L<クッキー|Tripletail::Cookie> に、 L<Tripletail::Filter::MobileHTML>
@@ -763,22 +831,6 @@ Tripletail::Session - セッション
 フォームの利用の仕方に注意が必要であるため、
 L<Tripletail::Filter::MobileHTML> ドキュメントに書かれている
 利用方法を別途確認すること。
-
-Sessionは L<DB|Tripletail::DB> を使用してセッションの管理を行う。
-
-プログラム本体とDB接続を共有するため、以下の点に注意しなければならない。
-
-=over 4
-
-=item *
-
-セッションの操作は、トランザクション中及びテーブルロック中には行わない。
-
-=item *
-
-コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
-
-=back
 
 =head2 METHODS
 
@@ -840,6 +892,7 @@ Perlでは通常32bit整数値までしか扱えないため、セッション�
   $session->discard
 
 現在のセッションキーを無効にする。
+また、セッションに保存されていた値も破棄される。
 
 このメソッドの呼び出しは、コンテンツデータを返す前に行わなければならない。
 

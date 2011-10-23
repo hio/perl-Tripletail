@@ -15,7 +15,7 @@ my $src = qq{
   aaa<br>
   bbb
 </FORM>
-<!-- comment -->
+<!-- <comment> -->
 };
 
 my $dst = qq{
@@ -23,7 +23,7 @@ my $dst = qq{
   aaa<!-- BR -->
   bbb
 </FORM>
-<!-- MODIFIED COMMENT: [comment] -->
+<!-- MODIFIED COMMENT: [<comment>] -->
 };
 
 my $filter;

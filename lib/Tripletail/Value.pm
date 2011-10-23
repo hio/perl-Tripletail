@@ -727,6 +727,85 @@ sub isDateString {
     }
 }
 
+sub isChar
+{
+  my $this = shift;
+
+  if( !@_ )
+  {
+    die __PACKAGE__."#isChar, no arguments specified. (引数が指定されていません)\n";
+  }
+
+  my @chars;
+  foreach my $i (1..@_)
+  {
+    my $val = $_[$i-1];
+    if( !defined($val) )
+    {
+      die __PACKAGE__."#isChar, arg[$i] is not defined. (第$i引数が指定されていません)\n";
+    }
+    if( ref($val) )
+    {
+      if( ref($val) ne 'ARRAY' )
+      {
+        die __PACKAGE__."#isChar, arg[$i] is not array-ref. (第$i引数は配列リファレンスではありません)\n";
+      }
+      push(@chars, $val);
+    }else
+    {
+      our $MAPS ||= {
+        digit      => [0..9],
+        loweralpha => ['a'..'z'],
+        upperalpha => ['A'..'Z'],
+        alpha      => ['a'..'z', 'A'..'Z'],
+        '-'        => ['-'],
+        '_'        => ['_'],
+      };
+      foreach my $name (map{lc($_)} split(/[\s,]+/, $val))
+      {
+        my $list = $MAPS->{$name};
+        if( !$list )
+        {
+          die __PACKAGE__."#isChar, invalid name [$name]. (無効な値です [$name])\n";
+        }
+        push(@chars, $list);
+      }
+    }
+  }
+
+  if( !defined($this->{value}) )
+  {
+    # undefined is not acceptable.
+    return;
+  }
+
+  if( $this->{value} eq '' )
+  {
+    # empty is not acceptable.
+    return;
+  }
+
+  foreach my $ch (split(//, $this->{value}))
+  {
+    my $accepted;
+    foreach my $list (@chars)
+    {
+      if( grep { $_ eq $ch } @$list )
+      {
+        $accepted = 1;
+        last;
+      }
+    }
+    if( !$accepted )
+    {
+      # rejected.
+      return undef;
+    }
+  }
+
+  # all accepted.
+  return 1;
+}
 
 #---------------------------------- conv系
 sub convHira {
@@ -1719,6 +1798,16 @@ $checkmaskは空白で区切って複数個指定する事が可能。
 フォーマット文字列は
 L<Tripletail::DateTime#strFormat|Tripletail::DateTime/"strFormat">
 のものと同一である。
+
+=item isChar
+
+  $bool = $val->isChar($format)
+
+ $format ::= 'digit' | 'alpha' | 'loweralpha' | 'upperalpha' | ARRAYREF of char
+
+指定された文字のみで構成されていれば 1 、そうでなければ undef 。
+
+空文字列に対しては undef を返す。
 
 =back
 

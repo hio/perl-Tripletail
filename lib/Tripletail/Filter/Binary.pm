@@ -34,9 +34,9 @@ sub _new {
 	$this;
 }
 
-sub _reset {
+sub reset {
 	my $this = shift;
-	$this->SUPER::_reset;
+	$this->SUPER::reset;
 
 	$this->setHeader('Content-Type' => $this->{option}{contenttype});
 
@@ -89,6 +89,10 @@ Content-Typeを指定する。省略可能。
 
 他の出力の前に実行する必要がある．同じヘッダを既に出力しようとしている場合，
 そのヘッダに加えて指定したヘッダを出力する．
+
+=item reset
+
+L<Tripletail::Filter>参照
 
 =back
 

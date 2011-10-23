@@ -2,7 +2,11 @@
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 151;
+use Test::More tests =>
+  151
+  +3  # Char filter.
+  +18 # MultiValues filter.
+;
 
 use lib '.';
 use t::make_ini {
@@ -513,4 +517,132 @@ sub toHash {
   my $form_const = $TL->newForm->set(correct => 'test123')->const;
   dies_ok {$validator->correct($form_const)} 'correct with const form';
 
+
+#---Char
+SKIP:
+{
+  pass("Char validator");
+  lives_ok {
+    $TL->newValidator()->addFilter({ test => 'Char(Digit)', })->check($TL->newForm());
+  } ": Char exists" or skip "Char validator not exists", 3-2;
+
+  my $form = $TL->newForm({
+    digit => '0123456789',
+    lower => 'abcdefghijklmnopqrstuvwxyz',
+    upper => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  });
+  my $vtor = $TL->newValidator()->addFilter({
+    digit => 'Char(Digit)',
+    lower => 'Char(LowerAlpha)',
+    upper => 'Char(UpperAlpha)',
+  });
+  is($vtor->check($form), undef, ": check");
+}
+
+#---multiply
+SKIP:
+{
+  my ($form, $vtor);
+
+  pass("MultiValues filter");
+
+  $form = $TL->newForm({
+    one   => [1],
+    two   => [1,2],
+    three => [1,2,3],
+  });
+
+  my $exists = 1;
+  lives_ok {
+    $TL->newValidator()->addFilter({ test => 'NoValues', })->check($form);
+  } ": NoValues exists" or $exists = 0;
+  lives_ok {
+    $TL->newValidator()->addFilter({ test => 'SingleValue', })->check($form);
+  } ": SingleValue exists" or $exists = 0;
+  lives_ok {
+    $TL->newValidator()->addFilter({ test => 'MultiValues(1)', })->check($form);
+  } ": MultiValues exists" or $exists = 0;
+  if( !$exists )
+  {
+    skip "NoValues/SingleValue/MultiValues not exists", 18-4;
+  }
+
+  # NoValues.
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'NotEmpty',
+  });
+  is_deeply($vtor->check($form), {none=>'NotEmpty'}, ": none : NotEmpty ng");
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'NoValues;NotEmpty',
+  });
+  is_deeply($vtor->check($form), undef, ": none : NoValues;NotEmpty ok");
+
+  $vtor = $TL->newValidator()->addFilter({
+    two => 'NoValues;NotEmpty',
+  });
+  is_deeply($vtor->check($form), undef, ": two : NoValues;NotEmpty ok");
+
+  # SingleValue.
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'SingleValue',
+  });
+  is_deeply($vtor->check($form), {none=>'SingleValue'}, ": SingleValue ng none");
+
+  $vtor = $TL->newValidator()->addFilter({
+    one => 'SingleValue',
+  });
+  is_deeply($vtor->check($form), undef, ": SingleValue ok [1]");
+
+  $vtor = $TL->newValidator()->addFilter({
+    two => 'SingleValue',
+  });
+  is_deeply($vtor->check($form), {two=>'SingleValue'}, ": SingleValue ng [1,2]");
+
+  # MultiValues(2).
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'MultiValues(2,)',
+  });
+  is_deeply($vtor->check($form), {none=>'MultiValues'}, ": MultiValues(2) ng none");
+
+  $vtor = $TL->newValidator()->addFilter({
+    one => 'MultiValues(2,)',
+  });
+  is_deeply($vtor->check($form), {one=>'MultiValues'}, ": MultiValues(2) ng [1]");
+
+  $vtor = $TL->newValidator()->addFilter({
+    two => 'MultiValues(2,)',
+  });
+  is_deeply($vtor->check($form), undef, ": MultiValues(2) ok [1,2]");
+
+  $vtor = $TL->newValidator()->addFilter({
+    three => 'MultiValues(2)',
+  });
+  is_deeply($vtor->check($form), undef, ": MultiValues(2) ok [1,2,3]");
+
+  # MultiValues(1,2).
+
+  $vtor = $TL->newValidator()->addFilter({
+    none => 'MultiValues(1,2)',
+  });
+  is_deeply($vtor->check($form), {none=>'MultiValues'}, ": MultiValues(1,2) ng none");
+
+  $vtor = $TL->newValidator()->addFilter({
+    one => 'MultiValues(1,2)',
+  });
+  is_deeply($vtor->check($form), undef, ": MultiValues(1,2) ok [1]");
+
+  $vtor = $TL->newValidator()->addFilter({
+    two => 'MultiValues(1,2)',
+  });
+  is_deeply($vtor->check($form), undef, ": MultiValues(1,2) ok [1,2]");
+
+  $vtor = $TL->newValidator()->addFilter({
+    three => 'MultiValues(1,2)',
+  });
+  is_deeply($vtor->check($form), {three=>'MultiValues'}, ": MultiValues(1,2) ng [1,2,3]");
+}
 

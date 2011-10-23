@@ -183,6 +183,7 @@ t/server_session_sqlite.t
 t/tagcheck.t
 t/template.t
 t/test_server.pm
+t/tl-dispatch.t
 t/tl-faulthandler.t
 t/tl.t
 t/v002_select.t
@@ -194,6 +195,14 @@ t/v038_tainted_template.t
 t/v040_mutable_cgi_input.t
 t/v042_debug_buffering.t
 t/v043_buffed_clen.t
+t/v044_buffed_clen2.t
+t/v044_buffering_csv.t
+t/v044_filter_reset.t
+t/v044_hdml_ctype.t
+t/v044_mail_subject.t
+t/v044_nullout_error.t
+t/v044_onerror_twice.t
+t/v044_setform_multival.t
 t/validator.t
 t/validator_correct.t
 t/value.t

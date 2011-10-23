@@ -171,11 +171,51 @@ Tripletail::Session - セッション
 </p>
 
 <p>
-<span class="pod_lang">セッションは64bit符号無し整数以外のデータを取り扱えない為、その他のデータを管理したい場合は、
+<span class="pod_lang">セッションは64bit符号無し整数以外のデータを取り扱えない為、
+その他のデータを管理したい場合は、
 セッションキーを用い別途管理する必要がある。 
 
 </span>
 </p>
+
+<p>
+<span class="pod_lang">セッションの管理は <a href=".././Tripletail/DB.html">DB</a> を利用して行われる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">また、保存に利用するテーブルは自動的に作成される。
+デフォルトでは <code class="pod_iseq_C">tl_session_Session</code> という名前になる。
+(Ini 項目 <a href="#sessiontable">&quot;sessiontable&quot;</a> 参照)
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">プログラム本体とDB接続を共有するため、以下の点に注意しなければならない。
+
+</span>
+</p>
+
+<ul>
+<li>
+<p>
+<span class="pod_lang">セッションの操作は、トランザクション中及びテーブルロック中には行わない。
+
+</span>
+</p>
+
+</li>
+<li>
+<p>
+<span class="pod_lang">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
+
+</span>
+</p>
+
+</li>
+</ul>
 
 <p>
 <span class="pod_lang">セッションキーは、 <a href=".././Tripletail.html#Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">出力フィルタ</a> に <a href=".././Tripletail/Filter/HTML.html">Tripletail::Filter::HTML</a>
@@ -215,37 +255,6 @@ Tripletail::Session - セッション
 
 </span>
 </p>
-
-<p>
-<span class="pod_lang">Sessionは <a href=".././Tripletail/DB.html">DB</a> を使用してセッションの管理を行う。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">プログラム本体とDB接続を共有するため、以下の点に注意しなければならない。
-
-</span>
-</p>
-
-<ul>
-<li>
-<p>
-<span class="pod_lang">セッションの操作は、トランザクション中及びテーブルロック中には行わない。
-
-</span>
-</p>
-
-</li>
-<li>
-<p>
-<span class="pod_lang">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
-
-</span>
-</p>
-
-</li>
-</ul>
 
 <h2><a id="METHODS">
 <span class="pod_lang">METHODS
@@ -376,6 +385,7 @@ Tripletail::Session - セッション
 
 <p>
 <span class="pod_lang">現在のセッションキーを無効にする。
+また、セッションに保存されていた値も破棄される。
 
 </span>
 </p>

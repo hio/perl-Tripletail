@@ -8,7 +8,7 @@ use lib '.';
 use t::test_server;
 
 &setup;
-plan tests => 19;
+plan tests => 20;
 
 &test_01_basic; #8.
 &test_02_info;  #1.
@@ -190,6 +190,18 @@ sub test_03_form
 			my $form = $t->getForm;
 			$form->haveSessionCheck('Session');
 		} => '[form] addSessionCheck/haveSessionCheck w/o form name');
+	
+	ok( rget q{
+			my $t = $TL->newTemplate->setTemplate(q{
+				<?xml version="1.0" encoding="UTF-8" ?>
+				<form method="post">
+				</form>
+				});
+			$t->addSessionCheck( $TL->getSession('Session') );
+			
+			my $form = $t->getForm;
+			$form->haveSessionCheck( $TL->getSession('Session') );
+		} => '[form] addSessionCheck/haveSessionCheck, session obj');
 	
 	my $re_err_no_session_group = 
 		qr/^Tripletail::Template::Node#addSessionCheck: arg\[1\] is not defined/;

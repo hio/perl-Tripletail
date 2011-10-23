@@ -34,7 +34,17 @@ sub _new {
 
 sub _setCode {
 	my $this = shift;
-	
+
+	do{
+		my $set_ctype = $this->{replacement}{'Content-Type'};
+		my $add_ctype = $this->{addition}{'Content-Type'} || [];
+		my $ctype = $set_ctype ? $set_ctype : ($add_ctype->[0] || '');
+		if( $ctype && $ctype =~ /hdml/i )
+		{
+			return;
+		}
+	};
+
 	my $ocode = 'sjis';
 	if(my $agent = $ENV{HTTP_USER_AGENT}) {
 		if($agent =~ m/^DoCoMo/i) {
@@ -70,6 +80,7 @@ sub print {
 	my $data = shift;
 
 	if(!$this->{content_printed}) {
+		# content_printed は Tripletail::Filter::HTML の属性.
 		
 		$this->_setCode;
 		
@@ -246,6 +257,17 @@ XHTMLを出力する際に、このパラメータをhtmlのままにした場�
 
 デフォルトは 'html'。
 
+=item contenttype
+
+  $TL->setContentFilter(
+    "Tripletail::Filter::MobileHTML",
+    contenttype => 'text/x-hdml; charset=Shift_JIS',
+    charset     => 'Shift_JIS',
+  );
+
+HDML 使用時に指定.
+それ以外の値の場合はフィルタが自動判定した値で上書きされる.
+
 =back
 
 =head2 METHODS
@@ -276,6 +298,10 @@ L<Form|Tripletail::Form> オブジェクトを返す。
 同じヘッダを既に出力しようとしていれば、そのヘッダに加えて指定したヘッダを出力する。（追加される）
 
 =item print
+
+L<Tripletail::Filter>参照
+
+=item reset
 
 L<Tripletail::Filter>参照
 

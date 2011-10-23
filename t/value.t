@@ -15,7 +15,10 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 192;
+use Test::More tests =>
+  192
+  +17 # isChar.
+  ;
 
 #---------------------------------- 一般
 my $v;
@@ -144,6 +147,66 @@ is($v->set('2000/01/01')->isDateString('%Y-%m-%d'), undef, 'isDateString [2000/0
 dies_ok {
     $v->set('2000/01/01')->isDateString('foo bar');
 } 'isDateString [2000/01/01] [foo bar]';
+
+SKIP:
+{
+  if( $Tripletail::VERSION le '0.43' )
+  {
+    skip "isChar is not supported this version", 17;
+  }
+  ok($v->can("isChar"), "isChar is supported");
+
+  throws_ok {
+    $v->isChar();
+  } qr/no arguments/, 'isChar requires arguments';
+
+  my $digits = "0123456789";
+  my $lower  = "abcdefghijklmnopqrstuvwxyz";
+  my $upper  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  $v->set($digits);
+  ok($v->isChar("digit"), "isChar: digit");
+
+  $v->set("a");
+  ok(!$v->isChar("digit"), "isChar: digit rejects alpha");
+
+  $v->set($lower.$upper);
+  ok($v->isChar("alpha"), "isChar: alpha");
+
+  $v->set("0");
+  ok(!$v->isChar("alpha"), "isChar: alpha rejects digit");
+
+  $v->set($lower);
+  ok($v->isChar("loweralpha"), "isChar: loweralpha");
+
+  $v->set("A");
+  ok(!$v->isChar("loweralpha"), "isChar: loweralpha rejects upper");
+
+  $v->set("0");
+  ok(!$v->isChar("loweralpha"), "isChar: loweralpha rejects digit");
+
+  $v->set($upper);
+  ok($v->isChar("upperalpha"), "isChar: upperalpha");
+
+  $v->set("a");
+  ok(!$v->isChar("upperalpha"), "isChar: upperalpha rejects lower");
+
+  $v->set("0");
+  ok(!$v->isChar("upperalpha"), "isChar: upperalpha rejects digit");
+
+  $v->set('-_-');
+  ok($v->isChar('- ,_'), "isChar: - and _");
+
+  my $chk = ['#', '!'];
+  $v->set("#!#!");
+  ok($v->isChar($chk), "isChar: [#!]");
+  $v->set("0");
+  ok(!$v->isChar($chk), "isChar: [#!] rejected digit");
+  $v->set("z");
+  ok(!$v->isChar($chk), "isChar: [#!] rejected lower");
+  $v->set("Z");
+  ok(!$v->isChar($chk), "isChar: [#!] rejected upper");
+}
 
 #---------------------------------- conv系
 

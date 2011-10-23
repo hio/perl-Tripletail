@@ -58,7 +58,7 @@ sub _new {
 	};
 	$this->_check_options($check);
 	
-	$this->_reset;
+	$this->reset;
 
 	$this;
 }
@@ -76,7 +76,6 @@ sub print {
 
 sub flush {
 	my $this = shift;
-	$this->_reset;
 
 	'';
 }
@@ -119,8 +118,10 @@ sub toLink {
 	$this->__makeLink($link, $query);
 }
 
-sub _reset {
+sub reset {
 	my $this = shift;
+
+	$this->SUPER::reset();
 	$this->{header_skipped} = undef; # HTTPヘッダ部を通過した後であれば1
 	$this->{rebased} = undef; # base要素を書換え、若しくは追加した後であれば1
 	$this->{order} = []; # 出力順の指定
@@ -387,6 +388,9 @@ L<Tripletail::Filter>参照
 
 L<Tripletail::Filter>参照
 
+=item reset
+
+L<Tripletail::Filter>参照
 
 =back
 

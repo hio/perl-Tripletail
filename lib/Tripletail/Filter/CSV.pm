@@ -92,14 +92,13 @@ sub flush {
 	if(!$this->{content_printed}) {
 		die __PACKAGE__."#flush: no contents has been printed during this request. (リクエスト処理で何もprintされていません)\n";
 	}
-	$this->_reset;
 
 	'';
 }
 
-sub _reset {
+sub reset {
 	my $this = shift;
-	$this->SUPER::_reset;
+	$this->SUPER::reset;
 
 	$this->{content_printed} = undef;
 
@@ -209,6 +208,10 @@ Content-Typeを指定する。省略可能。
 L<Tripletail::Filter>参照
 
 =item print
+
+L<Tripletail::Filter>参照
+
+=item reset
 
 L<Tripletail::Filter>参照
 

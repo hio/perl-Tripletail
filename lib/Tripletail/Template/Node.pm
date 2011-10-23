@@ -82,6 +82,16 @@ sub _reset {
 	# タグ属性
 	$this->{attr} = {};
 
+	# trim
+	$this->{trimed} = {
+		first           => undef,
+		last            => undef,
+		leadings        => undef,
+		followings      => undef,
+		leadings_join   => undef,
+		followings_join => undef,
+	};
+
 	$this;
 }
 
@@ -135,6 +145,288 @@ sub _setTemplate {
 	}
 
 	$this->_split($str,1);
+	$this;
+}
+
+# -----------------------------------------------------------------------------
+# $node->trim().
+# $node->trim(@where).
+# @where ::= (
+#  '-first', '-last', '-leadings', '-followings',
+#  '-begin', '-end', '-inside', '-outside', '-line', 
+# ). (default:line)
+#
+# <table>[LEADINGS_JOIN]
+# [LEADINGS]<!begin:row>[FIRST]
+# ...
+# [LAST]<!end:row>[FOLLOWINGS]
+# [FOLLOWINGS_JOIN]</table>
+#
+sub trim
+{
+	my $this = shift;
+	our $TRIM_KEYS ||= [qw(
+		first last leadings followings
+		begin end
+		inside outside
+		line join
+	)];
+
+	my $val  = [];
+	my $opts = {};
+	if( !@_ )
+	{
+		$opts->{line} = [];
+	}else
+	{
+		foreach (@_)
+		{
+			if( /^-([a-z_]\w*)\z/ )
+			{
+				my $key = $1;
+				$val = [];
+				if( $key =~ s/_join// )
+				{
+					push(@$val, 'join');
+				}
+				$opts->{$key} = $val;
+			}else
+			{
+				push(@$val, $_);
+			}
+		}
+	}
+
+	foreach my $key (@$TRIM_KEYS)
+	{
+		if( my $val = $opts->{$key} )
+		{
+			my $sub = "_trim_${key}";
+			$this->$sub(@$val);
+		}
+	}
+
+	$this;
+}
+
+sub _trim_line
+{
+	my $this = shift;
+
+	$this->_trim_first(@_);
+	$this->_trim_last(@_);
+	$this->_trim_leadings(@_);
+	$this->_trim_followings(@_);
+	$this;
+}
+
+sub _trim_join
+{
+	my $this = shift;
+	$this->_trim_line('join', @_);
+}
+
+sub _trim_begin
+{
+	my $this = shift;
+	$this->_trim_leadings(@_);
+	$this->_trim_first(@_);
+}
+
+sub _trim_end
+{
+	my $this = shift;
+	$this->_trim_last(@_);
+	$this->_trim_followings(@_);
+}
+
+sub _trim_inside
+{
+	my $this = shift;
+	$this->_trim_first(@_);
+	$this->_trim_last(@_);
+}
+
+sub _trim_outside
+{
+	my $this = shift;
+	$this->_trim_leadings(@_);
+	$this->_trim_followings(@_);
+}
+
+sub _trim_first
+{
+	my $this = shift;
+	my $join = grep { /^-?join\z/ } @_;
+	my $mode = $join ? 'join' : 'line';
+
+	if( $this->{trimed}{first}{$mode} )
+	{
+		return $this;
+	}
+	$this->{trimed}{first}{$mode} = 1;
+	if( $join )
+	{
+		$this->{trimed}{first}{line} = 1;
+	}
+
+	foreach my $vec ($this->{tmplvec}, $this->{tmplback})
+	{
+	foreach my $val (@$vec)
+	{
+		ref($val) and last;
+		if( $join )
+		{
+			$val =~ s/^\s+//;
+		}else
+		{
+			# 改行以外の空白.
+			$val =~ s/^(?:[^\S\r\n]+)//;
+		}
+		$val eq '' and next;
+		$val =~ s/^(?:\r?\n|\r)//;
+		last;
+	}
+	}
+
+	$this;
+}
+
+sub _trim_last
+{
+	my $this = shift;
+	my $join = grep { /^-?join\z/ } @_;
+	my $mode = $join ? 'join' : 'line';
+
+	if( $this->{trimed}{'last'}{$mode} )
+	{
+		return $this;
+	}
+	$this->{trimed}{'last'}{$mode} = 1;
+	if( $join )
+	{
+		$this->{trimed}{'last'}{line} = 1;
+	}
+
+	foreach my $vec ($this->{tmplvec}, $this->{tmplback})
+	{
+	foreach my $val (reverse @$vec)
+	{
+		ref($val) and last;
+		if( $join )
+		{
+			$val =~ s/\s+\z//;
+		}else
+		{
+			# 改行以外の空白.
+			$val =~ s/(?:[^\S\r\n]+)\z//;
+		}
+		$val eq '' and next;
+		last;
+	}
+	}
+	$this;
+}
+
+sub _trim_leadings
+{
+	my $this = shift;
+	my $join = grep { /^-?join\z/ } @_;
+	my $mode = $join ? 'join' : 'line';
+
+	my $par  = $this->{parent};
+	my $name = $this->{name};
+	$par or return $this;
+
+	if( $par->{trimed}{leadings}{$name} )
+	{
+		return $this;
+	}
+	$par->{trimed}{leadings}{$name} = 1;
+
+	foreach my $vec ($par->{tmplvec}, $par->{tmplback})
+	{
+	my $found;
+	foreach my $i (0..$#$vec)
+	{
+		ref($vec->[$i]) or next;
+		$vec->[$i][0] eq 'mark' or next;
+		$vec->[$i][1] eq $name or next;
+		$found = $i;
+		last;
+	}
+
+	if( $found )
+	{
+		foreach my $i (reverse 0..$found-1)
+		{
+			ref($vec->[$i]) and last;
+			if( $join )
+			{
+				$vec->[$i] =~ s/\s+\z//;
+			}else
+			{
+				# 改行以外の空白.
+				$vec->[$i] =~ s/(?:[^\S\r\n]+)\z//;
+			}
+			$vec->[$i] eq '' and next;
+			last;
+		}
+	}
+
+	}
+
+	$this;
+}
+
+sub _trim_followings
+{
+	my $this = shift;
+
+	my $join = grep { /^-?join\z/ } @_;
+	my $mode = $join ? 'join' : 'line';
+
+	my $par  = $this->{parent};
+	my $name = $this->{name};
+	$par or return $this;
+
+	if( $par->{trimed}{followings}{$name} )
+	{
+		return $this;
+	}
+	$par->{trimed}{followings}{$name} = 1;
+
+	foreach my $vec ($par->{tmplvec}, $par->{tmplback})
+	{
+	my $found;
+	foreach my $i (0..$#$vec)
+	{
+		ref($vec->[$i]) or next;
+		$vec->[$i][0] eq 'mark' or next;
+		$vec->[$i][1] eq $name or next;
+		$found = $i;
+		last;
+	}
+
+	if( defined($found) )
+	{
+		foreach my $i ($found+1 .. $#$vec)
+		{
+			ref($vec->[$i]) and last;
+			if( $join )
+			{
+				$vec->[$i] =~ s/^\s+//;
+			}else
+			{
+				# 改行以外の空白.
+				$vec->[$i] =~ s/^(?:[^\S\r\n]+)//;
+			}
+			$vec->[$i] eq '' and next;
+			$vec->[$i] =~ s/^(?:\r?\n|\r)//;
+			last;
+		}
+	}
+	}
 	$this;
 }
 
@@ -211,6 +503,7 @@ sub setAttr {
 		if($param->{$key} eq 'plain'
 		|| $param->{$key} eq 'raw'
 		|| $param->{$key} eq 'js'
+		|| $param->{$key} eq 'jsstring'
 		|| $param->{$key} eq 'br') {
 			$this->{attr}{lc($key)} = $param->{$key};
 		} else {
@@ -503,6 +796,9 @@ sub setForm {
 	my $found;
 	my $last_form = 0;
 	my $on_form;
+	my $in_select = 0;
+	my $select_value;
+	my $select_used;
 	while(my ($context, $elem) = $filter->next)
 	{
 		if( my $f = $context->in('form') )
@@ -601,6 +897,7 @@ sub setForm {
 				my $select = $context->in('select');
 				if($select && defined(my $name = $select->attr('name'))) {
 					$name = $TL->unescapeTag($name);
+					$select_used ||= {};
 
 					my $value = do {
 						my $str = $option->attr('value');
@@ -613,9 +910,48 @@ sub setForm {
 							$str;
 						}
 					};
+					$value = $TL->unescapeTag($value);
 
-					if($form->exists($name)
-					&& $form->lookup($name,$TL->unescapeTag($value))) {
+					my $selected;
+					if( $select->attr('size') )
+					{
+						if( !$form->exists($name) )
+						{
+							next;
+						}
+						$selected = $form->lookup($name,$TL->unescapeTag($value));
+					}else
+					{
+						if( $in_select != $select )
+						{
+							if( !$form->exists($name) )
+							{
+								if( !$select_used->{$name} )
+								{
+									$in_select = -1;
+									next;
+								}else
+								{
+									# use empty value for selecting.
+									$select_value = '';
+									#if( defined(our $DEFAULT_SELECT_VALUE) )
+									#{
+									#	# or specified value.
+									#	$select_value = $DEFAULT_SELECT_VALUE;
+									#}
+								}
+							}else
+							{
+								$select_value = __popform($form, $name);
+							}
+							$in_select = $select;
+						}
+						$selected = $value eq $select_value;
+					}
+					$select_used->{$name} ||= 1;
+
+					if( $selected )
+					{
 						if($this->isXHTML) {
 							$option->attr('selected' => 'selected');
 						} else {
@@ -794,10 +1130,15 @@ sub addSessionCheck {
 	my $name = shift;
 	my $issecure = shift;
 
+	if( ref($sessiongroup) && UNIVERSAL::isa($sessiongroup, 'Tripletail::Session') )
+	{
+		$sessiongroup = $sessiongroup->{group};
+	}
 	if(!defined($sessiongroup)) {
 		die __PACKAGE__."#addSessionCheck: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	my $session = $TL->getSession($sessiongroup);
+
 	if(ref($name)) {
 		die __PACKAGE__."#addSessionCheck: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
@@ -805,27 +1146,11 @@ sub addSessionCheck {
 		die __PACKAGE__."#addSessionCheck: arg[3] is a reference. (第3引数がリファレンスです)\n";
 	}
 
-	my $csrfkey = $TL->INI->get($sessiongroup => 'csrfkey', undef);
-	if(!defined($csrfkey)) {
-		die __PACKAGE__."#addSessionCheck: csrfkey is not defined for the INI group [$sessiongroup]. (INI [$sessiongroup] で csrfkey を設定してください)\n";
+	my ($key, $value, $err) = $session->_createSessionCheck($issecure);
+	if( $err )
+	{
+		die __PACKAGE__."#addSessionCheck: $err";
 	}
-
-	do {
-		local $SIG{__DIE__} = 'DEFAULT';
-		eval 'use Digest::HMAC_SHA1 qw(hmac_sha1_hex)';
-	};
-	if($@) {
-		die __PACKAGE__."#addSessionCheck: failed to load Digest::HMAC_SHA1 [$@] (Digest::HMAC_SHA1が使用できません)\n";
-	}
-
-	my ($key, $sid, $checkval) = $session->getSessionInfo($issecure);
-	
-	if(!defined($sid)) {
-        die __PACKAGE__."#addSessionCheck: no session ID has been created. You must prepare one before. (セッションがありません。事前にセッションを生成してください)\n";
-	}
-	
-	$key = 'C' . $key;
-	my $value = hmac_sha1_hex(join('.', $sid, $checkval), $csrfkey);
 
 	if(!defined($name)) {
 		$name = '';
@@ -1132,6 +1457,9 @@ sub _filter {
 	} elsif($this->{attr}{$key} eq 'js') {
 		# JavaScript filter
 		$value = $TL->escapeJs($value);
+	} elsif($this->{attr}{$key} eq 'jsstring') {
+		# JavaScriptString filter
+		$value = $TL->escapeJsString($value);
 	} elsif($this->{attr}{$key} eq 'br') {
 		# insert <br> or <br /> before newlines
 		$value = $TL->escapeTag($value);
@@ -1349,6 +1677,10 @@ L<Tripletail::Template> 参照
 L<Tripletail::Template> 参照
 
 =item setHtml
+
+L<Tripletail::Template> 参照
+
+=item trim
 
 L<Tripletail::Template> 参照
 

@@ -150,6 +150,16 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 </span></a>
 </li>
+<li><a href="#escapeJsString">
+<span class="pod_lang"><code class="pod_iseq_C">escapeJsString</code>
+
+</span></a>
+</li>
+<li><a href="#unescapeJsString">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeJsString</code>
+
+</span></a>
+</li>
 <li><a href="#encodeURL">
 <span class="pod_lang"><code class="pod_iseq_C">encodeURL</code>
 
@@ -627,7 +637,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
   logdir = /home/tl/logs
   errormail = tl@example.org
   [TL@server:Debughost]
-  logdir = /home/tl/logs/regist</code></pre>
+  logdir = /home/tl/logs/register</code></pre>
 
 <p>
 <span class="pod_lang">マスクは空白で区切って複数個指定する事が可能。
@@ -667,15 +677,15 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <pre class="pod_verbatim"><code>  [HOST]
   Debughost = 192.168.10.0/24
   Testuser = 192.168.11.5 192.168.11.50
-  [TL:regist@server:Debughost]
-  logdir = /home/tl/logs/regist/debug
+  [TL:register@server:Debughost]
+  logdir = /home/tl/logs/register/debug
   [TL@server:Debughost]
   logdir = /home/tl/logs
   errormail = tl@example.org
   [TL]
   logdir = /home/tl/logs
-  [TL:regist]
-  logdir = /home/tl/logs/regist
+  [TL:register]
+  logdir = /home/tl/logs/register
   [Debug@remote:Testuser]
   enable_debug=1</code></pre>
 
@@ -685,8 +695,13 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </span>
 </p>
 
-<pre class="pod_verbatim"><code>  use Tripletail qw(/home/www/ini/tl.ini regist);
-で、起動した場合、次のような動作になる。</code></pre>
+<pre class="pod_verbatim"><code>  use Tripletail qw(/home/www/ini/tl.ini register);</code></pre>
+
+<p>
+<span class="pod_lang">で、起動した場合、次のような動作になる。
+
+</span>
+</p>
 
 <p>
 <span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
@@ -695,7 +710,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <pre class="pod_verbatim"><code>  [TL]
-  logdir = /home/tl/logs/regist/debug
+  logdir = /home/tl/logs/register/debug
   errormail = tl@example.org
   [Debug]
   enable_debug=1</code></pre>
@@ -707,10 +722,21 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 </p>
 
 <pre class="pod_verbatim"><code>  [TL]
-  logdir = /home/tl/logs/regist
+  logdir = /home/tl/logs/register</code></pre>
 
-  use Tripletail qw(/home/www/ini/tl.ini regist);
-で、起動した場合、次のような動作になる。</code></pre>
+<p>
+<span class="pod_lang">また、
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  use Tripletail qw(/home/www/ini/tl.ini);</code></pre>
+
+<p>
+<span class="pod_lang">で、起動した場合、次のような動作になる。
+
+</span>
+</p>
 
 <p>
 <span class="pod_lang">プログラムが動いているサーバが、192.168.10.0/24であり、アクセスした箇所のIPが192.168.11.5か192.168.11.50である場合
@@ -1200,12 +1226,24 @@ FastCGIの場合は最後の1回だけ呼ばれる。
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;dispatch($value, default =&gt; $default, onerror =&gt; \&amp;Error)</code></pre>
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;dispatch($value, %params)
+
+  $params{default} = $scalar.
+  $params{onerror} = \&amp;error.
+  $params{args}    = \@args.</code></pre>
 
 <p>
 <span class="pod_lang">'Do' と $value を繋げた関数名の関数を呼び出す。
 $valueがundefの場合、defaultを指定していた場合、defaultに設定される。
 $value は大文字で始まらなければならない。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">args 引数が指定されていた場合、関数にその内容を渡す。
+指定されていなければ関数は引数なしで呼び出される。
+(0.44以降)
 
 </span>
 </p>
@@ -1333,6 +1371,50 @@ $value は大文字で始まらなければならない。
 
 <p>
 <span class="pod_lang">escapeJs した文字列を元に戻す。
+
+</span>
+</p>
+
+<h4><a id="escapeJsString">
+<span class="pod_lang"><code class="pod_iseq_C">escapeJsString</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeJsString($value)</code></pre>
+
+<p>
+<span class="pod_lang">JavaScriptの文字列コードになるようにエスケープする。
+その際には、html内にJavaScriptを埋め込んだ際に終端と誤認される「&lt;/script&gt;」「--&gt;」を考慮する。
+例えば、
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;escapeJsString(&quot;ab\&quot;cd &lt;/script&gt; def&quot;)</code></pre>
+
+<p>
+<span class="pod_lang">を評価すると、
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  '&quot;ab\&quot;cd &lt;/scr&quot;+&quot;ipt&gt; def&quot;'</code></pre>
+
+<p>
+<span class="pod_lang">が得られる。
+
+</span>
+</p>
+
+<h4><a id="unescapeJsString">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeJsString</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeJsString($value)</code></pre>
+
+<p>
+<span class="pod_lang">escapeJsString した文字列を元に戻す。
 
 </span>
 </p>
@@ -2711,7 +2793,10 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 <pre class="pod_verbatim"><code>  outputbuffering = 0</code></pre>
 
 <p>
-<span class="pod_lang">startCgi メソッド中で出力をバッファリングする。デフォルトは0。
+<span class="pod_lang">startCgi メソッド中で出力をバッファリングするかどうか。
+0 だとバッファリングを行わず、
+1 だとバッファリングを行う。
+デフォルトは0。
 
 </span>
 </p>
@@ -3404,6 +3489,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#errortemplate">errortemplate</a></li>
 <li><a href="#errortemplatecharset">errortemplatecharset</a></li>
 <li><a href="#escapeJs">escapeJs</a></li>
+<li><a href="#escapeJsString">escapeJsString</a></li>
 <li><a href="#escapeSqlLike">escapeSqlLike</a></li>
 <li><a href="#escapeTag">escapeTag</a></li>
 <li><a href="#fault_handler">fault_handler</a></li>
@@ -3475,6 +3561,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#trap">trap</a></li>
 <li><a href="#trapError">trapError</a></li>
 <li><a href="#unescapeJs">unescapeJs</a></li>
+<li><a href="#unescapeJsString">unescapeJsString</a></li>
 <li><a href="#unescapeSqlLike">unescapeSqlLike</a></li>
 <li><a href="#unescapeTag">unescapeTag</a></li>
 <li><a href="#use">use</a></li>

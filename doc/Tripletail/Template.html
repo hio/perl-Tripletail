@@ -495,6 +495,17 @@ Shift_JISコードで作成することを推奨する。
 </p>
 
 </dd>
+<dt><a id="jsstring"><span class="pod_lang">jsstring
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang"><a href=".././Tripletail.html#escapeJsString">$TL-&gt;escapeJsString</a> を適用後、出力する
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 </dd>
@@ -810,6 +821,20 @@ Templateの場合、全体を出力する。
 <p>
 <span class="pod_lang">テンプレートの最初から順にflushしていかないと、テンプレートの
 一部分が重複出力されるので注意が必要。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="trim"><span class="pod_lang">trim
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $t-&gt;trim()</code></pre>
+
+<p>
+<span class="pod_lang"><code class="pod_iseq_C">&lt;!begin:????&gt;</code>, <code class="pod_iseq_C">&lt;!end:????&gt;</code> タグ前後の空白を削除する。
+ある行にタグのみが書かれていた場合に、行ごと取り除かれたようにみえる。
 
 </span>
 </p>
@@ -1152,6 +1177,7 @@ Tripletail::Template - テンプレート
 <li><a href="#isRoot">isRoot</a></li>
 <li><a href="#isXHTML">isXHTML</a></li>
 <li><a href="#js">js</a></li>
+<li><a href="#jsstring">jsstring</a></li>
 <li><a href="#loadTemplate">loadTemplate</a></li>
 <li><a href="#loadTemplateXe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89Xe5X88Xa9Xe7X94Xa8Xe4Xb8X8dXe5X8fXafXe8X83Xbd">loadTemplateメソッド利用不可能</a></li>
 <li><a href="#node">node</a></li>
@@ -1163,6 +1189,7 @@ Tripletail::Template - テンプレート
 <li><a href="#setHtml">setHtml</a></li>
 <li><a href="#setTemplate">setTemplate</a></li>
 <li><a href="#toStr">toStr</a></li>
+<li><a href="#trim">trim</a></li>
 <li><a href="#Xe3X82Xb3Xe3X83X94Xe3X83XbcXe3X82XbfXe3X82Xb0">コピータグ</a></li>
 <li><a href="#Xe3X82XbdXe3X83XbcXe3X82Xb9Xe3X82Xb3Xe3X83XbcXe3X83X89">ソースコード</a></li>
 <li><a href="#Xe3X83X86Xe3X83Xb3Xe3X83X97Xe3X83XacXe3X83XbcXe3X83X88Xe6X9bXb8Xe5XbcX8f">テンプレート書式</a></li>

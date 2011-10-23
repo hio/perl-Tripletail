@@ -612,6 +612,100 @@ sub doFilter {
 	return grep { !$TL->newValue($_)->isZipCode() } @$values;
 }
 
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::Char - Charフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::Char;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+	my $args   = shift;
+
+	return grep { !$TL->newValue($_)->isChar($args) } @$values;
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::NoValues - NoValuesフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::NoValues;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	if( @$values == 0 )
+	{
+		# accept.
+		return \"accept";
+	}else
+	{
+		# continue.
+		return undef;
+	}
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::SingleValue - SingleValueフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::SingleValue;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	if( @$values == 1 )
+	{
+		# continue.
+		return undef;
+	}else
+	{
+		return "failure";
+	}
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::MultiValues - MultiValuesフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::MultiValues;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+	my $args   = shift;
+
+	if( !defined($args) )
+	{
+		die "Validator#MultiValues, arguments required (引数を指定してください)\n";
+	}
+	my ( $min, $max ) = split(',', $args);
+	defined($min)    or die "Validator#MultiValues, arguments required (引数を指定してください)\n";
+	$min =~ /^\d+\z/ or die "Validator#MultiValues, invalid min argument [$min]: (min 引数の値が無効です)";
+	!$max || $max =~ /^\d*\z/ or die "Validator#MultiValues, invalid max argument [$max]: (max 引数の値が無効です)";
+	!$max || $min <= $max or die "Validator#MultiValues, min is greather than max [$max,$max]: (min の値が max の値より大きくなっています)\n";
+
+	if( @$values >= $min && (!$max || @$values <= $max) )
+	{
+		# continue.
+		return undef;
+	}else
+	{
+		return "failure";
+	}
+}
+
 1;
 
 __END__

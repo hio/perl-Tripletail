@@ -64,7 +64,7 @@ sub _new {
 	}
 
 	# 状態の初期化。
-	$this->_reset;
+	$this->reset;
 
 	$this;
 }
@@ -123,6 +123,7 @@ sub flush {
 		$output = $data;
 		
 	} else {
+		# 一度以上 print を通るので, _flush_header は呼び出し済み.
 		my $data = $this->{buffer};
 		$this->{buffer} = '';
 
@@ -138,8 +139,6 @@ sub flush {
 			die __PACKAGE__."#flush: no contents has been printed during this request. (リクエスト処理で何もprintされていません)\n";
 		}
 	}
-
-	$this->_reset;
 
 	$output;
 }
@@ -397,9 +396,9 @@ sub _relink {
 	$url . $fragment;
 }
 
-sub _reset {
+sub reset {
 	my $this = shift;
-	$this->SUPER::_reset;
+	$this->SUPER::reset;
 
 	# Contentが1バイトでも出力されたかどうか
 	$this->{content_printed} = undef;
@@ -532,6 +531,10 @@ L<Form|Tripletail::Form> オブジェクトを返す。
 L<Tripletail::Filter>参照
 
 =item print
+
+L<Tripletail::Filter>参照
+
+=item reset
 
 L<Tripletail::Filter>参照
 

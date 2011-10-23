@@ -101,14 +101,12 @@ sub flush {
 		$output = $this->{buffer};
 	}
 
-	$this->_reset;
-	
 	$output;
 }
 
-sub _reset {
+sub reset {
 	my $this = shift;
-	$this->SUPER::_reset;
+	$this->SUPER::reset;
 	
 	$this->{buffer} = '';
 	
@@ -143,6 +141,10 @@ MemCachedの使用を支援する。
 L<Tripletail::Filter>参照
 
 =item print
+
+L<Tripletail::Filter>参照
+
+=item reset
 
 L<Tripletail::Filter>参照
 

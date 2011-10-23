@@ -1,5 +1,14 @@
 Revision history for Tripletail
 
+0.44 Tue Sep 16 16:27:52 JST 2008
+	- outputbuffering 使用時に自動で追加されるContent-Lengthが, ユーザが任意のヘッダを追加してる場合に狂うバグの修正.
+	- TL#dispatchで、第1引数が小文字ではじまる場合にエラーになるケースで、
+	　　onerrorが設定されている場合は、onerrorが呼び出されるが、その後に第1引数によっては関数が実行されてしまう事があったバグの修正。
+	- $TL->dispatch() に args パラメータを追加。
+	- FCGI時のフィルタの再初期化をresetメソッドに分離(内部メソッド_resetもリネーム).
+	- Value#isChar メソッドの追加.
+	- 複値のselectへのsetFormを改善.
+
 0.43 Wed Jun 11 15:50:54 JST 2008
 	- outputbuffering 使用時に自動で追加されるContent-Lengthの計算が間違うことがあるバグの修正.
 

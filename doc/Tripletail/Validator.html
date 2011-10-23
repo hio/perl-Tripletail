@@ -771,6 +771,90 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
+<dt><a id="SingleValue"><span class="pod_lang">SingleValue
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">値がただ1つ存在することをチェックする拒否フィルタ。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">1つのみ存在すれば、次のフィルタに処理を渡す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">2つ以上存在する、若しくは1つも存在しない場合には、
+その時点で処理を中断し、エラーを返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="MultiValues"><span class="pod_lang">MultiValues
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  MultiValues($min)
+  MultiValues($min,$max)</code></pre>
+
+<p>
+<span class="pod_lang">値が指定した <code class="pod_iseq_C">$min</code> 個以上, <code class="pod_iseq_C">$max</code> 個以下の範囲で
+存在することをチェックする拒否フィルタ。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">個数が範囲内であれば、
+次のフィルタに処理を渡す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">個数が範囲外だった場合には、
+その時点で処理を中断し、エラーを返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><code class="pod_iseq_C">$max</code> を省略した場合、上限個数の確認は行わない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="NoValues"><span class="pod_lang">NoValues
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">値が存在しないことを受け付ける受理フィルタ。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">値を全く持っていなければ、
+その時点で処理を中断し、成功を返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">何らかの値が(空欄であったとしても)存在した場合には、
+次のフィルタに処理を渡す。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcorrectXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
@@ -1317,7 +1401,9 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#Len($min,$max)">Len($min,$max)</a></li>
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#MobileEmail">MobileEmail</a></li>
+<li><a href="#MultiValues">MultiValues</a></li>
 <li><a href="#NAME">NAME</a></li>
+<li><a href="#NoValues">NoValues</a></li>
 <li><a href="#NotBlank">NotBlank</a></li>
 <li><a href="#NotEmpty">NotEmpty</a></li>
 <li><a href="#NotWhitespace">NotWhitespace</a></li>
@@ -1331,6 +1417,7 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#RegExp($regexp)">RegExp($regexp)</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#SingleValue">SingleValue</a></li>
 <li><a href="#SjisLen($min,$max)">SjisLen($min,$max)</a></li>
 <li><a href="#TelNumber">TelNumber</a></li>
 <li><a href="#TestFilter.pm">TestFilter.pm</a></li>

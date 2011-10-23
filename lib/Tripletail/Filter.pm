@@ -94,7 +94,6 @@ sub flush {
 	my $this = shift;
 
 	my $data = $this->_flush_header;
-	$this->_reset;
 
 	$data;
 }
@@ -239,7 +238,8 @@ sub _check_options {
 	$this;
 }
 
-sub _reset {
+sub reset {
+	# デフォルトの実装。必要に応じてオーバーライドする。
 	my $this = shift;
 
 	$this->{header_flushed} = undef;
@@ -325,8 +325,20 @@ Tripletail::Filter オブジェクトを作成。
 全ての出力内容を出力し終えたときに呼び出される。フィルタ側でバッファしている
 内容があれば、その内容を返す。内容がなければ空文字列を返す。
 
-FCGI使用時には、フィルタオブジェクトは各リクエストの間で使い回される為、flushが
-呼ばれた時点で必要なら内部状態を初期化する必要がある。
+但し、エラー時には呼び出されないこともある。
+
+(0.44 以降、再初期化処理は L</reset> メソッドに分離)
+
+=item C<< reset >>
+
+  $content = $filter->reset
+
+リクエスト処理の終了時に呼び出される。
+
+FCGI使用時には、フィルタオブジェクトは各リクエストの間で使い回される為、
+このメソッドで必ず内部状態を初期化する必要がある。
+
+(0.44 以降, 0.43 までは L</flush> の一部でした。)
 
 =back
 

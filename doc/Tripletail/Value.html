@@ -838,6 +838,27 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
+<dt><a id="isChar"><span class="pod_lang">isChar
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isChar($format)
+
+ $format ::= 'digit' | 'alpha' | 'loweralpha' | 'upperalpha' | ARRAYREF of char</code></pre>
+
+<p>
+<span class="pod_lang">指定された文字のみで構成されていれば 1 、そうでなければ undef 。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">空文字列に対しては undef を返す。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h3><a id="convXe7Xb3Xbb">
@@ -1381,6 +1402,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#getSjisLen">getSjisLen</a></li>
 <li><a href="#getXe7Xb3Xbb">get系</a></li>
 <li><a href="#isBlank">isBlank</a></li>
+<li><a href="#isChar">isChar</a></li>
 <li><a href="#isCharLen($min,$max)">isCharLen($min,$max)</a></li>
 <li><a href="#isDateString">isDateString</a></li>
 <li><a href="#isDomainName">isDomainName</a></li>

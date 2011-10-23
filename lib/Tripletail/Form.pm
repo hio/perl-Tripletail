@@ -766,6 +766,10 @@ sub haveSessionCheck {
 	my $sessiongroup = shift;
 	my $issecure = shift;
 
+	if( ref($sessiongroup) && UNIVERSAL::isa($sessiongroup, 'Tripletail::Session') )
+	{
+		$sessiongroup = $sessiongroup->{group};
+	}
 	if(!defined($sessiongroup)) {
 		die __PACKAGE__."#haveSessionCheck: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
@@ -773,28 +777,14 @@ sub haveSessionCheck {
 	if(!defined($session)) {
 		die __PACKAGE__."#haveSessionCheck: session group ($sessiongroup) does not exist. (セッショングループ${sessiongroup}がありません)\n";
 	}
-	my $csrfkey = $TL->INI->get($sessiongroup => 'csrfkey', undef);
-	if(!defined($csrfkey)) {
-		die __PACKAGE__."#haveSessionCheck: csrfkey is not defined in the INI group [$sessiongroup]. (INIファイルでcsrfkeyが指定されていません)\n";
+
+	my ($key, $value, $err) = $session->_createSessionCheck($issecure);
+	if( $err )
+	{
+		die __PACKAGE__."#haveSessionCheck: $err";
 	}
 
-	do {
-		local $SIG{__DIE__} = 'DEFAULT';
-		eval 'use Digest::HMAC_SHA1 qw(hmac_sha1_hex)';
-	};
-	if($@) {
-		die __PACKAGE__."#haveSessionCheck: failed to load Digest::HMAC_SHA1 [$@] (Digest::HMAC_SHA1をロードできません)\n";
-	}
-
-	my ($key, $sid, $checkval) = $session->getSessionInfo($issecure);
-	
-	if(!defined($sid)) {
-		return undef;
-	}
-	
-	$key = 'C' . $key;
-
-	if($this->get($key) eq hmac_sha1_hex(join('.', $sid, $checkval), $csrfkey)) {
+	if($this->get($key) eq $value) {
 		return 1;
 	} else {
 		return undef;

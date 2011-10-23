@@ -219,8 +219,39 @@ Tripletail::Filter - CGI出力加工
 </p>
 
 <p>
-<span class="pod_lang">FCGI使用時には、フィルタオブジェクトは各リクエストの間で使い回される為、flushが
-呼ばれた時点で必要なら内部状態を初期化する必要がある。
+<span class="pod_lang">但し、エラー時には呼び出されないこともある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">(0.44 以降、再初期化処理は <a href="#reset">&quot;reset&quot;</a> メソッドに分離)
+
+</span>
+</p>
+
+</dd>
+<dt><a id="reset"><span class="pod_lang"><code class="pod_iseq_C">reset</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $content = $filter-&gt;reset</code></pre>
+
+<p>
+<span class="pod_lang">リクエスト処理の終了時に呼び出される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">FCGI使用時には、フィルタオブジェクトは各リクエストの間で使い回される為、
+このメソッドで必ず内部状態を初期化する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">(0.44 以降, 0.43 までは <a href="#flush">&quot;flush&quot;</a> の一部でした。)
 
 </span>
 </p>
@@ -319,6 +350,7 @@ Tripletail::Filter - CGI出力加工
 <li><a href="#addHeader">addHeader</a></li>
 <li><a href="#flush">flush</a></li>
 <li><a href="#print">print</a></li>
+<li><a href="#reset">reset</a></li>
 <li><a href="#setHeader">setHeader</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe4Xb8X80Xe8Xa6Xa7">フィルタ一覧</a></li>
 </ul>
