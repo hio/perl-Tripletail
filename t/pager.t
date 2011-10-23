@@ -140,7 +140,7 @@ my $ANS = q{
 <!mark:nodata>
 <!mark:overpage>};
 
-    plan tests => 84;
+    plan tests => 86;
 	$planned = 1;
 
     my $DB;

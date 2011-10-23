@@ -194,7 +194,8 @@ is($f1->get('aaa'), undef , 'remove check');
 
   is($form->getFileName('file'), undef, "getFileName for noent");
 
-  my $fh = \local(*FH);
+  local(*FH);
+  my $fh = \*FH;
   $form->setFile('file', $fh);
   pass("setFile");
 

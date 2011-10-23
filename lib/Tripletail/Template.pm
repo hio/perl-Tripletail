@@ -25,13 +25,13 @@ sub _new {
 
 	$this->{root} = Tripletail::Template::Node->_new(undef,undef,undef,$TL->INI->get('Template' => 'allow_unexpanded_tags','false'));
 
-	$this->{basepath} = $TL->INI->get('Template' => 'basepath', '.');
+	$this->{basepath} = $TL->INI->get_reloc('Template' => 'basepath', '.');
 	if( !File::Spec::Functions::file_name_is_absolute($this->{basepath}) )
 	{
 		my $cwd = $TL::CWD || $TL->_cwd;
 		$this->{basepath} = __rel2abs($this->{basepath}, $cwd);
 	}
-	$this->{rootpath} = $TL->INI->get('Template' => 'rootpath', '/');
+	$this->{rootpath} = $TL->INI->get_reloc('Template' => 'rootpath', '/');
 	if( !File::Spec::Functions::file_name_is_absolute($this->{rootpath}) )
 	{
 		my $cwd = $TL::CWD || $TL->_cwd;

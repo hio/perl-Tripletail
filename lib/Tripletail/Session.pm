@@ -113,9 +113,12 @@ sub getSessionInfo {
 sub _createSid {
 	my $this = shift;
 
-	$this->{checkval} = '_' x 19; # 64bit整数は 1844 6744 0737 0955 1615 まで
-	$this->{checkval} =~ s/_/int(rand(10))/eg;
-	$this->{checkvalssl} = '_' x 19; # 64bit整数は 1844 6744 0737 0955 1615 まで
+	# ※MySQLのunsigned bigint時なら19桁だが、pgsqlではunsignedがないため、18桁までが上限。
+	# 64bit整数(unsigned)は 1844 6744 0737 0955 1615 まで
+	# 64bit整数(signed)は    922 3372 0368 5477 5807 まで
+	$this->{checkval}    = '_' x 18;
+	$this->{checkval}    =~ s/_/int(rand(10))/eg;
+	$this->{checkvalssl} = '_' x 18;
 	$this->{checkvalssl} =~ s/_/int(rand(10))/eg;
 
 	$this->{sid} = $this->__createSid($this->{checkval}, $this->{checkvalssl}, $this->{data});
@@ -139,6 +142,18 @@ sub __createSid {
 					VALUES (NULL, ?, ?, ?, now())
 			}, $checkval, $checkvalssl, $data);
 			$sid = $DB->getLastInsertId(\$this->{dbset});
+		};
+		if($@) {
+			die __PACKAGE__."#__createSid: DB error. [$@]\n";
+		}
+	}elsif($type eq 'pgsql') {
+		eval {
+			$DB->execute(\$this->{dbset} => qq{
+				INSERT INTO $this->{sessiontable}
+				       (checkval, checkvalssl, data, updatetime)
+				VALUES (?, ?, ?, NOW())
+			}, $checkval, $checkvalssl, $data );
+			$sid = $DB->getLastInsertId(\$this->{dbset},"$this->{sessiontable}_sid_seq");
 		};
 		if($@) {
 			die __PACKAGE__."#__createSid: DB error. [$@]\n";
@@ -178,6 +193,16 @@ sub __removeSid {
 
 	my $type = $DB->getType;
 	if($type eq 'mysql') {
+		eval {
+			$DB->execute(\$this->{dbset} => qq{
+				DELETE FROM $this->{sessiontable}
+					WHERE sid = ?
+			}, $sid);
+		};
+		if($@) {
+			die __PACKAGE__."#__removeSid: DB error. [$@]\n";
+		}
+	}elsif($type eq 'pgsql') {
 		eval {
 			$DB->execute(\$this->{dbset} => qq{
 				DELETE FROM $this->{sessiontable}
@@ -241,6 +266,32 @@ sub __prepareSessionTable {
 					AVG_ROW_LENGTH = 20
 					MAX_ROWS = 300000000
 					$typeoption
+				});
+			};
+			if($@) {
+				die __PACKAGE__."#__prepareSessionTable: DB error. [$@]\n";
+			}
+		}elsif($type eq 'pgsql') {
+			# PostgreSQL: 9223372036854775807. (64bit/signed)
+			eval {
+				$DB->execute(\$this->{dbset} => qq{
+					CREATE TABLE $this->{sessiontable} (
+						sid           bigserial NOT NULL,
+						checkval      bigint NOT NULL,
+						checkvalssl   bigint NOT NULL,
+						data          bigint,
+						updatetime    TIMESTAMP NOT NULL,
+						PRIMARY KEY (sid)
+					)
+				});
+			};
+			if($@) {
+				die __PACKAGE__."#__prepareSessionTable,]: DB error. [$@]\n";
+			}
+			eval {
+				$DB->execute(\$this->{dbset} => qq{
+					CREATE INDEX $this->{sessiontable}_idx
+						ON $this->{sessiontable} (updatetime)
 				});
 			};
 			if($@) {
@@ -586,6 +637,37 @@ sub __setSession {
 		if($@) {
 			die __PACKAGE__."#__setSession: DB error. [$@]\n";
 		}
+	}elsif($type eq 'pgsql') {
+		eval {
+			my $sessiondata = $DB->selectAllArray(\$this->{readdbset} => qq{
+				SELECT TEXT(data), date_part('epoch',updatetime), TEXT(checkval), TEXT(checkvalssl)
+					FROM $this->{sessiontable}
+					WHERE sid = ? AND $colname = ?
+			}, $sid, $checkval);
+
+			if(!scalar(@$sessiondata)) {
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "The session is invalid: its session ID may not exist, or the checkval is invalid for the session: sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
+			}elsif( $sessiondata->[0][2] eq 'x' || $sessiondata->[0][3] eq 'x' ) {
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "The session is invalid: it has a deletion mark: sid [$sid] checkval [$$sessiondata->[0][2]] checkvalssl [$$sessiondata->[0][3]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
+			} elsif(time - $sessiondata->[0][1] > $this->{timeout_period}) {
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "The session is invalid: it has been expired: sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
+			} else {
+				$this->{sid} = $sid;
+				$this->{data} = $sessiondata->[0][0];
+				$this->{updatetime} = $sessiondata->[0][1];
+				$this->{checkval} = $sessiondata->[0][2];
+				$this->{checkvalssl} = $sessiondata->[0][3];
+			}
+		};
+		if($@) {
+			die __PACKAGE__."#__setSession: DB error. [$@]\n";
+		}
 	}elsif($type eq 'sqlite') {
 		eval {
 			my $sessiondata = $DB->selectAllArray(\$this->{readdbset} => qq{
@@ -651,7 +733,7 @@ sub __updateSession {
 	my $type = $DB->getType;
 	if($type eq 'mysql') {
 		eval {
-			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
+			my $sessiondata = $DB->execute(\$this->{dbset} => qq{
 				UPDATE $this->{sessiontable}
 					SET updatetime = now(), data = ?
 					WHERE sid = ?
@@ -660,9 +742,20 @@ sub __updateSession {
 		if($@) {
 			die __PACKAGE__."#__updateSession: DB error. [$@]\n";
 		}
+	}elsif($type eq 'pgsql') {
+		eval {
+			my $sessiondata = $DB->execute(\$this->{dbset} => qq{
+				UPDATE $this->{sessiontable}
+					SET updatetime = CURRENT_TIMESTAMP(0), data = ?
+					WHERE sid = ?
+			}, $this->{data}, $this->{sid});
+		};
+		if($@) {
+			die __PACKAGE__."#__updateSession: DB error. [$@]\n";
+		}
 	}elsif($type eq 'sqlite') {
 		eval {
-			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
+			my $sessiondata = $DB->execute(\$this->{dbset} => qq{
 				UPDATE $this->{sessiontable}
 					SET updatetime = CURRENT_TIMESTAMP, data = ?
 					WHERE sid = ?
@@ -788,8 +881,8 @@ Tripletail::Session - セッション
 
 64bit符号無し整数値の管理機能を持ったセッション管理クラス。
 
-セッションは64bit符号無し整数以外のデータを取り扱えない為、
-その他のデータを管理したい場合は、
+セッションは64bit整数から負の数を除いた範囲（0〜9223372036854775807）以外の
+データを取り扱えない為、その他のデータを管理したい場合は、
 セッションキーを用い別途管理する必要がある。 
 
 セッションの管理は L<DB|Tripletail::DB> を利用して行われる。

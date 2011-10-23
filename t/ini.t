@@ -1,4 +1,7 @@
-use Test::More tests => 59;
+use Test::More tests =>
+  59
+  +11 # get_reloc.
+;
 use Test::Exception;
 use strict;
 use warnings;
@@ -23,6 +26,11 @@ Lugnasa = 400
 [TL:special@remote:Testuser@server:Debughost]
 Beltain = 500
 Lugnasa = 600
+
+[RelocTest]
+a=...
+b=.../
+c=....
 };
     close $fh;
     eval qq{use Tripletail qw(tmp$$.ini special)};
@@ -78,7 +86,7 @@ sub toHash {
 }
 
 is_deeply(
-	toHash($ini->getGroups), toHash(qw[TL HOST]), 'getGroups');
+	toHash($ini->getGroups), toHash(qw[TL HOST RelocTest]), 'getGroups');
 is_deeply(
 	toHash($ini->getKeys('TL')),
 	toHash(qw[trap Samhain Imbolc Beltain Lugnasa]), 'getKeys');
@@ -127,3 +135,24 @@ ok($ini->const, 'const');
 dies_ok {$ini->set} 'const object undef';
 dies_ok {$ini->delete} 'const object undef';
 dies_ok {$ini->deleteGroup} 'const object undef';
+
+{
+  my $ini = $TL->INI;
+  is($ini->get      (RelocTest => 'a'), '...', 'RelocTest.a is "..."');
+  is($ini->get_reloc(RelocTest => 'a'), '.',   '- relocated');
+  is($ini->get      (RelocTest => 'b'), '.../', 'RelocTest.b is ".../"');
+  is($ini->get_reloc(RelocTest => 'b'), './', '  - relocated');
+  is($ini->get      (RelocTest => 'c'), '....', 'RelocTest.c is "...."');
+  is($ini->get_reloc(RelocTest => 'c'), '....', '  - not relocated');
+  is($ini->get      (RelocTest => 'd'), undef, 'RelocTest.c is undef');
+  is($ini->get_reloc(RelocTest => 'd'), undef, '  - not relocated');
+
+  my $ini2 = $TL->newIni();
+  $ini2->set(RelocTest2 => 'a' => '...');
+  is($ini2->get      (RelocTest2 => 'a'), '...', 'RelocTest2.a is "..."');
+  is($ini2->get_reloc(RelocTest2 => 'a'), '...', '  - not relocated (no filename)');
+
+  $ini2->{filename} = "../nofile.ini";
+  is($ini2->get_reloc(RelocTest2 => 'a'), '..', '  - relocated to updir');
+}
+

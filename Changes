@@ -1,5 +1,17 @@
 Revision history for Tripletail
 
+0.46 Tue May 26 16:56:32 JST 2009
+	- FastCGIで長時間アクセスがない場合に，MySQLとのDB接続が
+	　タイムアウトして切れていると，その後のアクセスでエラーが
+	　出てしまう．この問題を回避するため，リクエストごとに
+	　DB接続状態を確認し，必要に応じて再接続するように修正．
+	- LWPの依存をMakefile.PLに追記．
+	- pagerのテストの実行に失敗するバグを修正．
+	- 出力フィルタとしてMobileHTMLを使用したとき、パラメータにtype => 'xhtml'を指定すると
+	  コンテントタイプがapplication/xhtml+xmlになるように変更.
+	- $TL->dispatchを使用したときにプロセス名に分岐先のコマンドを追加するようにした.
+	  本機能を新しい INI パラメータ [TL]command_add_processnameで使用するかを選択できるようにした.
+
 0.45
 	- Validator MultiValues で 0 件は受理するように修正.
 	- $TL->eval() を追加

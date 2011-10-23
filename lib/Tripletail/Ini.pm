@@ -4,6 +4,7 @@
 package Tripletail::Ini;
 use strict;
 use warnings;
+use File::Basename ();
 our $TL;
 
 1;
@@ -238,6 +239,17 @@ sub get {
 	}
 
 	$result;
+}
+
+sub get_reloc
+{
+  my $this = shift;
+  my $value = $this->get(@_);
+  if( $value && $this->{filename} )
+  {
+    $value =~ s{^\.{3}(?=$|/)}{File::Basename::dirname($this->{filename})}e;
+  }
+  $value;
 }
 
 sub set {
@@ -540,6 +552,16 @@ $rawに1を指定した場合、特化指定を含んだグループ文字列で
 指定されたグループ・キーの値を返す。グループorキーがなければ$defaultで指定された値を返す。
 $defaultが指定されなかった場合は、undefを返す。
 $rawに1を指定した場合、特化指定を含んだグループ文字列で確認し値を返す。
+
+=item C<< get_reloc >>
+
+  $val = $ini->get_reloc($group => $key, $default, $raw)
+
+指定されたグループ・キーの値を返す。
+基本的な動作及び引数は L</get> と同様だが、値が C<.../> で始まるとき(若しくはC<...>そのものの時)に、 C<...> 部分を ini ファイルのディレクトリ名で置き換える。
+(L</read> 以外で生成された Ini インスタンスの時は、この情報を持たないため処理されない。)
+
+0.46 以降で利用可能。
 
 =item C<< set >>
 

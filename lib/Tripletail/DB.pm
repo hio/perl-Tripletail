@@ -8,7 +8,7 @@ use Tripletail;
 require Time::HiRes;
 use DBI qw(:sql_types);
 
-sub _INIT_REQUEST_HOOK_PRIORITY() { -1_000_000 } # 順序は問わない
+sub _PRE_REQUEST_HOOK_PRIORITY()  { -1_000_000 } # 順序は問わない
 sub _POST_REQUEST_HOOK_PRIORITY() { -1_000_000 } # セッションフックの後
 sub _TERM_HOOK_PRIORITY()         { -1_000_000 } # セッションフックの後
 
@@ -63,6 +63,9 @@ sub _reconnectSilently {
     $this;
 }
 
+# エラー時に, DB別固有エラー情報から共通エラー情報に変換.
+# 全てのDB種別で実装されているわけではない.
+# 実装されていなければ常に COMMON_ERROR 扱い.
 sub _errinfo
 {
   my $pkg  = shift;
@@ -76,10 +79,13 @@ sub _errinfo
   $_ERRMAP->{$type} ||= do{
     # $pkg->_load_errmap_mysql();
     my $subname = "_load_errmap_$type";
-    $pkg->$subname();
+    my $sub = $pkg->can($subname);
+    $sub ? $pkg->$sub() : {};
   };
 
-  my ($errno, $errstr, $errkey);
+  my $errno;  # DB固有のエラーコード.
+  my $errstr; # DB固有のエラーメッセージ.
+  my $errkey; # 共通のエラー識別キー.
   if( $type eq 'mysql' )
   {
     $errno  = $dbh->{mysql_errno};
@@ -108,6 +114,7 @@ sub _errinfo
   {
     $errno  = $dbh->err;
     $errstr = $dbh->errstr;
+    $errkey = 'COMMON_ERROR';
     #die __PACKAGE__."#_errinfo: DB type [$type] is not supported. (DB type [$type] はサポートされていません)\n";
   }
 
@@ -117,7 +124,7 @@ sub _errinfo2
 {
   my $pkg    = shift;
   my $type   = shift;
-  my $errkey = shift;
+  my $errkey = shift || 'COMMON_ERROR';
   my $errno  = shift;
   my $errstr = shift;
 
@@ -137,6 +144,7 @@ sub _errinfo2
   };
 }
 
+# 共通エラーコードの可読メッセージ.
 sub _load_errmsg
 {
   +{
@@ -151,6 +159,7 @@ sub _load_errmsg
     SYNTAX_ERROR   => 'Syntax error (構文エラー)',
   };
 }
+# エラー情報のDB別固有エラーコードから共通コードへのマッピング(mysql).
 sub _load_errmap_mysql
 {
   # http://dev.mysql.com/doc/refman/5.0/en/error-messages-server.html
@@ -170,6 +179,14 @@ sub _load_errmap_mysql
     2005 => 'CONNECT_NO_SERVER',
   };
 }
+sub _load_errmap_pgsql
+{
+  # http://www.postgresql.jp/document/pg836doc/html/errcodes-appendix.html
+  +{
+    00000 => 'NO_ERROR',
+  };
+}
+# エラー情報のDB別固有エラーコードから共通コードへのマッピング(sqlite).
 sub _load_errmap_sqlite
 {
   # http://www.sqlite.org/c3ref/c_abort.html
@@ -177,6 +194,7 @@ sub _load_errmap_sqlite
     0    => 'NO_ERROR',
   };
 }
+
 
 sub connect {
 	my $this = shift;
@@ -552,21 +570,21 @@ sub execute {
 
 			$sth->{ret} = $sth->{sth}->execute;
 		};
-		if($@) {
+		if( my $err = $@ ) {
 			my $elapsed = Time::HiRes::tv_interval($begintime);
 			$TL->getDebug->_dbLog(sub{
 				group   => $this->{group},
 				set     => $dbh->getSetName,
 				db      => $dbh->getGroup,
 				id      => $sth->{id},
-				query   => $sql_backup . " /* ERROR: $@ */",
+				query   => $sql_backup . " /* ERROR: $err */",
 				params  => $log_params,
 				elapsed => $elapsed,
-				names   => $sth->nameArray,
+				names   => $TL->eval(sub{ $sth->nameArray }) || undef,
 				error   => 1,
 			});
 
-			die $@;
+			die $err;
 		} else {
 			# dieしなかったならループ終了
 			last;
@@ -582,7 +600,7 @@ sub execute {
 		query   => $sql_backup,
 		params  => $log_params,
 		elapsed => $elapsed,
-		names   => $sth->nameArray,
+		names   => $TL->eval(sub{ $sth->nameArray }) || undef
 	});
 
 	$sth;
@@ -873,11 +891,11 @@ sub _connect {
 		$INSTANCES->{$group} = $class->_new($group)->connect;
 	}
 
-	# initRequest, postRequest, term をフックする
+	# preRequest, postRequest, term をフックする
 	$TL->setHook(
-		'initRequest',
-		_INIT_REQUEST_HOOK_PRIORITY,
-		\&__initRequest,
+		'preRequest',
+		_PRE_REQUEST_HOOK_PRIORITY,
+		\&__preRequest,
 	);
 
 	$TL->setHook(
@@ -975,7 +993,7 @@ sub __nameQuery {
 	$query;
 }
 
-sub __initRequest {
+sub __preRequest {
 	# $INSTANCESの中から、接続が確立していないものを接続する。
 	foreach my $db (values %$INSTANCES) {
 		$db->connect;
@@ -1204,7 +1222,7 @@ sub connect {
 		});
 	} elsif($type eq 'sqlite') {
 		my $opts = {
-			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
+			dbname => $TL->INI->get_reloc($this->{inigroup} => 'dbname'),
 		};
 		$opts->{dbname} or die __PACKAGE__."#connect: dbname is not set. (dbnameが指定されていません)\n";
 

@@ -61,11 +61,13 @@ sub _setCode {
 		}
 	}
 	
+	my $ctype = $this->{option}{type} eq 'html' ? 'text/html' : 'application/xhtml+xml';
+	
 	$this->{option}{charset} = $ocode;
 	if($ocode =~ m/^sjis/) {
-		$this->{option}{contenttype} = 'text/html; charset=Shift_JIS';
+		$this->{option}{contenttype} = "$ctype; charset=Shift_JIS";
 	} elsif($ocode =~ m/^utf8/) {
-		$this->{option}{contenttype} = 'text/html; charset=UTF-8';
+		$this->{option}{contenttype} = "$ctype; charset=UTF-8";
 	} else {
 		die "internal errlr.\n";
 	}
@@ -279,6 +281,8 @@ C<CCC> による文字コード判別を行います。
 フィルタが HTML を書換える際の動作を調整する為のオプション。
 XHTML を出力する際に、このパラメータを C<html> のままにした場合、
 不正な XHTML が出力される事がある。
+
+C<xhtml>を指定した場合、コンテントタイプは application/xhtml+xml となる.
 
 デフォルトは 'C<html>'。
 

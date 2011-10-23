@@ -14,7 +14,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.46';
 our $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -208,6 +208,8 @@ sub __new {
 	$this->{encode_is_available} = undef; # undef: 不明  0: Encode利用不可  1: Encode利用可
 
     $this->{ fcgi_request} = undef; # FCGI または undef
+
+	$this->{script_name} = undef; # プログラム名
 
 	$this;
 }
@@ -479,7 +481,8 @@ sub startCgi {
 	my $param = { @_ };
 
     local $IN_EXTENT_OF_STARTCGI = 1;
-	
+	$this->{script_name} = $0;
+
 	$this->_clearCwd();
 	$this->{outputbuffering} = $this->INI->get(TL => 'outputbuffering', 0);
 
@@ -616,9 +619,11 @@ sub startCgi {
 					}
 					$this->__executeHook('init');
 				}
+				$this->_update_processname('fcgi run');
 				
 				$this->__executeCgi($param->{-main});
 				$main_err = $@;
+				$this->_update_processname('fcgi wait');
 
 				{
 					#no warnings;
@@ -683,6 +688,22 @@ sub startCgi {
 	{
 		$this;
 	}
+}
+
+sub _update_processname
+{
+	my $this = shift;
+	my $command = shift;
+	
+	if($this->INI->get(TL => 'command_add_processname', '1'))
+	{
+	#	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	#	my $timestr = sprintf('%02d:%02d:%02d', $mon + 1, $mday, $hour, $min, $sec);
+		my $serial = sprintf('%06d', $LOG_SERIAL % 1000000);
+		
+		$0 = "perl $serial ($command) " . (defined($this->{script_name}) ? $this->{script_name} : '');
+	}
+	
 }
 
 sub _call_fault_handler
@@ -868,6 +889,7 @@ sub dispatch {
 	my $func = $pkg->can("Do$name");
 
 	if($func && defined(&$func)) {
+		$this->_update_processname("Do$name");
 		$func->(@$args);
 		1;
 	} else {
@@ -956,7 +978,7 @@ sub _log {
 		. "\n" . $log . "\n";
 
 	if(!exists($this->{logdir})) {
-		$this->{logdir} = $this->INI->get(TL => 'logdir');
+		$this->{logdir} = $this->INI->get_reloc(TL => 'logdir');
 		if( defined($this->{logdir}) )
 		{
 			# trust TL.logdir parameter.
@@ -3754,6 +3776,25 @@ CGI モード動作時の startCgi 外のエラーに対する
 
 新しいコードではフルパスが欲しいときには
 L<$form->getFullFileName|Tripletail::Form/getFullFileName> を推奨。
+
+=item C<command_add_processname>
+
+  command_add_processname = 1
+
+FastCGI で処理する際に、プロセス名に各種情報を表示するかを指定します。(0.46以降)
+
+0 だとプロセス名を変更しません。
+1 だとプロセス名を変更します。
+デフォルトは0です。
+
+1 にすると「perl リクエスト処理回数 (処理内容) スクリプト名」となります。
+
+処理内容には、FastCGI 時に fcgi run、fcgi wait が表示されます。
+また、C<$TL->dispatch> を使用した際は、分岐先のコマンドが追加されます。
+
+プロセス名は、起動時のプロセス名の長さより長くすることが出来ないため、
+起動時の状況によっては全て表示されないことがあります。
+
 
 =back
 
