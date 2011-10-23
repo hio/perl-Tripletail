@@ -74,25 +74,7 @@ sub _charconv {
 		die "TL#charconv, ARG[4] was a Ref. [$prefer_encode]\n";
 	}
 
-	if (not $prefer_encode or not $this->_encodeAvailable) {
-		require Unicode::Japanese;
-		# UniJPでコード変換。
-
-		if (ref $from) {
-			# 配列が指定されても'auto'と見做す。
-			$from = 'auto';
-		}
-
-		if ($_ = $MAP_ENCODE_TO_UNIJP{$from}) {
-			$from = $_;
-		}
-		
-		if ($_ = $MAP_ENCODE_TO_UNIJP{$to}) {
-			$to = $_;
-		}
-
-		Unicode::Japanese->new($str, $from)->conv($to);
-	} else {
+	if(!($prefer_encode) && $this->_encodeAvailable) {
 		# Encodeでコード変換。
 		$from = 'cp932' if($from eq 'Shift_JIS');
 		$to = 'cp932' if($to eq 'Shift_JIS');
@@ -101,9 +83,12 @@ sub _charconv {
 			# デフォルトの推測表を使う
 			$from = \@GUESS_TABLE;
 		}
-
+		
 		my $encoding;
-		if(ref($from)) {
+		if( $str eq '' )
+		{
+			$encoding = Encode::find_encoding('ascii');
+		}elsif(ref($from)) {
 			# Encode::Guessを利用して自動判別。
 			foreach my $enc (@$from) {
 				$enc = 'cp932' if($enc eq 'Shift_JIS');
@@ -143,6 +128,24 @@ sub _charconv {
 
 		my $utf8 = $encoding->decode($str);
 		Encode::find_encoding($to)->encode($utf8);
+	} else {
+		require Unicode::Japanese;
+		# UniJPでコード変換。
+
+		if (ref $from) {
+			# 配列が指定されても'auto'と見做す。
+			$from = 'auto';
+		}
+
+		if ($_ = $MAP_ENCODE_TO_UNIJP{$from}) {
+			$from = $_;
+		}
+		
+		if ($_ = $MAP_ENCODE_TO_UNIJP{$to}) {
+			$to = $_;
+		}
+
+		Unicode::Japanese->new($str, $from)->conv($to);
 	}
 }
 

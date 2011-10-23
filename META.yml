@@ -1,6 +1,6 @@
 # http://module-build.sourceforge.net/META-spec.html
 name:         Tripletail
-version:      0.22
+version:      0.23
 version_from: lib/Tripletail.pm
 installdirs:  site
 author:       Ymirlink <tl@tripletail.jp>

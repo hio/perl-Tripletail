@@ -1,5 +1,8 @@
 Revision history for Tripletail
 
+0.23	Fri Jan 29 17:25:13 JST 2007
+	- charconvのprefer_unijpの挙動が仕様と逆になっていたバグの修正.
+
 0.22	Fri Dec  8 16:23:03 JST 2006
 	- $DB->tx, $DB->inTx メソッドの追加.
 
