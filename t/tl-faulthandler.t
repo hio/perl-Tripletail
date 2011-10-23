@@ -81,7 +81,7 @@ sub test03_post1
 	});
 	SKIP:{
 		ok(!$ret->is_success, "[test3] fetch failed");
-		is($ret->{headers}{Status}[0], "413 Request Entity Too Large\r\n", "[test3] Status: 413 Request Entity Too Large");
+		is_deeply($ret->{headers}{Status}, ["413 Request Entity Too Large"], "[test3] Status: 413 Request Entity Too Large");
 		like($ret->{content}, qr/Post Error: request size was too big to accept./, "[test3] request too big");
 		like($ret->{content}, qr/^test3 handler\n/, "[test3] customized content");
 		unlike($ret->{content}, qr/<html\b/, "[test3] customized content, no html tag");

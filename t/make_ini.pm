@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: make_ini.pm 42208 2008-06-05 02:26:54Z hio $
+# $Id: make_ini.pm 42251 2008-06-11 06:56:36Z hio $
 # -----------------------------------------------------------------------------
 package t::make_ini;
 use strict;
@@ -102,6 +102,7 @@ sub write_ini
 # $ret :: t::make_ini::TestResult.
 # $ret->is_success.
 # $ret->content.
+# $ret->headers.
 # -----------------------------------------------------------------------------
 sub tltest
 {
@@ -233,9 +234,11 @@ sub tltest
 			}
 			if( /^\r?\n\z/ )
 			{
+				# End of Headers.
 				$body = '';
 				next;
 			}
+			s/[\r\n]+\z//;
 			if( s/^\s// )
 			{
 				$valref or die;
@@ -331,6 +334,10 @@ sub is_success
 sub content
 {
 	shift->{content};
+}
+sub headers
+{
+	shift->{headers};
 }
 
 # -----------------------------------------------------------------------------

@@ -1,5 +1,8 @@
 Revision history for Tripletail
 
+0.43 Wed Jun 11 15:50:54 JST 2008
+	- outputbuffering 使用時に自動で追加されるContent-Lengthの計算が間違うことがあるバグの修正.
+
 0.42 Thu Jun  5 11:27:13 JST 2008
 	- Template で, includeされるファイルの文字コードが常に自動認識だったのを, 親で指定されていればそれと同じ文字コードを使うように修正.
 	- Template.rootpath が相対パスで記述されている時に全てが不許可となるのを修正.

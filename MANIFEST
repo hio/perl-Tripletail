@@ -193,6 +193,7 @@ t/v021_spaces.t
 t/v038_tainted_template.t
 t/v040_mutable_cgi_input.t
 t/v042_debug_buffering.t
+t/v043_buffed_clen.t
 t/validator.t
 t/validator_correct.t
 t/value.t

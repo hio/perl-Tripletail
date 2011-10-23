@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 42209 2008-06-05 02:29:04Z hio $
+# $Id: Tripletail.pm 42251 2008-06-11 06:56:36Z hio $
 package Tripletail;
 use 5.008_000;
 use strict;
@@ -14,7 +14,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -2315,16 +2315,29 @@ sub __flushContentFilter {
 
 	delete $this->{printflag};
 
+	my $add_clen;
+	if( $this->{outputbuffering} && !$TL->{mod_perl} )
+	{
+		my $filter = $this->getContentFilter();
+		if( !exists($filter->{replacement}{'Content-Length'}) && !exists($filter->{addition}{'Content-Length'}) )
+		{
+			$add_clen = 1;
+		}
+	}
+
+
 	my $str = $this->{outputbuff};
 	foreach my $filter (@{$this->{filterlist}}) {
 		$str = $filter->print($str);
 		$str .= $filter->flush;
 	}
-	
-	if($this->{outputbuffering}) {
+
+	if( $add_clen )
+	{
 		my $body = $str;
-		$body =~ s/^.*\r\n\r\n//sm;
-		print "Content-Length: " . length($body) . "\r\n";
+		$body =~ s/^.*?(?:\r?\n|\r){2}//sm;
+		my $clen = length($body);
+		$str = "Content-Length: $clen\r\n" . $str;
 	}
 
 	print $str;
