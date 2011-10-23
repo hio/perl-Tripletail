@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use UNIVERSAL qw(isa);
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

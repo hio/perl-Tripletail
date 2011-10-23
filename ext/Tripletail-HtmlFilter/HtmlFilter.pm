@@ -99,7 +99,7 @@ sub set {
 		die __PACKAGE__."#set, ARG[1] was Ref.\n";
     }
 
-    @{$this->[HTML]} = split m/(<.+?>)/, $html;
+    @{$this->[HTML]} = split m/(<.+?>)/s, $html;
     @{$this->[OUTPUT]} = ();
     $this;
 }

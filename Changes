@@ -1,5 +1,11 @@
 Revision history for Tripletail
 
+0.14    Tue Aug  8 10:19:08 JST 2006
+	- デバッグ機能利用時にDBエラーが正しく表示されないことがある問題を修正
+	- <input type="TEXT" ...> のように type 属性が大文字になっている html テンプレートに対する
+	  setForm と getForm メソッドが正しく動作しない問題を修正。
+	- <>の間に改行を含むタグを正しく解析できない問題を修正。
+
 0.13    Wed Aug  2 16:45:37 JST 2006
 	- CustomFilterのサンプルをいったん削除
 

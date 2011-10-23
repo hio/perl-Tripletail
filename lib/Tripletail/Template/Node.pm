@@ -349,7 +349,7 @@ sub getForm {
 			### name: $elem->name
 			if(lc($elem->name) eq 'input') {
 				my $name = $elem->attr('name');
-				my $type = $elem->attr('type');
+				my $type = lc $elem->attr('type');
 				my $value = do {
 					my $str = $elem->attr('value');
 					defined $str ? $str : '';
@@ -505,7 +505,7 @@ sub setForm {
 			if(lc $elem->name eq 'input') {
 				if(defined(my $name = $elem->attr('name'))) {
 					$name = $TL->unescapeTag($name);
-					my $type = $elem->attr('type');
+					my $type = lc $elem->attr('type');
 
 					if(!defined($type)
 					|| $type eq '' 

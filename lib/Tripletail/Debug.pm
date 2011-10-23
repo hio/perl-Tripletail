@@ -262,7 +262,9 @@ sub _dbLog {
 	|| !$this->{db_log}) {
 		return $this;
 	}
-
+	
+	local($@);
+	
 	eval 'require Data::Dumper';
 	$@ and die $@;
 
@@ -1120,6 +1122,8 @@ sub __executeSql {
 	local($this->{db_log});
 	$this->{db_log} = undef;
 
+	local($@);
+	
 	$params = eval $params; # Dumpしてあったものを戻す
 	my $DB = $TL->getDB($group);
 

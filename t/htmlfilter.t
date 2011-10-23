@@ -1,4 +1,4 @@
-use Test::More tests => 11;
+use Test::More tests => 13;
 use strict;
 use warnings;
 #use Smart::Comments;
@@ -62,3 +62,16 @@ while (my ($context, $elem) = $filter->next) {
 }
 
 is($filter->toStr, $dst, 'toStr');
+
+
+
+$filter = $TL->newHtmlFilter(
+    interest => ['foo'],
+   );
+$filter->set(qq{a<foo\t\n\ta="b">b});
+while (my ($context, $elem) = $filter->next) {
+    is $elem->attr('a'), 'b', 'attribute after newline [1]';
+
+    $elem->attr(a => 'bbb');
+}
+is $filter->toStr, qq{a<foo a="bbb">b}, 'attribute after newline [2]';

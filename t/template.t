@@ -1,4 +1,4 @@
-use Test::More tests => 90;
+use Test::More tests => 94;
 use Test::Exception;
 use strict;
 use warnings;
@@ -71,6 +71,11 @@ my $TMPL3 = qq{
       </FORM>
 };
 
+my $TMPL4 = qq{
+      <FORM ACTION="" NAME="FORM">
+        <INPUT TYPE="TEXT" NAME="aaa" VALUE="111">
+      </FORM>
+};
 my $TMPL2 = qq{
       <FORM ACTION="" NAME="FORM">
         <INPUT TYPE="text" NAME="aaa" VALUE="111">
@@ -147,6 +152,17 @@ is(trim $t->getHtml, trim qq{
       <INPUT TYPE="text" NAME="aaa" VALUE="333">
     </FORM>
 }, 'addHiddenForm (2)');
+
+$t->setTemplate($TMPL4);
+ok($form = $t->getForm('FORM'), 'getForm (3)');
+is($form->toLink('./'), './?aaa=111&INT=1', 'getForm (3)');
+
+ok($t->setForm($form->set(aaa => 333), 'FORM'), 'setForm (3)');
+is(trim $t->getHtml, trim qq{
+    <FORM ACTION="" NAME="FORM">
+      <INPUT TYPE="TEXT" NAME="aaa" VALUE="333">
+    </FORM>
+}, 'setForm (4)');
 
 dies_ok {$t->setHtml} 'setHtml die';
 dies_ok {$t->setHtml(\123)} 'setHtml die';
