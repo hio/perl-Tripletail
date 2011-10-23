@@ -5,8 +5,9 @@ package Tripletail;
 use strict;
 use warnings;
 use UNIVERSAL qw(isa);
+use File::Spec;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -886,6 +887,12 @@ sub _sendErrorIfNeeded {
 	}
 }
 
+sub _hostname
+{
+	my $host = `hostname -f 2>&1` || `hostname 2>&1`;
+	$host && $host=~/^\s*([\w.-]+)\s*$/ ? $1 : '';
+}
+
 sub sendError {
 	my $this = shift;
 	my $opts = { @_ };
@@ -919,11 +926,7 @@ sub sendError {
 	push @lines, '';
 	push @lines, '----';
 
-	my $host = '';
-	eval { $host = `hostname -f` };
-	if(!$host) {
-		eval { $host = `hostname` };
-	}
+	my $host = _hostname();
 	if($host) {
 		chomp $host;
 		unshift @lines, "HOST: $host";
@@ -1069,7 +1072,9 @@ sub parsePeriod {
 		} elsif(s/^days?//) {
 			commit(60 * 60 * 24);
 		} elsif(s/^mon(?:ths?)?//) {
-			commit(60 * 60 * 24 * 30);
+			commit(60 * 60 * 24 * 30.436875);
+		} elsif(s/^years?//) {
+			commit(60 * 60 * 24 * 365.2425);
 		} elsif(s/^(\d+)//) {
 			if(defined($lastnum)) {
 				die __PACKAGE__."#parsePeriod, invalid time string [$str]:".
@@ -1086,7 +1091,7 @@ sub parsePeriod {
 		commit(1);
 	}
 
-	$result;
+	int($result);
 }
 
 sub parseQuantity {
@@ -2272,7 +2277,7 @@ CGIモードの時、指定されたURLへリダイレクトする。
 
   $TL->parsePeriod('10hour 30min')
 
-時間指定文字列を秒数に変換する。
+時間指定文字列を秒数に変換する。小数点が発生した場合は切り捨てる。
 L</"度量衡"> を参照。
 
 =item C<< parseQuantity >>
@@ -2763,7 +2768,11 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 
 =item 数値＋ 'mon' or 'month' or 'months'
 
-月での指定を表す。１月＝30日として計算する。 [×30*24*3600]
+月での指定を表す。１月＝30.436875日として計算する。 [×30.436875*24*3600]
+
+=item 数値＋ 'year' or 'years'
+
+年での指定を表す。１年＝365.2425日として計算する。 [×365.2425*24*3600]
 
 =back
 

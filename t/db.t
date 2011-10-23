@@ -5,7 +5,8 @@ use warnings;
 
 
 BEGIN {
-    my ($name) = getpwuid($<);
+    my ($name) = eval{getpwuid($<)} || $ENV{USERNAME};
+    $name = $name && $name=~/^(\w+)$/ ? $1 : 'guest';
     
     open my $fh, '>', "tmp$$.ini";
     print $fh qq{

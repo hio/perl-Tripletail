@@ -2,14 +2,16 @@ use strict;
 use warnings;
 use File::Find;
 use File::Path;
+use File::Spec;
 
 $| = 1;
 
 print "checking for mlpod2html... ";
-my $mlpod2html = `which mlpod2html 2>/dev/null`;
+my $devnull = File::Spec->devnull();
+my $mlpod2html = `which mlpod2html 2>$devnull`;
 if ($mlpod2html) {
 	chomp $mlpod2html;
-	print $mlpod2html, "\n";
+	print "$mlpod2html\n";
 }
 else {
 	print "no\n";

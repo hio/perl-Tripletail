@@ -1,4 +1,4 @@
-use Test::More tests => 94;
+use Test::More tests => 95;
 use Test::Exception;
 use strict;
 use warnings;
@@ -90,6 +90,14 @@ my $TMPL = qq{
       </FORM>
     <!end:FORM>
 };
+
+my $TMPL5 = qq{
+    <form name="form">
+      <input type="text" name="aaa" value="AAAAA">
+      <textarea name="bbb">BBBBB</textarea>
+    </form>
+};
+
 do {
     open my $fh, '>', "tmp$$.ini";
     print $fh $TMPL;
@@ -315,3 +323,8 @@ ok($t->addHiddenForm($TL->newForm(bbb => 666)));
 #$TL->_updateFilterList('filter');
 
 #ok($t->flush, 'flush');
+
+
+$t->setTemplate($TMPL5);
+$t->setForm({}, 'form');
+is(trim $t->toStr, trim $TMPL5, 'the form is unchanged');

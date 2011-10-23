@@ -2,6 +2,7 @@ Changes
 MANIFEST
 Makefile.PL
 README
+META.yml
 data/jpholiday.pl
 doc/Makefile.PL
 doc/Tripletail.html
@@ -68,6 +69,7 @@ ext/Tripletail-SMIME/README
 ext/Tripletail-SMIME/SMIME.pm
 ext/Tripletail-SMIME/SMIME.xs
 ext/Tripletail-SMIME/TAGINFO
+ext/Tripletail-SMIME/openssl_config.PL
 ext/Tripletail-SMIME/t/smime.more.t
 ext/Tripletail-SMIME/t/smime.t
 ext/Tripletail-SMIME/typemap

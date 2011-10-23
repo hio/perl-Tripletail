@@ -2,8 +2,8 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my $OPENSSL_LIBS = $ENV{LDFLAGS} || '';
-my $OPENSSL_CFLAGS = $ENV{CFLAGS} || '';
+require 'openssl_config.PL';
+my $OPENSSL = &openssl_config();
 
 WriteMakefile(
     NAME                => 'Tripletail::SMIME',
@@ -14,8 +14,9 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More' => 0,
     },
-    LIBS                => ["$OPENSSL_LIBS -lcrypto"],
-    INC                 => "$OPENSSL_CFLAGS",
+    LIBS                => "$OPENSSL->{LIBS}",
+    INC                 => "$OPENSSL->{CFLAGS}",
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Tripletail-SMIME-*' },
 );
+

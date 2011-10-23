@@ -1,5 +1,16 @@
 Revision history for Tripletail
 
+0.16    Fri Aug 18 13:29:03 JST 2006
+    - [[重要:0.15からの非互換な仕様変更]]
+      - 度量衡の1月が30日から30.436875日に変更
+      - Template#setForm は、その引数で言及されていない名前を持つ <textarea> の内容を、常に
+        空にしていた。この動作は変更され、言及されていない <textarea> は変更されないように
+        なった。
+      - Value#setでNULLをset出来るように修正
+    - 度量衡にyearを追加
+    - 度量衡変更に伴いparsePeriodを変更
+    - Win32対応修正.
+
 0.15	Tue Aug 15 14:22:42 JST 2006
 	- [[重要:0.14からの非互換な仕様変更]]
 	　- Value#isWhitespace、Value#isPrintableAscii、Value#isWideに関して、従来は空白で真を返していたが、

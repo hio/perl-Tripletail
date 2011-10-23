@@ -76,9 +76,7 @@ sub set {
 	my $this = shift;
 	my $value = shift;
 
-	if(!defined($value)) {
-		die __PACKAGE__."#set, ARG[1] was undef.\n";
-	} elsif(ref($value)) {
+	if(ref($value)) {
 		die __PACKAGE__."#set, ARG[1] was a Ref. [$value]\n";
 	}
 
@@ -282,6 +280,10 @@ sub isWide {
 
 sub isPassword {
 	my $this = shift;
+	
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	($this->isPrintableAscii &&
 		$this->{value} =~ m/[a-z]/ &&
@@ -293,11 +295,19 @@ sub isPassword {
 sub isZipCode {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	$this->{value} =~ /\A\d{3}-\d{4}\z/ ? 1 : undef;
 }
 
 sub isTelNumber {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	$this->{value} =~ /\A\d[\d-]+\d\z/ ? 1 : undef;
 }
@@ -305,11 +315,19 @@ sub isTelNumber {
 sub isEmail {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	$this->{value} =~ /$pcmailexp/ ? 1 : undef;
 }
 
 sub isMobileEmail {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	$this->{value} =~ /$mobilemailexp/ ? 1 : undef;
 }
@@ -318,6 +336,10 @@ sub isInteger {
 	my $this = shift;
 	my $min = shift;
 	my $max = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	if($this->{value} =~ m/\A-?\d+\z/) {
 		if(defined($min)) {
@@ -338,6 +360,10 @@ sub isReal {
 	my $min = shift;
 	my $max = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	if($this->{value} =~ m/\A-?\d+(?:\.\d+)?\z/) {
 		if(defined($min)) {
 			$this->{value} >= $min or return undef;
@@ -355,11 +381,19 @@ sub isReal {
 sub isHira {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	$this->{value} =~ m/\A$re_hira+\z/ ? 1 : undef;
 }
 
 sub isKata {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	$this->{value} =~ m/\A$re_kata+\z/ ? 1 : undef;
 }
@@ -368,6 +402,10 @@ sub isExistentDay {
 	# YYYY-MM-DD この日が存在するなら1
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	my @date = $this->_parseDate($this->{value});
 	@date ? $this->_isExistentDay(@date) : undef;
 }
@@ -375,11 +413,19 @@ sub isExistentDay {
 sub isGif {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	$this->{value} =~ /\AGIF8[79]a/ ? 1 : undef;
 }
 
 sub isJpeg {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	$this->{value} =~ /\A\xFF\xD8/ ? 1 : undef;
 }
@@ -387,17 +433,29 @@ sub isJpeg {
 sub isPng {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	$this->{value} =~ /\A\x89PNG\x0D\x0A\x1A\x0A/ ? 1 : undef;
 }
 
 sub isHttpUrl {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	$this->{value} =~ m!\Ahttp://! ? 1 : undef;
 }
 
 sub isHttpsUrl {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	$this->{value} =~ m!\Ahttps://! ? 1 : undef;
 }
@@ -406,6 +464,10 @@ sub isLen {
 	my $this = shift;
 	my $min = shift;
 	my $max = shift;
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	my $len = $this->getLen;
 
@@ -424,6 +486,10 @@ sub isSjisLen {
 	my $min = shift;
 	my $max = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	my $len = $this->getSjisLen;
 
 	if(defined($min)) {
@@ -441,6 +507,10 @@ sub isCharLen {
 	my $min = shift;
 	my $max = shift;
 
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
 	my $len = $this->getCharLen;
 
 	if(defined($min)) {
@@ -457,6 +527,10 @@ sub isPortable {
 	# 機種依存文字を含んでいないなら1
 	my $this = shift;
 	my $str  = $this->{value};
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 
 	my $unijp = Unicode::Japanese->new;
 
@@ -492,6 +566,10 @@ sub isIpAddress {
 	my $this = shift;
 	my $checkmask = shift;
 	my $checkip  = $this->{value};
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
 	
 	if(!defined($checkmask)) {
 		return undef;
@@ -544,6 +622,10 @@ sub isIpAddress {
 sub convHira {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+	
 	my $unijp = Unicode::Japanese->new($this->{value});
 	$this->{value} = $unijp->kata2hira->get;
 
@@ -552,6 +634,10 @@ sub convHira {
 
 sub convKata {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	my $unijp = Unicode::Japanese->new($this->{value});
 	$this->{value} = $unijp->hira2kata->get;
@@ -562,6 +648,10 @@ sub convKata {
 sub convNumber {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	my $unijp = Unicode::Japanese->new($this->{value});
 	$this->{value} = $unijp->z2hNum->get;
 
@@ -570,6 +660,10 @@ sub convNumber {
 
 sub convNarrow {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	my $unijp = Unicode::Japanese->new($this->{value});
 	$this->{value} = $unijp->z2h->get;
@@ -580,6 +674,10 @@ sub convNarrow {
 sub convWide {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	my $unijp = Unicode::Japanese->new($this->{value});
 	$this->{value} = $unijp->h2z->get;
 
@@ -589,6 +687,10 @@ sub convWide {
 sub convComma {
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	$this->{value} =~ s/\G((?:^[-+])?\d{1,3})(?=(?:\d\d\d)+(?!\d))/$1,/g;
 
 	$this;
@@ -596,6 +698,10 @@ sub convComma {
 
 sub convLF {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	$this->{value} =~ s/\r\n/\n/g;
 	$this->{value} =~ s/\r/\n/g;
@@ -605,6 +711,10 @@ sub convLF {
 
 sub convBR {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	$this->{value} =~ s/\r\n/\n/g;
 	$this->{value} =~ s/\r/\n/g;
@@ -616,6 +726,10 @@ sub convBR {
 #---------------------------------- force系
 sub forceHira {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	my @chars = split /($re_char)/, $this->{value};
 	$this->{value} = '';
@@ -636,6 +750,10 @@ sub forceKata {
 	# forceHiraの逆
 	my $this = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	my @chars = split /($re_char)/, $this->{value};
 	$this->{value} = '';
 
@@ -653,6 +771,10 @@ sub forceKata {
 
 sub forceNumber {
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	my @chars = split /($re_char)/, $this->{value};
 	$this->{value} = '';
@@ -674,6 +796,10 @@ sub forceMin {
 	my $min = shift;
 	my $val = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	if(!defined($min)) {
 		die __PACKAGE__."#forceMin, ARG[1] was undef.\n";
 	} elsif(ref($min)) {
@@ -693,6 +819,10 @@ sub forceMax {
 	my $max = shift;
 	my $val = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	if(!defined($max)) {
 		die __PACKAGE__."#forceMax, ARG[1] was undef.\n";
 	} elsif(ref($max)) {
@@ -711,6 +841,10 @@ sub forceMaxLen {
 	my $this = shift;
 	my $maxlen = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	if(length($this->{value}) > $maxlen) {
 		substr($this->{value}, $maxlen) = '';
 	}
@@ -721,6 +855,10 @@ sub forceMaxLen {
 sub forceMaxUtf8Len {
 	my $this = shift;
 	my $maxlen = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	if(length($this->{value}) > $maxlen) {
 		# $maxlenバイトに入りきるまで一文字ずつ入れていく
@@ -746,6 +884,10 @@ sub forceMaxUtf8Len {
 sub forceMaxSjisLen {
 	my $this = shift;
 	my $maxlen = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	my $unijp = Unicode::Japanese->new;
 
@@ -776,6 +918,10 @@ sub forceMaxCharLen {
 	my $this = shift;
 	my $maxlen = shift;
 
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
 	my @chars = grep {defined && length} split /($re_char)/, $this->{value};
 	if(@chars > $maxlen) {
 		splice @chars, $maxlen;
@@ -790,6 +936,10 @@ sub forceMaxCharLen {
 sub trimWhitespace {
 	# 文字列前後の半角/全角スペース、タブを削除
 	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	$this->{value} =~ s/\A(?:\s|　)+//;
 	$this->{value} =~ s/(?:\s|　)+\z//;
@@ -807,6 +957,10 @@ sub countWords {
 sub strCut {
 	my $this = shift;
 	my $charanum = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
 
 	my $v = $TL->newValue;
 	

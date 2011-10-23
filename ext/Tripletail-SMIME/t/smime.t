@@ -1,5 +1,6 @@
 use Test::More tests => 23;
 use Test::Exception;
+use File::Spec;
 use strict;
 use warnings;
 
@@ -9,25 +10,48 @@ BEGIN {
     if (!-x $openssl) {
         $openssl = '/usr/bin/openssl';
     }
+    if(!-x $openssl && -e 'c:/openssl/bin/openssl.exe' )
+    {
+        $openssl = 'c:/openssl/bin/openssl.exe';
+    }
 
+    my $devnull = File::Spec->devnull();
+    open(FILE, "> tmp-$$.config") or die $!;
+    print FILE<<'CONFIG';
+[ req ]
+distinguished_name     = req_distinguished_name
+attributes             = req_attributes
+prompt                 = no
+[ req_distinguished_name ]
+C                      = AU
+ST                     = Some-State
+L                      = Test Locality
+O                      = Organization Name
+OU                     = Organizational Unit Name
+CN                     = Common Name
+emailAddress           = test@email.address
+[ req_attributes ]
+CONFIG
+    close(FILE);
     foreach my $i (1 .. 2) {
-	system(qq{$openssl genrsa > tmp$i-$$.key 2>/dev/null}) and die $!;
-        system(qq{yes "" | $openssl req -new -key tmp$i-$$.key -out tmp$i-$$.csr 2>&1 >/dev/null}) and die $!;
-	system(qq{$openssl x509 -in tmp$i-$$.csr -out tmp$i-$$.crt -req -signkey tmp$i-$$.key 2>&1 >/dev/null}) and die $!;
+	system(qq{$openssl genrsa > tmp-$$-$i.key 2>$devnull}) and die $!;
+        system(qq{$openssl req -new -key tmp-$$-$i.key -out tmp-$$-$i.csr -config tmp-$$.config >$devnull}) and die $!;
+	system(qq{$openssl x509 -in tmp-$$-$i.csr -out tmp-$$-$i.crt -req -signkey tmp-$$-$i.key 2>$devnull >$devnull}) and die $!;
     }
 }
 
 END {
     foreach my $i (1 .. 2) {
-	unlink "tmp$i-$$.key", "tmp$i-$$.csr", "tmp$i-$$.crt";
+	unlink "tmp-$$-$i.key", "tmp-$$-$i.csr", "tmp-$$-$i.crt";
     }
+    unlink("tmp-$$.config");
 }
 
 sub key {
     my $i = shift;
 
     local $/ = undef;
-    open my $fh, '<', "tmp$i-$$.key";
+    open my $fh, '<', "tmp-$$-$i.key";
     <$fh>;
 }
 
@@ -35,7 +59,7 @@ sub crt {
     my $i = shift;
 
     local $/ = undef;
-    open my $fh, '<', "tmp$i-$$.crt";
+    open my $fh, '<', "tmp-$$-$i.crt";
     <$fh>;
 }
 

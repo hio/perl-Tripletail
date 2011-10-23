@@ -1,4 +1,4 @@
-use Test::More tests => 92;
+use Test::More tests => 93;
 use Test::Exception;
 use strict;
 use warnings;
@@ -106,7 +106,8 @@ dies_ok {$TL->parsePeriod('aaa')} 'parsePeriod die';
 is($TL->parsePeriod('10'), 10, 'parsePeriod');
 is($TL->parsePeriod('10sec'), 10, 'parsePeriod');
 is($TL->parsePeriod('1days'), 60 * 60 * 24, 'parsePeriod');
-is($TL->parsePeriod('1mon'), 60 * 60 * 24 * 30, 'parsePeriod');
+is($TL->parsePeriod('1mon'), 60 * 60 * 24 * 30.436875, 'parsePeriod');
+is($TL->parsePeriod('1year'), 60 * 60 * 24 * 365.2425, 'parsePeriod');
 is($TL->parsePeriod('10hour 30min'), 10 * 60 * 60 + 30 * 60, 'parsePeriod');
 is($TL->parsePeriod('10hour 30min'), 10 * 60 * 60 + 30 * 60, 'parsePeriod');
 

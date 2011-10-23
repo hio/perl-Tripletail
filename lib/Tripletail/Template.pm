@@ -31,15 +31,21 @@ sub _new {
 	$this;
 }
 
-sub _checkPath {
+sub _checkPathIsAcceptable {
 	my $this = shift;
 	my $path = shift;
+	
+	if( $this->{rootpath} eq '/' )
+	{
+		return; # void.
+	}
 
 	# rootpathチェック
 	my @rootpath = File::Spec->splitdir(
 		File::Spec->canonpath($this->{rootpath})
 	);
 	length $rootpath[-1] or pop @rootpath;
+	@rootpath && length $rootpath[-1] or pop @rootpath;
 
 	$path = File::Spec->canonpath($path);
 	my @path = File::Spec->splitdir($path);
@@ -55,12 +61,12 @@ sub _checkPath {
 
 	for(my $i = 0; $i < @rootpath; $i++) {
 		if($rootpath[$i] ne $abspath[$i]) {
-			die __PACKAGE__."#_checkPath, loading file [$path] was forbidden ".
+			die __PACKAGE__."#_checkPathIsAcceptable, loading file [$path] was forbidden ".
 				"due to rootpath being [$this->{rootpath}]\n";
 		}
 	}
 
-	$path;
+	return; # void.
 }
 
 sub _expandInclude {
@@ -86,7 +92,7 @@ sub _expandInclude {
 	$str =~ s{<!include:(.+?)>}{
 		my $filepath = $1;
 		$filepath = File::Spec->rel2abs($filepath, $basedir);
-		$filepath = $this->_checkPath($filepath);
+		$this->_checkPathIsAcceptable($filepath);
 		$this->{loadfile}{$filepath} = 1;
 		my $includestr = $TL->readTextFile($filepath);
 		$includestr = $this->_expandInclude($inccount, $includestr, $filepath);
@@ -133,8 +139,7 @@ sub loadTemplate {
 
 	$filepath = File::Spec->rel2abs($filepath, $this->{basepath});
 
-	$filepath = $this->_checkPath($filepath);
-	$this->_checkPath($filepath);
+	$this->_checkPathIsAcceptable($filepath);
 
 	my $str = $TL->readTextFile($filepath, $icode);
 	my $inccount = 0;

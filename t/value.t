@@ -15,14 +15,13 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 130;
+use Test::More tests => 129;
 
 #---------------------------------- 一般
 my $v;
 ok($v = $TL->newValue(''), 'new');
 ok($v->set('***'), 'set');
 is($v->get, '***', 'get');
-dies_ok {$v->set(undef)} 'set die';
 dies_ok {$v->set(\123)} 'set die';
 
 #---------------------------------- set系

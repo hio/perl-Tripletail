@@ -5,7 +5,7 @@
  *
  * Copyright 2005 YAMASHINA Hio
  * ----------------------------------------------------------------------------
- * $Id: HtmlFilter.xs,v 1.12 2006/07/26 05:40:38 mikage Exp $
+ * $Id: HtmlFilter.xs,v 1.14 2006/08/17 09:51:02 hio Exp $
  * ------------------------------------------------------------------------- */
 
 #include "EXTERN.h"
@@ -13,6 +13,10 @@
 #include "XSUB.h"
 
 #include <string.h>
+
+#ifdef _MSC_VER /* Microsoft Visual C++ */
+#define strncasecmp(s1,s2,n) _strnicmp(s1,s2,n)
+#endif
 
 static const int FILT_INTEREST       = 0;
 static const int FILT_TRACK          = 1;
@@ -174,7 +178,7 @@ _lc_COW(SV* str) {
 	
 	STRLEN len;
 	const char* cstr;
-	int i;
+	STRLEN i;
 
 	cstr = SvPV(str, len);
 	for (i = 0; i < len; i++) {
@@ -607,7 +611,7 @@ CODE:
     AV* this_av = (AV*)SvRV(this_sv);
     if( SvTYPE(this_av)==SVt_PVAV && len>=2 )
     {
-      int pos,i;
+      STRLEN pos,i;
       pos = str[0]=='<' ? 1 : 0;
 
       /* (s/^\s*(\/?\w+)//) and ($this->{name} = $1); */

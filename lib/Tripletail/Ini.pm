@@ -370,8 +370,8 @@ sub _getrawgroupname {
 					if(defined($servermask)) {
 						my $server = $ENV{SERVER_ADDR};
 						if(!defined($server)){
-							$server = `hostname -i`;
-							$server =~ s/[ \r\n]+$//;
+							$server = `hostname -i 2>&1`;
+							$server = $server && $server =~ /^\s*([0-9.]+)\s*$/ ? $1 : undef;
 						}
 						if(defined($server)) {
 							if($TL->newValue->set($server)->isIpAddress($servermask)) {

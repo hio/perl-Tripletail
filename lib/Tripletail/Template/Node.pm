@@ -549,9 +549,6 @@ sub setForm {
 						# textareaの中身を置き換える
 						$elem->str(
 							$TL->escapeTag(popform($name)));
-					} else {
-						# textareaの中身を空にする
-						$context->delete;
 					}
 				}
 			} elsif(my $option = $context->in('option')) {

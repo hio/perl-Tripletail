@@ -1,22 +1,13 @@
-TL
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+Tripletail
+==========
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it get an idea of the modules uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
-
-
-For further information, please refer to http://tripletail.jp/
+Tripletail is an open-source framework which is for web applications
+treat Japanese. It is supposed to run on Linux + Apache + MySQL + Perl.
 
 
 INSTALLATION
-
+~~~~~~~~~~~~
 To install this module, run the following commands:
 
     perl Makefile.PL
@@ -25,11 +16,35 @@ To install this module, run the following commands:
     make install
 
 
-COPYRIGHT AND LICENCE
+DEPENDENCIES
+~~~~~~~~~~~~
+requires:
+    Crypt::CBC
+    Crypt::Rijndael
+    Data::Dumper
+    DBI
+    Digest::HMAC_SHA1
+    File::Path
+    IO::Scalar
+    MIME::Tools                    5.411
+    PadWalker                      1.0
+    Test::Exception
+    Test::More
+    Text::CSV_XS
+    Unicode::Japanese
 
-Put the correct copyright and licence information here.
+
+SEE ALSO
+~~~~~~~~
+
+For further information, please refer to http://tripletail.jp/
+
+
+COPYRIGHT AND LICENCE
+~~~~~~~~~~~~~~~~~~~~~
 
 Copyright (C) 2006 YMIRLINK Inc. All Rights Reserved.
 
 This framework is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself
+

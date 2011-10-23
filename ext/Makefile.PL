@@ -1,8 +1,12 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use ExtUtils::Liblist;
 
 our %OPTS;
+
+require 'Tripletail-SMIME/openssl_config.PL';
+my $OPENSSL = &openssl_config();
 &check_openssl();
 
 WriteMakefile(
@@ -22,6 +26,7 @@ sub openssl_is_available
 {
   my $xstest_src = "openssl_check.c";
   my $xstest_out = "openssl_check";
+  $^O eq 'MSWin32' and $xstest_out .= '.exe';
   if( !open(FILE, "> $xstest_src") )
   {
     return;
@@ -43,15 +48,16 @@ XSTEST_CODE
   # compile.
   my %argv = map{ /^(\w+)=(.*)$/ } @ARGV;
   use Config;
-  use ExtUtils::Embed;
   my $cc = exists $argv{CC} ? $argv{CC} : $Config{cc};
-  my $ccopts = $argv{CCFLAGS}||ExtUtils::Embed::ccopts();
+  my $ccopts = $argv{CCFLAGS}||$Config{ccflags};
+  my $libs = ExtUtils::Liblist->ext($OPENSSL->{LIBS}) || '';
   
-  my $cmd = "$cc $ccopts $xstest_src -o $xstest_out";
+  my $cmd = "$cc $ccopts $OPENSSL->{CFLAGS} $xstest_src $libs -o $xstest_out";
   print "Checking XS Compiling... : $cmd\n";
   my $rc = 0xffff & system($cmd);
   unlink($xstest_out);
   unlink($xstest_src);
+  unlink("openssl_check.ilk"); # MSVC.
   if( $rc )
   {
     if( $rc == 0xffff )
