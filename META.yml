@@ -1,6 +1,6 @@
 # http://module-build.sourceforge.net/META-spec.html
 name:         Tripletail
-version:      0.25
+version:      0.26
 version_from: lib/Tripletail.pm
 installdirs:  site
 author:       Ymirlink <tl@tripletail.jp>
@@ -18,11 +18,11 @@ requires:
   Text::CSV_XS:            0
   Unicode::Japanese:       0
 build_requires:
-  Crypt::CBC:         0
-  Crypt::Rijndael:    0
-  IO::ScalarArray: 2.11
-  Test::Exception:    0
-  Test::More:         0
+  Crypt::CBC:          0
+  Crypt::Rijndael:     0
+  IO::ScalarArray: 2.110
+  Test::Exception:     0
+  Test::More:          0
 no_index:
   directory:
     - sample

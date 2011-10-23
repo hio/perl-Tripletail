@@ -168,14 +168,18 @@ sub _relink_html {
 	# _relink用のキャッシュ(配列)
 	my $relink_cache = [];
 
+	my $is_xhtml = $this->{option}{type} eq 'xhtml' || 0;
+	my @intr = qw(form a);
+	$is_xhtml and push(@intr, qw(input br));
 	my $filter = $TL->newHtmlFilter(
-		interest => [qw[form input a]],
+		interest => \@intr,
 	);
 
 	$filter->set($html);
 
 	while(my ($context, $elem) = $filter->next) {
-		if(lc($elem->name) eq 'form') {
+		my $elem_name_lc = lc($elem->name);
+		if($elem_name_lc eq 'form') {
 			my $link_unescaped = do {
 				my $action = $elem->attr('action');
 				if (!defined($action) || !length($action)) {
@@ -212,7 +216,7 @@ sub _relink_html {
 						$e->attr(name  => $TL->escapeTag($key));
 						$e->attr(value => $TL->escapeTag($value));
 
-						if($this->{option}{type} eq 'xhtml') {
+						if( $is_xhtml ) {
 							$e->end('/');
 						}
 
@@ -229,7 +233,7 @@ sub _relink_html {
 			} else {
 				$elem->attr(EXT => undef);
 			}
-		} elsif(lc($elem->name) eq 'a' && $elem->attr('href')) {
+		} elsif($elem_name_lc eq 'a' && $elem->attr('href')) {
 			# hrefがあるなら、リンクを書換える。
 
 			my $newurl = $TL->escapeTag(
@@ -247,6 +251,15 @@ sub _relink_html {
 			}
 
 			$elem->attr(href => $newurl);
+		} elsif($elem_name_lc eq 'input' || $elem_name_lc eq 'br' ) {
+			if( $is_xhtml ) {
+				my $end = $elem->end || '';
+				if( $end =~ s/checked// && !$elem->attr('checked') )
+				{
+					$elem->attr('checked' => 'checked');
+				}
+				$elem->end('/');
+			}
 		}
 	}
 

@@ -7,7 +7,7 @@ use Data::Dumper;
 use t::test_server;
 
 &setup;
-plan tests => 19;
+plan tests => 4 + 4 + 1 + 1 + 6 + 1 + 2 + 8;
 &test_01_html;              #4.
 &test_02_mobile_html;       #4.
 &test_03_csv;               #1.
@@ -15,6 +15,7 @@ plan tests => 19;
 &test_05_input_filter;      #6.
 &test_06_seo_filter;        #1.
 &test_07_seo_input_filter;  #2.
+&test_08_xhtml;             #8.
 exit;
 
 # -----------------------------------------------------------------------------
@@ -115,7 +116,7 @@ sub test_01_html
 		is($res->content, qq{<form action="/"></form>}, '[html] extForm');
 	}
 }
-
+	
 # -----------------------------------------------------------------------------
 # Tripletail::Filter::MobileHTML
 # 
@@ -452,6 +453,197 @@ sub test_07_seo_input_filter
 		);
 		is $res->content, '----', '[seo-in]';
 	}
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Filter::HTML + xhtml.
+# 
+sub test_08_xhtml
+{
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'html';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<input type="text" name="text">};
+					$tmpl   .= q{</form>};
+					my $form = { text => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		is($c, qq{<input type="text" name="text" value="val">}, '[xhtml] text (html)');
+	}
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'xhtml';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<input type="text" name="text">};
+					$tmpl   .= q{</form>};
+					my $form = { text => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		is($c, qq{<input type="text" name="text" value="val" />}, '[xhtml] text (xhtml)');
+	}
+	
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'html';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<input type="radio" name="radio" value="val">};
+					$tmpl   .= q{</form>};
+					my $form = { radio => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		is($c, qq{<input type="radio" name="radio" value="val" checked>}, '[xhtml] radio (html)');
+	}
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'xhtml';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<input type="radio" name="radio" value="val">};
+					$tmpl   .= q{</form>};
+					my $form = { radio => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		is($c, qq{<input type="radio" name="radio" value="val" checked="checked" />}, '[xhtml] radio (xhtml)');
+	}
+	
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'html';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<input type="checkbox" name="chk" value="val">};
+					$tmpl   .= q{</form>};
+					my $form = { chk => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		is($c, qq{<input type="checkbox" name="chk" value="val" checked>}, '[xhtml] checkbox (html)');
+	}
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'xhtml';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<input type="checkbox" name="chk" value="val">};
+					$tmpl   .= q{</form>};
+					my $form = { chk => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		is($c, qq{<input type="checkbox" name="chk" value="val" checked="checked" />}, '[xhtml] checkbox (xhtml)');
+	}
+	
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'html';
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($TL->newTemplate()->setTemplate("1<br><&VAL>")->setAttr(VAL=>'br')->expand(VAL=>"test\nmsg\n")->toStr());
+				}
+			},
+		);
+		my $c = $res->content();
+		is($c, qq{1<br>test<br>\nmsg<br>\n}, '[xhtml] br (html)');
+	}
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'xhtml';
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($TL->newTemplate()->setTemplate("1<br><&VAL>")->setAttr(VAL=>'br')->expand(VAL=>"test\nmsg\n")->toStr());
+				}
+			},
+		);
+		my $c = $res->content();
+		is($c, qq{1<br />test<br />\nmsg<br />\n}, '[xhtml] br (xhtml)');
+	}
+	
 }
 
 # -----------------------------------------------------------------------------

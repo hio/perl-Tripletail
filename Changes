@@ -1,5 +1,8 @@
 Revision history for Tripletail
 
+0.26	
+    - xhtml 出力フィルタ利用時に一部の単一で使うタグが閉じられない不具合の修正. 
+
 0.25	Tue Mar 27 14:40:11 JST 2007
 	- Value#genRandomString メソッドを追加.
 	- Esmtpが正常に動作しなかった問題を修正.

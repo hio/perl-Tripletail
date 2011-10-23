@@ -19,7 +19,7 @@ my $requires = {
 my $build_requires = {
     'Crypt::CBC'          => 0,
     'Crypt::Rijndael'     => 0,
-    'IO::ScalarArray'     => 2.110, # IO-stringy, older one has inf-loop bug?
+    'IO::ScalarArray'     => '2.110', # IO-stringy, older one has inf-loop bug?
     'Test::Exception'     => 0,
     'Test::More'          => 0,
 };
