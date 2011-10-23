@@ -1,5 +1,8 @@
 Revision history for Tripletail
 
+0.13    Wed Aug  2 16:45:37 JST 2006
+	- CustomFilterのサンプルをいったん削除
+
 0.12    Wed Aug  2 10:36:54 JST 2006
 	- フレーム版ドキュメントのリンク切れを修正
 	- 祝日生成モジュールがパッケージ名称変更に未対応だったため修正

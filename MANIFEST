@@ -173,9 +173,5 @@ sample/session/logindouble.html
 sample/session/login.cgi
 sample/session/login.ini
 sample/session/login.html
-sample/advanced/customfilter.cgi
-sample/advanced/customfilter.ini
-sample/advanced/CustomFilter.pm
-sample/advanced/customfilter.html
 MANIFEST
 META.yml                                 Module meta-data (added by MakeMaker)
