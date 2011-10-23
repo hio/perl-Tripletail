@@ -373,7 +373,7 @@ sub test_tx_transaction
 			
 			# close-wait.
 			my $pkg = "Tripletail::DB";
-			my $msg = "act something on close-wait transaction";
+			my $msg = "you can't do anything related to DB after doing rollback or commit in tx";
 			foreach my $meth (qw(
 				execute
 				selectAllHash selectAllArray

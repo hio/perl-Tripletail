@@ -68,7 +68,7 @@ sub print {
 	my $str = shift;
 
 	if(ref($str)) {
-		die __PACKAGE__."#print: arg[1] is a Ref. [$str] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#print: arg[1] is a reference. [$str] (第1引数がリファレンスです)\n";
 	}
 
 	$this->_filter($str);
@@ -89,7 +89,7 @@ sub setOrder {
 	foreach my $data (@order) {
 		$count++;
 		if(ref($data)) {
-			die __PACKAGE__."#setOrder: arg[$count] is a Ref. [$data] (第${count}引数がリファレンスです)\n";
+			die __PACKAGE__."#setOrder: arg[$count] is a reference. [$data] (第${count}引数がリファレンスです)\n";
 		}
 	}
 
@@ -106,10 +106,10 @@ sub toLink {
 	if(!defined($form)) {
 		die __PACKAGE__."#toLink: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#toLink: arg[1] is not instance of Tripletail::Form. [$form]. (第1引数がFormオブジェクトではありません)\n";
+		die __PACKAGE__."#toLink: arg[1] is not an instance of Tripletail::Form. [$form]. (第1引数がFormオブジェクトではありません)\n";
 	}
 	if(ref($base)) {
-		die __PACKAGE__."#toLink: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#toLink: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	$form = $form->clone->delete('SEO');

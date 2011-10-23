@@ -21,11 +21,11 @@ my @_SPLIT_CACHE;
 #
 # $this->{tmplvec} = []; # Template Vector
 # ==> [0] = "<html>\n  aaa"
-#     [1] = ['tag', 'foo']
+#     [1] = ['tag', 'foo', \"tag:foo"]
 #     [2] = "bbb\n  "
-#     [3] = ['mark', 'bar']
+#     [3] = ['mark', 'bar', \"node:bar"]
 #     [4] = "\n  "
-#     [5] = ['copy', 'baz']
+#     [5] = ['copy', 'baz', \"node:baz"]
 #     [6] = "\n  </html>"
 #
 # $this->[tmpltags] = ['foo'];
@@ -129,7 +129,7 @@ sub _setTemplate {
 
 	# 置換されなかった<!begin>や<!end>があったらエラー。
 	if($str =~ m{(<!(?:begin|end>):.+?>)}) {
-		die __PACKAGE__."#setTemplate: $1 was not matched to an another side. ($1のブロックの対応がとれていません)\n";
+		die __PACKAGE__."#setTemplate: $1 doesn't match to an another side. ($1のブロックの対応がとれていません)\n";
 	}
 
 	$this->_split($str,1);
@@ -148,7 +148,7 @@ sub setHtml {
 	if(!defined($html)) {
 		die __PACKAGE__."#setHtml: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($html)) {
-		die __PACKAGE__."#setHtml: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setHtml: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$this->_split($html,1);
@@ -162,7 +162,7 @@ sub node {
 	if(!defined($name)) {
 		die __PACKAGE__."#node: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#node: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#node: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$name = lc($name);
@@ -170,7 +170,7 @@ sub node {
 	my $node = $this->{node}{$name};
 	if(!$node) {
 		my $me = $this->isRoot ? "the root" : "node [$this->{name}]";
-		die __PACKAGE__."#node: $me did not have a child node [$name]. (${me}は子ノードを持っていません)\n";
+		die __PACKAGE__."#node: $me does not have a child node [$name]. (${me}は子ノードを持っていません)\n";
 	}
 
 	$node;
@@ -183,7 +183,7 @@ sub exists {
 	if(!defined($name)) {
 		die __PACKAGE__."#exists: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#exists: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#exists: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	
 	$name = lc($name);
@@ -200,7 +200,7 @@ sub setAttr {
 		} elsif(!ref($_[0])) {
 			scalar { @_ };
 		} else {
-			die __PACKAGE__."#setAttr: arg[1] is neither HASH nor HASH Ref. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
+			die __PACKAGE__."#setAttr: arg[1] is neither a HASH Ref nor a scalar. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
 		}
 	};
 
@@ -211,7 +211,7 @@ sub setAttr {
 		|| $param->{$key} eq 'br') {
 			$this->{attr}{lc($key)} = $param->{$key};
 		} else {
-			die __PACKAGE__."#setAttr: arg[1] has wrong type. [$param->{$key}] (第1引数の指定に不正な展開方法が含まれます)\n";
+			die __PACKAGE__."#setAttr: arg[1] is an invalid type. [$param->{$key}] (第1引数の指定に不正な展開方法が含まれます)\n";
 		}
 	}
 
@@ -232,7 +232,7 @@ sub expand {
 		} elsif(!ref($_[0])) {
 			scalar { @_ };
 		} else {
-			die __PACKAGE__."#expand: arg[1] is neither HASH nor HASH Ref. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
+			die __PACKAGE__."#expand: arg[1] is neither a HASH Ref nor a scalar. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
 		}
 	};
 
@@ -247,7 +247,7 @@ sub expandAny {
 		} elsif(!ref($_[0])) {
 			scalar { @_ };
 		} else {
-			die __PACKAGE__."#expandAny: arg[1] is neither HASH nor HASH Ref. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
+			die __PACKAGE__."#expandAny: arg[1] is neither a HASH Ref nor a scalar. [$_[0]] (第1引数がハッシュでもハッシュのリファレンスでもありません)\n";
 		}
 	};
 
@@ -278,9 +278,7 @@ sub add {
 	$this->{parent}{valmap}{"node:$this->{name}"} .= $composed;
 
 	# 元のテンプレートに戻す
-	if($this->{tmplvec} ne [ @{$this->{tmplback}} ]) {
-		$this->{tmplvec} = [ @{$this->{tmplback}} ];
-	}
+    $this->{tmplvec} = [ @{$this->{tmplback}} ];
 
 	%{$this->{valmap}} = ();
 
@@ -296,7 +294,7 @@ sub toStr {
 		type => 'toStr'
 	);
 	
-	$this->_dieIfUnexpandTag('toStr');
+	$this->_dieIfAnyUnexpandedTag('toStr');
 	$this->_compose;
 }
 
@@ -305,7 +303,7 @@ sub getForm {
 	my $name = shift;
 
 	if(ref($name)) {
-		die __PACKAGE__."#getForm: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#getForm: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($name)) {
@@ -318,7 +316,9 @@ sub getForm {
 		filter_text => 1,
 	);
 
-	$filter->set($this->getHtml);
+    $this->_dieIfAnyUnexpandedTag('getForm');
+
+	$filter->set($this->_compose);
 	my $form = $TL->newForm;
 
 	### html: $this->getHtml
@@ -459,11 +459,11 @@ sub setForm {
 	} elsif(ref($form) eq 'HASH') {
 		$form = $TL->newForm($form);
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#setForm: arg[1] is not instance of Tripletail::Form. [$form]. (第1引数がFormオブジェクトではありません)\n";
+		die __PACKAGE__."#setForm: arg[1] is not an instance of Tripletail::Form. [$form]. (第1引数がFormオブジェクトではありません)\n";
 	}
 
 	if(ref($name)) {
-		die __PACKAGE__."#setForm: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#setForm: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	# $formは後で変更してしまうのでcloneして置く
@@ -480,7 +480,9 @@ sub setForm {
 		name => $name,
 	);
 
-	my $html = $this->getHtml();
+    $this->_dieIfAnyUnexpandedTag('setForm');
+
+	my $html = $this->_compose;
 	my $has_textarea = $html=~/<textarea\b/i;
 	my $has_option   = $html=~/<option\b/i;
 	my $no_filter_text = !$has_textarea && !$has_option;
@@ -624,7 +626,7 @@ sub extForm {
 	my $name = shift;
 
 	if(ref($name)) {
-		die __PACKAGE__."#extForm: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#extForm: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined $name) {
@@ -637,11 +639,13 @@ sub extForm {
 		name => $name,
 	);
 
+    $this->_dieIfAnyUnexpandedTag('extForm');
+
 	my $filter = $TL->newHtmlFilter(
 		interest => ['form'],
 		filter_text => 0,
 	);
-	$filter->set($this->getHtml);
+	$filter->set($this->_compose);
 
 	my $found;
 	while(my ($context, $elem) = $filter->next) {
@@ -680,10 +684,10 @@ sub addHiddenForm {
 	} elsif(ref($form) eq 'HASH') {
 		$form = $TL->newForm($form);
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#addHiddenForm: arg[1] is not instance of Tripletail::Form or HASH. (第1引数がFormオブジェクトではありません)\n";
+		die __PACKAGE__."#addHiddenForm: arg[1] is not an instance of Tripletail::Form or HASH. (第1引数がFormオブジェクトではありません)\n";
 	}
 	if(ref($name)) {
-		die __PACKAGE__."#addHiddenForm: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#addHiddenForm: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	if(!defined($name)) {
@@ -697,10 +701,12 @@ sub addHiddenForm {
 		name => $name,
 	);
 
+    $this->_dieIfAnyUnexpandedTag('addHiddenForm');
+
 	my $filter = $TL->newHtmlFilter(
 		interest => ['form'],
 	);
-	$filter->set($this->getHtml);
+	$filter->set($this->_compose);
 
 	my $found;
 	while(my ($context, $elem) = $filter->next) {
@@ -756,15 +762,15 @@ sub addSessionCheck {
 	}
 	my $session = $TL->getSession($sessiongroup);
 	if(ref($name)) {
-		die __PACKAGE__."#addSessionCheck: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#addSessionCheck: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 	if(ref($issecure)) {
-		die __PACKAGE__."#addSessionCheck: arg[3] is a Ref. (第3引数がリファレンスです)\n";
+		die __PACKAGE__."#addSessionCheck: arg[3] is a reference. (第3引数がリファレンスです)\n";
 	}
 
 	my $csrfkey = $TL->INI->get($sessiongroup => 'csrfkey', undef);
 	if(!defined($csrfkey)) {
-		die __PACKAGE__."#addSessionCheck: csrfkey was not set. set INI [$sessiongroup]. (INI [$sessiongroup] で csrfkey を設定してください)\n";
+		die __PACKAGE__."#addSessionCheck: csrfkey is not defined for the INI group [$sessiongroup]. (INI [$sessiongroup] で csrfkey を設定してください)\n";
 	}
 
 	do {
@@ -772,7 +778,7 @@ sub addSessionCheck {
 		eval 'use Digest::HMAC_SHA1 qw(hmac_sha1_hex)';
 	};
 	if($@) {
-		die __PACKAGE__."#addSessionCheck: failed to load HMAC_SHA1.pm [$@] (Digest::HMAC_SHA1が使用できません)\n";
+		die __PACKAGE__."#addSessionCheck: failed to load Digest::HMAC_SHA1 [$@] (Digest::HMAC_SHA1が使用できません)\n";
 	}
 
 	my ($key, $sid, $checkval) = $session->getSessionInfo($issecure);
@@ -794,10 +800,12 @@ sub addSessionCheck {
 		name => $name,
 	);
 
+    $this->_dieIfAnyUnexpandedTag('addSessionCheck');
+
 	my $filter = $TL->newHtmlFilter(
 		interest => ['form'],
 	);
-	$filter->set($this->getHtml);
+	$filter->set($this->_compose);
 
 	my $found;
 	while(my ($context, $elem) = $filter->next) {
@@ -815,7 +823,7 @@ sub addSessionCheck {
 				$found = 1;
 
 				if(lc($elem->attr('method')) ne 'post') {
-					die __PACKAGE__."#addSessionCheck: form isn't post method. (formがpostメソッドではありません)\n"
+					die __PACKAGE__."#addSessionCheck: the method type of the form isn't `post'. (formがpostメソッドではありません)\n"
 				}
 
 				my $e = $context->newElement('input');
@@ -857,7 +865,7 @@ sub _setHtml {
 	if(!defined($html)) {
 		die __PACKAGE__."#setHtml: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($html)) {
-		die __PACKAGE__."#setHtml: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setHtml: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$this->_split($html);
@@ -915,14 +923,14 @@ sub _dieIfDirty {
 	my $method = shift;
 
 	if(my $dirty = $this->_isDirty(1)) {
-		die __PACKAGE__."#$method: node [".$dirty->_nodePath."] was modified but not added to the parent.".
+		die __PACKAGE__."#$method: node [".$dirty->_nodePath."] has been modified but not added to the parent.".
 			" (node [".$dirty->_nodePath."] は変更されていますがaddされていません)\n";
 	}
 
 	$this;
 }
 
-sub _dieIfUnexpandTag {
+sub _dieIfAnyUnexpandedTag {
 	my $this = shift;
 	my $method = shift;
 
@@ -934,7 +942,7 @@ sub _dieIfUnexpandTag {
 			{
 				if( !defined($valmap->{${$seg->[2]}}) )
 				{
-					die __PACKAGE__."#$method: tag [$seg->[1]] was left unexpanded. (tag [$seg->[1]] が展開されていません)\n";
+					die __PACKAGE__."#$method: tag [$seg->[1]] has been left unexpanded. (tag [$seg->[1]] が展開されていません)\n";
 				}
 			}
 	}
@@ -964,7 +972,7 @@ sub _flush {
 				  $_->[0] eq 'mark' &&
 					$_->[1] eq $mark; } @{$this->{tmplvec}}) {
 				
-				die __PACKAGE__."#flush: node [$mark] seems to be already flushed. (node [$mark] は既にflush済みです)\n";
+				die __PACKAGE__."#flush: node [$mark] has been already flushed. (node [$mark] は既にflush済みです)\n";
 			}
 
 			while(my $seg = shift @{$this->{tmplvec}}) {
@@ -975,7 +983,7 @@ sub _flush {
 						if(defined($$ref)) {
 							$ret .= $$ref;
 						} else {
-							die __PACKAGE__."#flush: tag [$seg->[1]] was left unexpanded. (tag [$seg->[1]] が展開されていません)\n";
+							die __PACKAGE__."#flush: tag [$seg->[1]] has been left unexpanded. (tag [$seg->[1]] が展開されていません)\n";
 						}
 					} elsif($seg->[0] eq 'mark' || $seg->[0] eq 'copy') {
 						my $ref = \$this->{valmap}{${$seg->[2]}};
@@ -1007,7 +1015,7 @@ sub _flush {
 			#    全ての祖先に対しての再帰を終えた後。
 			#    -- この場合は何も消さず何も出力せずに終了。
 			unless(defined($this->{parent})) {
-				$this->_dieIfUnexpandTag('flush');
+				$this->_dieIfAnyUnexpandedTag('flush');
 				my $composed = $this->_compose;
 				$this->{tmplvec} = [];
 				
@@ -1037,9 +1045,9 @@ sub _expand {
 
 	while(my ($key, $val) = each %$param) {
 		if(!defined($val)) {
-			die __PACKAGE__."#expand: value for key [$key] is not defined. (key [$key] の値が指定されていません)\n";
+			die __PACKAGE__."#expand: the value for key [$key] is not defined. (key [$key] の値が指定されていません)\n";
 		} elsif(ref($val)) {
-			die __PACKAGE__."#expand: value for key [$key] is a ref. [$val] (key [$key] の値がリファレンスです)\n";
+			die __PACKAGE__."#expand: the value for key [$key] is a reference. [$val] (key [$key] の値がリファレンスです)\n";
 		}
 		
 		$key = lc($key);
@@ -1048,18 +1056,9 @@ sub _expand {
 		$this->{valmap}{"tag:$key"} = $val;
 	}
 
-	unless($allow_unexpanded) {
-		if(keys %{$this->{valmap}} != @{$this->{tmpltags}}) {
-			foreach my $seg (@{$this->{tmplvec}}) {
-				ref $seg or next;
-				$seg->[0] eq 'tag' or next;
-				
-				unless(defined($this->{valmap}{${$seg->[2]}})) {
-					die __PACKAGE__."#expand: key [$seg->[1]] was left unexpanded. (key [$seg->[1]] が展開されていません)\n";
-				}
-			}
-		}
-	}
+    if (not $allow_unexpanded) {
+        $this->_dieIfAnyUnexpandedTag('expand');
+    }
 
 	$this;
 }
@@ -1129,16 +1128,24 @@ sub _split {
 
 		if(substr($part, 0, 1) ne '<') {
 			push @$vec, $part;
-		} else {
+		}
+        else {
+            # \((keys%{{"tag:$key"=>1}})[0]) は意味的には \"tag:$key" と等価であ
+            # るはずだが、何と前者の方が速度が出るらしい。ちなみにわざわざ
+            # SCALAR Ref にしている理由は、そうしないと SV 内に保存されたハッシュ
+            # 値のキャッシュが使われない為。
+            
 			if($part =~ m/<&(.+?)>/) {
 				my $key = lc $1;
 				my $elm = [tag => $key, \((keys%{{"tag:$key"=>1}})[0]) ];
 				push @$vec, $elm;
 				$tags{${$elm->[2]}} ||= $elm;
-			} elsif($part =~ m/<!(mark|copy):(.+?)>/) {
+			}
+            elsif($part =~ m/<!(mark|copy):(.+?)>/) {
 				my $key = lc $2;
 				push @$vec, [$1 => $key, \((keys%{{"node:$key"=>1}})[0]) ];
-			} else {
+			}
+            else {
 				push @$vec, $part;
 			}
 		}
@@ -1166,40 +1173,42 @@ sub _compose {
 	
 	my $save_marks = $opts->{save_marks};
 
-	if( !$save_marks )
-	{
+	if (!$save_marks) {
 		foreach my $seg (@{$this->{tmplvec}}) {
 			if(ref $seg ) {
-				my $ref = \$this->{valmap}{${$seg->[2]}};
+				my $val = $this->{valmap}{${$seg->[2]}};
 				
-				if(defined($$ref)) {
-					$ret .= $$ref;
+				if(defined $val) {
+					$ret .= $val;
 				}
 				
 				# save_marks 処理は省略.
-			} else {
+			}
+            else {
 				$ret .= $seg;
 			}
 		}
-	}else
-	{
+	}
+    else {
 		foreach my $seg (@{$this->{tmplvec}}) {
-			if(ref($seg)) {
-				my $ref = \$this->{valmap}{${$seg->[2]}};
-	
-				if(defined($$ref)) {
-					$ret .= $$ref;
-				}
+			if (ref($seg)) {
+				my $val = $this->{valmap}{${$seg->[2]}};
+                
+				if (defined $val) {
+                    $ret .= $val;
+                }
 	
 				# save_marks 処理.
-				if($seg->[0] eq 'tag') {
-					if(!defined($$ref)) {
+                if ($seg->[0] eq 'tag') {
+					if (!defined $val) {
 						$ret .= sprintf '<&%s>', $seg->[1];
 					}
-				} else {
-					$ret .= sprintf '<!%s:%s>', $seg->[0], $seg->[1];
 				}
-			} else {
+                else {
+                    $ret .= sprintf '<!%s:%s>', $seg->[0], $seg->[1];
+                }
+            }
+            else {
 				$ret .= $seg;
 			}
 		}

@@ -37,7 +37,7 @@ sub read {
 
 	my $fh = $TL->_gensym;
 	if(!open($fh, "$filename")) {
-		die __PACKAGE__."#read: can't open file for read. [$filename] ($!) (ファイルを読めません)\n";
+		die __PACKAGE__."#read: failed to open a file to read. [$filename] ($!) (ファイルを読めません)\n";
 	}
 
 	binmode($fh);
@@ -58,7 +58,7 @@ sub read {
 					$this->{ini}{$group}{$key} = $value;
 				}
 			} else {
-				die __PACKAGE__."#read: ini data format error. line [$.] (INIファイルの形式が不正です)\n";
+				die __PACKAGE__."#read: syntax error in the ini. line [$.] (INIファイルの形式が不正です)\n";
 			}
 		}
 	}
@@ -74,7 +74,7 @@ sub write {
 
 	my $fh = $TL->_gensym;
 	if(!open($fh, ">$filename")) {
-		die __PACKAGE__."#write: can't open file for write. [$filename] ($!) (ファイルに書けません)\n";
+		die __PACKAGE__."#write: failed to open a file to write. [$filename] ($!) (ファイルに書けません)\n";
 	}
 
 	binmode($fh);
@@ -100,7 +100,7 @@ sub existsGroup {
 	if(!defined($group)) {
 		die __PACKAGE__."#existsGroup: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#existsGroup: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#existsGroup: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 
 	$group = ($this->_getrawgroupname($group))[0] if(!$raw);
@@ -123,12 +123,12 @@ sub existsKey {
 	if(!defined($group)) {
 		die __PACKAGE__."#existsKey: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#existsKey: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#existsKey: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
 		die __PACKAGE__."#existsKey: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#existsKey: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#existsKey: arg[2] is a reference. [$key] (第2引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -174,7 +174,7 @@ sub getKeys {
 	if(!defined($group)) {
 		die __PACKAGE__."#getKeys: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#getKeys: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#getKeys: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -210,12 +210,12 @@ sub get {
 	if(!defined($group)) {
 		die __PACKAGE__."#get: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#get: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#get: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
 		die __PACKAGE__."#get: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#get: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#get: arg[2] is a reference. [$key] (第2引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -247,41 +247,41 @@ sub set {
 	my $value = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#set: This instance is const object. (このIniオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#set: This instance is a const object. (このIniオブジェクトの内容は変更できません)\n";
 	}
 
 	if(!defined($group)) {
 		die __PACKAGE__."#set: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#set: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
 		die __PACKAGE__."#set: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#set: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[2] is a reference. [$key] (第2引数がリファレンスです)\n";
 	}
 	if(!defined($value)) {
 		die __PACKAGE__."#set: arg[3] is not defined. (第3引数が指定されていません)\n";
 	} elsif(ref($value)) {
-		die __PACKAGE__."#set: arg[2] is a Ref. [$value] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[2] is a reference. [$value] (第2引数がリファレンスです)\n";
 	}
 	if($group =~ m/[\x00-\x1f]/) {
-		die __PACKAGE__."#set: arg[1]: contains control code. (第1引数にコントロールコードが含まれています)\n";
+		die __PACKAGE__."#set: arg[1]: contains a control code. (第1引数にコントロールコードが含まれています)\n";
 	}
 	if($key =~ m/[\x00-\x1f]/) {
-		die __PACKAGE__."#set: arg[2]: contains control code. (第2引数にコントロールコードが含まれています)\n";
+		die __PACKAGE__."#set: arg[2]: contains a control code. (第2引数にコントロールコードが含まれています)\n";
 	}
 	if($value =~ m/[\x00-\x1f]/) {
-		die __PACKAGE__."#set: arg[3]: contains control code. (第3引数にコントロールコードが含まれています)\n";
+		die __PACKAGE__."#set: arg[3]: contains a control code. (第3引数にコントロールコードが含まれています)\n";
 	}
 	if($group =~ m/^\s+/ or $group =~ m/\s+$/) {
-		die __PACKAGE__."#set: arg[1]: space will be delete. (第1引数の前後にスペースが含まれています)\n";
+		die __PACKAGE__."#set: arg[1]: the argument is not allowed to have preceding or trailing spaces. (第1引数の前後にスペースが含まれています)\n";
 	}
 	if($key =~ m/^\s+/ or $key =~ m/\s+$/) {
-		die __PACKAGE__."#set: arg[2]: space will be delete. (第2引数の前後にスペースが含まれています)\n";
+		die __PACKAGE__."#set: arg[2]: the argument is not allowed to have preceding or trailing spaces. (第2引数の前後にスペースが含まれています)\n";
 	}
 	if($value =~ m/^\s+/ or $value =~ m/\s+$/) {
-		die __PACKAGE__."#set: arg[3]: space will be delete. (第3引数の前後にスペースが含まれています)\n";
+		die __PACKAGE__."#set: arg[3]: the argument is not allowed to have preceding or trailing spaces. (第3引数の前後にスペースが含まれています)\n";
 	}
 
 	$this->{ini}{$group}{$key} = $value;
@@ -302,12 +302,12 @@ sub delete {
 	if(!defined($group)) {
 		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#delete: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#delete: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 	if(!defined($key)) {
 		die __PACKAGE__."#delete: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#delete: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#delete: arg[2] is a reference. [$key] (第2引数がリファレンスです)\n";
 	}
 
 	my @group;
@@ -331,13 +331,13 @@ sub deleteGroup {
 	my $raw = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#delete, This instance is const object.\n";
+		die __PACKAGE__."#delete, This instance is a const object.\n";
 	}
 
 	if(!defined($group)) {
 		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($group)) {
-		die __PACKAGE__."#delete: arg[1] is a Ref. [$group] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#delete: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 
 	$group = $this->_getrawgroupname($group) if(!$raw);

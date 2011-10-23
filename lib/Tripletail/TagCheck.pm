@@ -40,7 +40,7 @@ sub setATarget {
 	my $target = shift;
 
 	if(ref($target)) {
-		die __PACKAGE__."#setATarget: arg[1] is a Ref. [$target] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setATarget: arg[1] is a reference. [$target] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{target} = $target;
@@ -54,7 +54,7 @@ sub setAllowTag {
 	if(!defined($list)) {
 		die __PACKAGE__."#setAllowTag: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($list)) {
-		die __PACKAGE__."#setAllowTag: arg[1] is a Ref. [$list] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setAllowTag: arg[1] is a reference. [$list] (第1引数がリファレンスです)\n";
 	}
 
 	%{$this->{allowed}} = ();
@@ -68,7 +68,7 @@ sub addAllowTag {
 	if(!defined($list)) {
 		die __PACKAGE__."#addAllowTag: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($list)) {
-		die __PACKAGE__."#addAllowTag: arg[1] is a Ref. [$list] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addAllowTag: arg[1] is a reference. [$list] (第1引数がリファレンスです)\n";
 	}
 
 	while($list =~ s/([:;!])(\w+)([^:;\s]*)//) {
@@ -113,7 +113,7 @@ sub setAutoLink {
 	my $flag = shift;
 
 	if(ref($flag)) {
-		die __PACKAGE__."#setAutoLink: arg[1] is a Ref. [$flag] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setAutoLink: arg[1] is a reference. [$flag] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{autolink} = $flag;
@@ -127,7 +127,7 @@ sub setTagBreak {
 	if(!defined($type)) {
 		die __PACKAGE__."#setTagBreak: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($type)) {
-		die __PACKAGE__."#setTagBreak: arg[1] is a Ref. [$type] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setTagBreak: arg[1] is a reference. [$type] (第1引数がリファレンスです)\n";
 	} elsif($type ne 'line' && $type ne 'block' && $type ne 'none') {
 		die __PACKAGE__."#setTagBreak: invalid tag-break type: [$type] (TagBreakの指定が不正です)\n";
 	}
@@ -143,7 +143,7 @@ sub check {
 	if(!defined($html)) {
 		die __PACKAGE__."#check: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($html)) {
-		die __PACKAGE__."#check: arg[1] is a Ref. [$html] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#check: arg[1] is a reference. [$html] (第1引数がリファレンスです)\n";
 	}
 
 	my $filter = $TL->newHtmlFilter(

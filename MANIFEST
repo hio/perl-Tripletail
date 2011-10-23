@@ -40,7 +40,6 @@ doc/Tripletail/MemCached.html
 doc/Tripletail/MemorySentinel.html
 doc/Tripletail/Pager.html
 doc/Tripletail/RawCookie.html
-doc/Tripletail/SMIME.html
 doc/Tripletail/Sendmail.html
 doc/Tripletail/Sendmail/Esmtp.html
 doc/Tripletail/Sendmail/MailQueue.html
@@ -68,17 +67,6 @@ ext/Makefile.PL
 ext/Tripletail-HtmlFilter/HtmlFilter.pm
 ext/Tripletail-HtmlFilter/HtmlFilter.xs
 ext/Tripletail-HtmlFilter/Makefile.PL
-ext/Tripletail-SMIME/Changes
-ext/Tripletail-SMIME/MEMO.txt
-ext/Tripletail-SMIME/Makefile.PL
-ext/Tripletail-SMIME/README
-ext/Tripletail-SMIME/SMIME.pm
-ext/Tripletail-SMIME/SMIME.xs
-ext/Tripletail-SMIME/TAGINFO
-ext/Tripletail-SMIME/openssl_config.PL
-ext/Tripletail-SMIME/t/smime.more.t
-ext/Tripletail-SMIME/t/smime.t
-ext/Tripletail-SMIME/typemap
 inc/ExtUtils/MY_Metafile.pm
 lib/Tripletail.pm
 lib/Tripletail/CSV.pm

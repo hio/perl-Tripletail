@@ -6,7 +6,7 @@
 #
 # Copyright 2007 YAMASHINA Hio
 # -----------------------------------------------------------------------------
-# $Id: tltail.pl,v 1.1 2007/05/09 07:08:29 hio Exp $
+# $Id: tltail.pl 4304 2007-09-19 07:52:33Z pho $
 # -----------------------------------------------------------------------------
 package Tripletail::Util::Tail;
 use strict;
@@ -22,11 +22,11 @@ my $SEEK_SET = 0;
 my $SEEK_END = 2;
 
 our $ARG_SPECS = [
-	"help|h"    => "print this message.",
-	"version|V" => "print version info.",
-	"follow|f"  => "follow.",
-	"verbose|v" => "verbose.",
-	"quiet|q"   => "quiet.",
+	"help|h"    => "Print this message.",
+	"version|V" => "Print the version number.",
+	"follow|f"  => "No-op. This option exists only for the compatibility with tail(1).",
+	"verbose|v" => "Be verbose.",
+	"quiet|q"   => "Be quiet.",
 ];
 
 # -----------------------------------------------------------------------------

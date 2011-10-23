@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Test::Exception;
 use strict;
 use warnings;
@@ -18,23 +18,29 @@ END {
 
 $ENV{HTTP_COOKIE} = 'foo=h616161r79333333313333333133333331';
 
-my $c;
-ok($c = $TL->getCookie('name'), 'getCookie');
-ok($c = $TL->getCookie, 'getCookie');
+dies_ok { $TL->getCookie } 'calling getCookie() outside startCgi()';
 
-my $form;
-ok($form = $c->get('esa'), 'get');
-ok($form = $c->get('foo'), 'get');
+$TL->startCgi(
+    -main => sub {
 
-is($form->get('aaa'), '111', '$form->get');
+        my $c;
+        ok($c = $TL->getCookie('name'), 'getCookie');
+        ok($c = $TL->getCookie, 'getCookie');
 
-dies_ok {$c->set('foo')} 'set die';
-dies_ok {$c->set('foo',\123)} 'set die';
+        my $form;
+        ok($form = $c->get('esa'), 'get');
+        ok($form = $c->get('foo'), 'get');
 
-$form->set(aaa => 333);
-$c->set(foo => $form);
+        is($form->get('aaa'), '111', '$form->get');
 
-my @set = $c->_makeSetCookies;
-is($set[0], 'foo=h616161r79333333333333333333333333', '_makeSetCookies');
+        dies_ok {$c->set('foo')} 'set die';
+        dies_ok {$c->set('foo',\123)} 'set die';
 
-ok($c = $TL->getCookie, 'getCookie');
+        $form->set(aaa => 333);
+        $c->set(foo => $form);
+
+        my @set = $c->_makeSetCookies;
+        is($set[0], 'foo=h616161r79333333333333333333333333', '_makeSetCookies');
+
+        ok($c = $TL->getCookie, 'getCookie');
+    });

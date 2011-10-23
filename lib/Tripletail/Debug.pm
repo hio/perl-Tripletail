@@ -305,18 +305,21 @@ sub _dbLog {
 		);
 	}
 
-	push @{$this->{db_log}}, {
-		group   => $opts->{group},
-		set     => $opts->{set},
-		db      => $opts->{db},
-		id      => $opts->{id},
-		query   => $opts->{query},
-		params  => $params_dump,
-		elapsed => $opts->{elapsed},
-		error   => $opts->{error},
-	};
+    if ($Tripletail::IN_EXTENT_OF_STARTCGI) {
+        
+        push @{$this->{db_log}}, {
+            group   => $opts->{group},
+            set     => $opts->{set},
+            db      => $opts->{db},
+            id      => $opts->{id},
+            query   => $opts->{query},
+            params  => $params_dump,
+            elapsed => $opts->{elapsed},
+            error   => $opts->{error},
+        };
 
-	push(@{$this->{db_log_data}{$opts->{id}}}, $opts->{names});
+        push(@{$this->{db_log_data}{$opts->{id}}}, $opts->{names});
+    }
 
 	$this;
 }
@@ -1135,7 +1138,7 @@ sub __findCommand {
 		} elsif($sql =~ m|^(\w+)|) {
 			return uc $1;
 		} else {
-			die __PACKAGE__."#__findCommand: failed to find the command in sql [$sql] (SQLからコマンドを見つけることができませんでした)\n";
+			die __PACKAGE__."#__findCommand: found no commands in sql [$sql] (SQLからコマンドを見つけることができませんでした)\n";
 		}
 	}
 }
@@ -1172,9 +1175,11 @@ sub __executeSql {
 	local($this->{db_log});
 	$this->{db_log} = undef;
 
-	local($@);
-	
-	$params = eval $params; # Dumpしてあったものを戻す
+	$params = do {
+        local($@);
+        eval $params; # Dumpしてあったものを戻す
+    };
+    
 	my $DB = $TL->getDB($group);
 
 	my $sth = $DB->execute(\$dbset => $query, @$params);

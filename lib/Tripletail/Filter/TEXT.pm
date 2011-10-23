@@ -53,7 +53,7 @@ sub print {
 	my $output = $this->_flush_header;
 
 	if(ref($data)) {
-		die __PACKAGE__."#print: arg[1] is a Ref. [$data] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#print: arg[1] is a reference. [$data] (第1引数がリファレンスです)\n";
 	}
 
 	$output .= $TL->charconv($data, 'utf8' => $this->{option}{charset});
@@ -69,7 +69,7 @@ sub flush {
 	my $this = shift;
 
 	if(!$this->{content_printed}) {
-		die __PACKAGE__."#flush: We printed no content during this request. (リクエスト処理で何もprintされていません)\n";
+		die __PACKAGE__."#flush: no contents have been printed during this request. (リクエスト処理で何もprintされていません)\n";
 	}
 	$this->_reset;
 

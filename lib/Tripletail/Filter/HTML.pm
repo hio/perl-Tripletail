@@ -59,7 +59,7 @@ sub _new {
 
 	if($this->{option}{type} ne 'html' && $this->{option}{type} ne 'xhtml') {
 		die "TL#setContentFilter: option [type] for [Tripletail::Filter::HTML] ".
-			"must be 'html' or 'xhtml' instead of [$this->{option}{type}].".
+			"must be 'html' or 'xhtml', not [$this->{option}{type}].".
 			" (typeオプションはhtml/xhtmlのいずれかを指定してください)\n";
 	}
 
@@ -81,10 +81,10 @@ sub print {
 	return '' if($data eq '' and $this->{buffer} eq '');
 	
 	if(ref($data)) {
-		die __PACKAGE__."#print: arg[1] is a Ref. [$data] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#print: arg[1] is a reference. [$data] (第1引数がリファレンスです)\n";
 	}
 	if(defined $this->{locationurl}) {
-		die __PACKAGE__."#print: print called after location. (location後にprintすることは出来ません)\n";
+		die __PACKAGE__."#print: \$TL->print() must not be called after calling \$TL->location(). (location後にprintすることは出来ません)\n";
 	}
 
 	$data = $this->{buffer} . $data;
@@ -135,7 +135,7 @@ sub flush {
 		$output = $TL->charconv($data, 'UTF-8' => $this->{option}{charset});
 
 		if(!$this->{content_printed}) {
-			die __PACKAGE__."#flush: We printed no content during this request. (リクエスト処理で何もprintされていません)\n";
+			die __PACKAGE__."#flush: no contents has been printed during this request. (リクエスト処理で何もprintされていません)\n";
 		}
 	}
 

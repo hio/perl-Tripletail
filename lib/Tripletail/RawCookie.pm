@@ -36,7 +36,7 @@ sub _getInstance {
 		sub {
 			if(%$_INSTANCES) {
 				%$_INSTANCES = ();
-				#$TL->log('Tripletail::RawCookie' => 'Deleted cookie object made in this request.');
+				#$TL->log('Tripletail::RawCookie' => 'Deleted a cookie object created in this request.');
 			}
 		},
 	);
@@ -51,7 +51,7 @@ sub get {
 	if(!defined($name)) {
 		die __PACKAGE__."#get: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#get: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#get: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(my $data = $this->{set_cookies}{$name}) {
@@ -72,11 +72,11 @@ sub set {
 	if(!defined($name)) {
 		die __PACKAGE__."#set: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#set: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(ref($value)) {
-		die __PACKAGE__."#set: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	$this->{set_cookies}{$name} = $value;
@@ -90,7 +90,7 @@ sub delete {
 	if(!defined($name)) {
 		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($name)) {
-		die __PACKAGE__."#delete: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#delete: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$this->{set_cookies}{$name} = undef;
@@ -212,7 +212,7 @@ sub __makeSetCookie {
 
 		my $line = join '; ', @parts;
 		if(length($line) > 1024 * 4) {
-			die __PACKAGE__."#_makeSetCookies: we have a too big cookie. [$line] (クッキーが大きくなりすぎました。保存するデータを減らしてください)";
+			die __PACKAGE__."#_makeSetCookies: the cookie became too large. Decrease its content. [$line] (クッキーが大きくなりすぎました。保存するデータを減らしてください)";
 		}
 
 		push @result, $line;

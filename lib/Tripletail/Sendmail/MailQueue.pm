@@ -22,7 +22,7 @@ sub _new {
 
 	$this->{group} = $group;
 	$this->{queuedir} = $TL->INI->get($group => 'queuedir');
-	$this->{queuedir} or die __PACKAGE__."#new: queuedir is not set. (queuedirが指定されていません)\n";
+	$this->{queuedir} or die __PACKAGE__."#new: queuedir is not defined for the INI group [$group]. (queuedirが指定されていません)\n";
 	$this->{smtp} = Tripletail::Sendmail::Smtp->_new($group);
 	$this->{erroraddr} = $TL->INI->get($group => 'erroraddr');
 	$this->{errorlog} = $TL->INI->get($group => 'errorlog');
@@ -121,7 +121,7 @@ sub process {
 			if($this->{errorlog}) {
 				$TL->log(
 					__PACKAGE__,
-					"Failed to send following mail permanently:\n".
+					"Failed to send the following message permanently:\n".
 					"$data\n\n".
 					"Error:\n$error"
 				);

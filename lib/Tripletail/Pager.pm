@@ -39,7 +39,7 @@ sub setDbGroup {
 	my $dbgroup = shift;
 
 	if(ref($dbgroup)) {
-		die __PACKAGE__."#setDbGroup: arg[1] is a Ref. [$dbgroup] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setDbGroup: arg[1] is a reference. [$dbgroup] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{db} = $dbgroup;
@@ -53,7 +53,7 @@ sub setPageSize {
 	if(!defined($size)) {
 		die __PACKAGE__."#setPageSize: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($size)) {
-		die __PACKAGE__."#setPageSize: arg[1] is a Ref. [$size] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setPageSize: arg[1] is a reference. [$size] (第1引数がリファレンスです)\n";
 	} elsif($size !~ /^\d+$/ || $size <= 0) {
 		die __PACKAGE__."#setPageSize: arg[1] is not a positive number. [$size] (第1引数が正の整数ではありません)\n";
 	}
@@ -69,7 +69,7 @@ sub setCurrentPage {
 	if(!defined($page)) {
 		die __PACKAGE__."#setCurrentPage: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($page)){
-		die __PACKAGE__."#setCurrentPage: arg[1] is a Ref. [$page] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setCurrentPage: arg[1] is a reference. [$page] (第1引数がリファレンスです)\n";
 	} elsif($page !~ /^\d+$/ || $page <= 0) {
 		die __PACKAGE__."#setCurrentPage: arg[1] is not a positive number. [$page] (第1引数が正の整数ではありません)\n";
 	}
@@ -85,7 +85,7 @@ sub setMaxLinks {
 	if(!defined($maxlinks)) {
 		die __PACKAGE__."#setMaxLinks: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($maxlinks)){
-		die __PACKAGE__."#setMaxLinks: arg[1] is a Ref. [$maxlinks] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setMaxLinks: arg[1] is a reference. [$maxlinks] (第1引数がリファレンスです)\n";
 	} elsif($maxlinks !~ /^\d+$/ || $maxlinks <= 0) {
 		die __PACKAGE__."#setMaxLinks: arg[1] is not a positive number. [$maxlinks] (第1引数が正の整数ではありません)\n";
 	}
@@ -101,7 +101,7 @@ sub setFormKey {
 	if(!defined($key)) {
 		die __PACKAGE__."#setFormKey: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#setFormKey: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setFormKey: arg[1] is a reference. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	$this->{formkey} = $key;
@@ -132,9 +132,9 @@ sub setPagingType {
 	if(!defined($type)) {
 		die __PACKAGE__."#setPagingType: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($type)) {
-		die __PACKAGE__."#setPagingType: arg[1] is a Ref. [$type] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setPagingType: arg[1] is a reference. [$type] (第1引数がリファレンスです)\n";
 	} elsif($type !~ /^[01]$/) {
-		die __PACKAGE__."#setPagingType: arg[1] is not 0 or 1. [$type] (第1引数は0か1のみ指定できます)\n";
+		die __PACKAGE__."#setPagingType: arg[1] is neither 0 nor 1. [$type] (第1引数は0か1のみ指定できます)\n";
 	}
 
 	$this->{pagingtype} = $type;
@@ -184,20 +184,20 @@ sub _paging {
 	if(!defined($node)) {
 		die __PACKAGE__."#paging: ARG[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($node) ne 'Tripletail::Template::Node') {
-		die __PACKAGE__."#paging: ARG[2] is a Ref. [$node] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#paging: ARG[2] is a reference. [$node] (第2引数がリファレンスです)\n";
 	}
 	
 	if(!defined($query)) {
 		die __PACKAGE__."#paging: ARG[3] is not defined. (第3引数が指定されていません)\n";
 	} elsif(ref($query)) {
-		die __PACKAGE__."#paging: ARG[3] is a Ref. [$query] (第3引数がリファレンスです)\n";
+		die __PACKAGE__."#paging: ARG[3] is a reference. [$query] (第3引数がリファレンスです)\n";
 	}
 
 	my $query_back = $query;
 
 	if(defined($this->{maxrows})) {
 		if(ref($this->{maxrows})) {
-			die __PACKAGE__."#paging: ARG[3] is a Ref. [$this->{maxrows}] (第3引数がリファレンスです)\n";
+			die __PACKAGE__."#paging: ARG[3] is a reference. [$this->{maxrows}] (第3引数がリファレンスです)\n";
 		} elsif($this->{maxrows} !~ /^\d+$/ || $this->{maxrows} < 0) {
 			die __PACKAGE__."#paging: ARG[3] is not a positive number. [$this->{maxrows}] (第3引数が正の整数ではありません)\n";
 		}
@@ -436,7 +436,7 @@ Tripletail::Pager - ページング処理
 
 Rowノードは L</paging> メソッドを利用する場合のみ使用される。
 
-L</pagingArray> や L</pagingArray> メソッドを利用する場合、
+L</pagingArray> や L</pagingHash> メソッドを利用する場合、
 メソッド実行によって paging ノードが展開されるため、
 その外側にデータ用のノードをおかなければならないことに注意する必要がある。
 

@@ -43,7 +43,7 @@ sub _watch {
     }
   else
     {
-      die "TL#watch: arg[1]: is not support type. TL#watch support SCALAR, ARRAY, HASH.".
+      die "TL#watch: arg[1]: unsupported type. TL#watch only accepts SCALAR/ARRAY/HASH Ref.".
       	" (サポートされていないタイプです。SCALAR/ARRAY/HASHのみサポートしています)\n"
       		if($dieflag);
     }

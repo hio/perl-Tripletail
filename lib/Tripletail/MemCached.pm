@@ -39,7 +39,7 @@ sub _new {
 				eval 'use Cache::Memcached';
 			};
 			if($@) {
-				die "TL#newMemCached: failed to use Cache::Memcached [$@] (Cache::Memcachedを使用できません)\n";
+				die "TL#newMemCached: failed to load Cache::Memcached [$@] (Cache::Memcachedを使用できません)\n";
 			}
 		}
 	} else {
@@ -48,7 +48,7 @@ sub _new {
 			eval 'use Cache::Memcached';
 		};
 		if($@) {
-			die "TL#newMemCached: failed to use Cache::Memcached [$@] (Cache::Memcachedを使用できません)\n";
+			die "TL#newMemCached: failed to load Cache::Memcached [$@] (Cache::Memcachedを使用できません)\n";
 		}
 	}
 	
@@ -72,15 +72,15 @@ sub set {
 	if(!defined($key)) {
 		die __PACKAGE__."#set: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#set: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($key =~ /\s/) {
-		die __PACKAGE__."#set: arg[1] is includes space. (第1引数がスペースを含んでいます)\n";
+		die __PACKAGE__."#set: arg[1] has a space. (第1引数がスペースを含んでいます)\n";
 	}
 
 	if(!defined($value)) {
 		die __PACKAGE__."#set: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($value)) {
-		die __PACKAGE__."#set: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#set: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 	
 	my $data = $this->{memd}->set($key, $value, $expires);
@@ -93,9 +93,9 @@ sub get {
 	if(!defined($key)) {
 		die __PACKAGE__."#get: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#get: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#get: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($key =~ /\s/) {
-		die __PACKAGE__."#get: arg[1] is includes space. (第1引数がスペースを含んでいます)\n";
+		die __PACKAGE__."#get: arg[1] has a space. (第1引数がスペースを含んでいます)\n";
 	}
 
 	$this->{memd}->get($key);
@@ -108,9 +108,9 @@ sub delete {
 	if(!defined($key)) {
 		die __PACKAGE__."#delete: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#delete: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#delete: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($key =~ /\s/) {
-		die __PACKAGE__."#delete: arg[1] is includes space. (第1引数がスペースを含んでいます)\n";
+		die __PACKAGE__."#delete: arg[1] has a space. (第1引数がスペースを含んでいます)\n";
 	}
 
 	$this->{memd}->delete($key);

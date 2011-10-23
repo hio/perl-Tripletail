@@ -8,7 +8,7 @@
 # 4. フィルタによる変更結果が Tripletail::Value の各メソッドの出力と一致する事
 
 # Haruka Kataoka, Archinet inc.
-# $Id: validator_correct.t,v 1.1 2007/06/15 02:41:32 hio Exp $
+# $Id: validator_correct.t 4158 2007-06-15 02:41:32Z hio $
 
 use strict;
 use warnings;

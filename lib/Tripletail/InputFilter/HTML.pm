@@ -418,7 +418,7 @@ sub __pairsFromMultipart {
 
 					if ($line =~ m/filename="(.*?)"/i or $line =~ m/filename=(\S+)/i) {
 						if (not defined $key) {
-							die __PACKAGE__.": we got isolated filename without name. [$_] (名前がないのにファイル名がありました)\n";
+							die __PACKAGE__.": we got an isolated filename without name. [$_] (名前がないのにファイル名がありました)\n";
 						}
 
 						$prepare->($key, $1);

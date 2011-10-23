@@ -28,12 +28,12 @@ sub _getInstance {
 	if(!defined($group)) {
 		$group = 'DB';
 	} elsif(ref($group)) {
-		die "TL#getDB: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die "TL#getDB: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	my $obj = $INSTANCES->{$group};
 	if(!$obj) {
-		die "TL#getDB: DB [$group] is not specified in the startCgi() / trapError(). (startCgi/trapErrorのDBに指定されていない${group}が指定されました)\n";
+		die "TL#getDB: DB [$group] was not passed to the startCgi() / trapError(). (startCgi/trapErrorのDBに指定されていない${group}が指定されました)\n";
 	}
 
 	$obj;
@@ -134,7 +134,7 @@ sub _closewait_broken
 		$where = (caller(1))[3];
 		$where =~ s/.*:://;
 	}
-	die __PACKAGE__."#$where: act something on close-wait transaction. (txの中でrollback/commitした後はSQLを実行できません)\n";
+	die __PACKAGE__."#$where: you can't do anything related to DB after doing rollback or commit in tx(). (txの中でrollback/commitした後はSQLを実行できません)\n";
 }
 sub inTx
 {
@@ -163,7 +163,7 @@ sub _requireTx
 		die __PACKAGE__."#$where: attempted to begin a".
 			" new transaction on DB Set [$set] but".
 			" another DB Set [$trans_set] were already in transaction.".
-			" Commit or rollback it before begin another one.".
+			" Commit or rollback it before beginning another one.".
 			" (DB Set [$trans_set] でトランザクションを実行中に DB Set [$set] でトランザクションを開始しようとしました。".
 			"別の DB Set でトランザクションを開始する前にcommit/rollbackする必要があります)\n";
 	}else
@@ -304,11 +304,11 @@ sub execute {
 	if(!defined($sql)) {
 		die __PACKAGE__."#execute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($sql)) {
-		die __PACKAGE__."#execute: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#execute: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($sql =~ m/^\s*(LOCK|UNLOCK|BEGIN|ROLLBACK|COMMIT)/i) {
 		# これらのSQL文をexecuteすると整合性が失われる。
 		die __PACKAGE__."#execute: attempted to execute [$1] statement directly.".
-			" Use particular methods not to ruin consistency of Tripletail::DB totally.".
+			" Use special methods not to ruin the consistency of Tripletail::DB.".
 			" ($1はTripletail::DBの状態管理に影響を与えるためexecuteで実行できません。専用のメソッドを利用してください)\n";
 	}
 
@@ -321,7 +321,7 @@ sub execute {
 			} elsif(ref($param) eq 'ARRAY') {
 				if(@$param == 0) {
 					# 0要素の配列があってはならない。
-					die __PACKAGE__."#execute: some argument is an empty array. (空の配列へのリファレンスが渡されました)\n";
+					die __PACKAGE__."#execute: some arguments are an empty array. (空の配列へのリファレンスが渡されました)\n";
 				}
 
 				my $n_params = @$param;
@@ -347,7 +347,7 @@ sub execute {
 				unless($sql =~ s{\?\?}{
 					join(', ', ('?') x $n_params);
 				}e) {
-					die __PACKAGE__."#execute: the number of `??' is fewer than ARRAY params. (??の数が不足しています)\n";
+					die __PACKAGE__."#execute: the number of `??' is fewer than the number of given parameters. (??の数が不足しています)\n";
 				}
 			} else {
 				die __PACKAGE__."#execut: arg[$param] is not a scalar nor ARRAY Ref. (arg[$param]はスカラでも配列へのリファレンスでもありません)\n";
@@ -355,7 +355,7 @@ sub execute {
 		}
 
 		if($sql =~ m/\?\?/) {
-			die __PACKAGE__."#execute: parameters are too few. `??' still remains. (??の数に対して引数の数が不足しています)\n";
+			die __PACKAGE__."#execute: the number of given parameters is fewer than the number of `??'. (??の数に対して引数の数が不足しています)\n";
 		}
 	} else {
 		@params = @_;
@@ -373,7 +373,7 @@ sub execute {
 		#DBセットが明示的に指定された
 		$dbh = $this->{dbh}{$dbset};
 		if(!$dbh) {
-			die __PACKAGE__."#execute: dbset error. cannot set [$dbset]. (DB Set [$dbset] の指定が不正です)\n";
+			die __PACKAGE__."#execute: DB set [$dbset] is unavailable. (DB Set [$dbset] の指定が不正です)\n";
 		}
 	} else {
 		$dbh = $this->{trans_dbh};
@@ -414,13 +414,13 @@ sub execute {
 			my $type = ${$p->[1]};
 			my $typeconst = $this->{types_symtable}{$type};
 			if(!$typeconst) {
-				die __PACKAGE__."#execute: arg[$argno] is invalid sql type: [$type] (第${argno}引数のSQL型指定が不正です)\n";
+				die __PACKAGE__."#execute: arg[$argno] is an invalid sql type: [$type] (第${argno}引数のSQL型指定が不正です)\n";
 			}
 			$p->[1] = *{$typeconst}{CODE}->();
 
 			$sth->{sth}->bind_param($i + 1, @$p);
 		} else {
-			die __PACKAGE__."#execute: arg[$argno] is bad Ref. [$p] (第${argno}引数に不正なリファレンスが渡されました)\n";
+			die __PACKAGE__."#execute: arg[$argno] is an unacceptable reference. [$p] (第${argno}引数に不正なリファレンスが渡されました)\n";
 		}
 	}
 
@@ -428,6 +428,7 @@ sub execute {
 	$sql_backup = $this->__nameQuery($sql_backup, $dbh);
 
 	my $begintime = [Time::HiRes::gettimeofday()];
+	my $log_params = \@_;
 
 	while(1) {
 		eval {
@@ -443,7 +444,7 @@ sub execute {
 				db      => $dbh->getGroup,
 				id      => $sth->{id},
 				query   => $sql_backup . " /* ERROR: $@ */",
-				params  => \@_,
+				params  => $log_params,
 				elapsed => $elapsed,
 				names   => $sth->nameArray,
 				error   => 1,
@@ -463,7 +464,7 @@ sub execute {
 		db      => $dbh->getGroup,
 		id      => $sth->{id},
 		query   => $sql_backup,
-		params  => \@_,
+		params  => $log_params,
 		elapsed => $elapsed,
 		names   => $sth->nameArray,
 	});
@@ -534,13 +535,13 @@ sub lock {
 					if(!defined) {
 						die __PACKAGE__."#lock: $type => [...] contains an undef. (${type}にundefが含まれています)\n";
 					} elsif(ref) {
-						die __PACKAGE__."#lock: $type => [...] contains a Ref. [$_] (${type}にリファレンスが含まれています)\n";
+						die __PACKAGE__."#lock: $type => [...] contains a reference. [$_] (${type}にリファレンスが含まれています)\n";
 					}
 
 					[$_, uc $type];
 				} @$table;
 			} else {
-				die __PACKAGE__."#lock: arg[$type] is a bad Ref. [$table] (arg[$type]は不正なリファレンスです)\n";
+				die __PACKAGE__."#lock: arg[$type] is an unacceptable reference. [$table] (arg[$type]は不正なリファレンスです)\n";
 			}
 		}
 	};
@@ -567,11 +568,11 @@ sub lock {
 	if(my $locked = $this->{locked_dbh}) {
 		my $locked_set = $locked->getSetName;
 		if($locked_set ne $set) {
-			die __PACKAGE__."#lock: attempted to lock DB Set [$set] but ".
-			"another DB Set [$locked_set] were locked. Unlock old one before lock new one.".
+			die __PACKAGE__."#lock: attempted to lock the DB Set [$set] but ".
+			"another DB Set [$locked_set] were locked. Unlock old one before locking new one.".
 			" (他の DB Set [$locked_set] でロック中なので DB Set [$set] でロックをすることができません)\n";
 		} else {
-			die __PACKAGE__."#lock: already some tables are locked. Unlock it first before lock another tables.".
+			die __PACKAGE__."#lock: you are already locking some tables.".
 			" (既に他のテーブルをロック中です)\n";
 		}
 	}
@@ -635,7 +636,7 @@ sub setBufferSize {
 	my $kib = shift;
 
 	if(ref($kib)) {
-		die __PACKAGE__."#setBufferSize: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setBufferSize: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$this->{bufsize} = defined $kib ? $kib * 1024 : undef;
@@ -668,7 +669,7 @@ sub symquote {
 	if(!defined($str)) {
 		die __PACKAGE__."#symquote: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die __PACKAGE__."#symquote: arg[1] is a Ref. [$str] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#symquote: arg[1] is a reference. [$str] (第1引数がリファレンスです)\n";
 	} elsif($str =~ m/[\'\"\`]/) {
 		die __PACKAGE__."#symquote: arg[1] contains a quote character. [$str] (第1引数がquote記号\'\"\`を含んでいます)\n";
 	}
@@ -699,7 +700,7 @@ sub _getDbSetName {
 	my $setname = shift;
 
 	if(ref($setname)) {
-		die __PACKAGE__."#_getDbSetName: arg[1] is a Ref. [$setname] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#_getDbSetName: arg[1] is a reference. [$setname] (第1引数がリファレンスです)\n";
 	}
 
 	my $set;
@@ -707,8 +708,7 @@ sub _getDbSetName {
 		if($this->{default_set}) {
 			$set = $this->{default_set};
 		} else {
-			die __PACKAGE__."#_getDbSetName: default DB set has not been set.".
-				" Therefore we can't omit the name of one.".
+			die __PACKAGE__."#_getDbSetName: do not omit the DB Set because no default DB Set has been specified." .
 				" (デフォルトの DB Set が指定されていない場合は、DB Set の指定を省略できません)\n";
 		}
 	} else {
@@ -730,9 +730,9 @@ sub _connect {
 
 	foreach my $group (@$groups) {
 		if (!defined($group)) {
-			die "TL#startCgi: -DB had an undef value. (DB指定にundefが含まれます)\n";
+			die "TL#startCgi: -DB has an undefined value. (DB指定にundefが含まれます)\n";
 		} elsif(ref($group)) {
-			die "TL#startCgi: -DB had a Ref. (DB指定にリファレンスが含まれます)\n";
+			die "TL#startCgi: -DB has a reference. (DB指定にリファレンスが含まれます)\n";
 		}
 
 		$INSTANCES->{$group} = $class->_new($group)->connect;
@@ -799,7 +799,7 @@ sub _new {
 		my @db = split /\s*,\s*/, $TL->INI->get($group => $setname);
 		if (!scalar(@db)) {
 			# ゼロ個のDBから構成されるDBセットを作ってはならない。
-			die __PACKAGE__."#new: DB Set [$setname] has no DBs. (DB Set [$setname] にDBが1つもありません)\n";
+			die __PACKAGE__."#new: DB Set [$setname] has no databases. (DB Set [$setname] にDBが1つもありません)\n";
 		}
 
 		my $dbname = $db[$$ % scalar(@db)];
@@ -870,7 +870,7 @@ sub __postRequest {
 			$TL->log(
 				__PACKAGE__,
 				"DB [$db->{group}] (DB Set [$setname]) has been left locked after the last request.".
-				" Tripletail::DB unlocked it automatically for safe.".
+				" Tripletail::DB automatically unlocked it for safety.".
 				" (DB [$db->{group}] (DB Set [$setname]) はロックしたままリクエスト処理を終えました。安全のため自動的にunlockしました)"
 			);
 		}
@@ -881,7 +881,7 @@ sub __postRequest {
 			$TL->log(
 				__PACKAGE__,
 				"DB [$db->{group}] (DB Set [$setname]) has been left in transaction after the last request.".
-				" Tripletail::DB rollbacked it automatically for safe.".
+				" Tripletail::DB automatically rollbacked it for safety.".
 				" (DB [$db->{group}] (DB Set [$setname]) はトランザクション中のままリクエスト処理を終えました。安全のため自動的にrollbackしました)"
 			);
 		}
@@ -936,7 +936,7 @@ sub connect {
 	my $this = shift;
 	my $type = shift;
 
-	$type or die __PACKAGE__."#connect: type is not set. (typeが指定されていません)\n";
+	$type or die __PACKAGE__."#connect: type is not specified. (typeが指定されていません)\n";
 	$this->{type} = $type;
 	if($type eq 'mysql') {
 		my $opts = {
@@ -1167,7 +1167,7 @@ sub connect {
 	}
 
 	if(!$this->{dbh}) {
-		die __PACKAGE__."#connect: DBI->connect returned undef. (DBI->connectに失敗しました)\n";
+		die __PACKAGE__."#connect: DBI->connect failed. (DBI->connectに失敗しました)\n";
 	}
 
 	$this;
@@ -1177,7 +1177,7 @@ sub getLastInsertId
 {
 	my $this = shift;
 	# $this->{type}はconnect時にセットされる
-	my $type = $this->{type} or die __PACKAGE__."#getLastInsertId: no type set (接続されていません)";
+	my $type = $this->{type} or die __PACKAGE__."#getLastInsertId: \$this->{type} is undef (接続されていません)";
 	my $obj  = shift; # for sequence on pgsql and oracle?
 	if( $type eq 'mysql' )
 	{
@@ -1191,7 +1191,7 @@ sub getLastInsertId
 	}elsif($type eq 'oracle')
 	{
 		$obj =~ /^((?:\w+\.)\w+)$/
-			or die __PACKAGE__."#getLastInsertId: TODO: symquote for oracle is under construction.".
+			or die __PACKAGE__."#getLastInsertId: internal error: it is not possible to quote symbols of Oracle.".
 				" (内部エラー:Oracle用のquote処理は未実装です)\n";
   		my $obj_sym = $1;
 		my ($curval) = $this->{dbh}->selectrow_array(q{
@@ -1210,7 +1210,7 @@ sub getLastInsertId
 		return $curval;
 	}else
 	{
-		die __PACKAGE__."#getLastInsertId: $type is not supported. (${type}ではサポートされていません)";
+		die __PACKAGE__."#getLastInsertId: $type is not supported. (${type}はサポートされていません)";
 	}
 }
 
@@ -1619,7 +1619,7 @@ Tripletail::DB - DBIのラッパ
     $DB->tx(sub{
       my $sth = $DB->execute(q{SELECT a, b FROM foo WHERE a = ?}, 999);
       while (my $hash = $sth->fetchHash) {
-        print $hash->{a};
+        $TL->print($hash->{a});
       }
       # commit is done implicitly.
     });
@@ -1636,11 +1636,11 @@ Tripletail::DB - DBIのラッパ
 
 =item 接続/切断は自動で行われる。
 
-手動で接続/切断する場合は、connect/disconnectを使う。
+手動で接続/切断する場合は、connect/disconnectを使うこともできるが、なるべく使用しないことを推奨。
 
 =item 実行クエリの処理時間・実行計画・結果を記録するデバッグモード。
 
-=item prepare/executeを分けない。fetchは分ける。
+=item prepare/executeを分けない。fetchは分けることもできる。
 
 =item 拡張プレースホルダ機能
 
@@ -1682,6 +1682,11 @@ DBセットには複数のDBコネクションを定義でき、複数定義し�
 DBセットの名称はSET_XXXX(XXXXは任意の文字列)でなければならない。 
 DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなければならない。
 
+いずれのDBコネクションも利用可能である必要があり、
+接続できなかった場合はエラーとなる。
+
+DBのフェイルオーバーには（現時点では）対応していない。
+
 =back
 
 =head2 DBIからの移行
@@ -1689,13 +1694,12 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 TripletailのDBクラスはDBIに対するラッパの形となっており、多くのインタフェースはDBIのものとは異なる。
 ただし、いつでも C<< $DB->getDbh() >> メソッドにより元のDBIオブジェクトを取得できるので、DBIのインタフェースで利用することも可能となっている。
 
-DBIのインタフェースは以下のようなケースで利用できる。ただし、DBIを直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
+DBIのインタフェースは以下のようなケースで利用できる。
+ただし、DBIを直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
 
 =over 4
 
 =item ラッパに同等の機能が用意されていない場合。
-
-（例）$DB->{mysql_insertid}
 
 =item 高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。
 
@@ -1748,12 +1752,19 @@ TLの拡張プレースホルダ（??で表記される）を利用し、配列�
  # TL
  my $sth = $DB->execute(q{SELECT * FROM test LIMIT ??}, [$limit, $offset, \'SQL_INTEGER']);
 
-最後にINSERTした行のAUTO_INCREMENT値の取得などは、拡張ラッパでは制御できないので、DBIのハンドラを直接利用する。
+INSERTした行のAUTO_INCREMENT値の取得は、getLastInsertId で行える。
 
  # DBI
  my $id = $DB->{mysql_insertid};
  # TL
- my $id = $DB->getDbh()->{mysql_insertid};
+ my $id = $DB->getLastInsertId;
+
+拡張ラッパでは制御できない機能にアクセスする場合などは、DBIのハンドラを直接利用する。
+
+ # DBI
+ my $id = $DB->{RowCacheSize};
+ # TL
+ my $id = $DB->getDbh()->{RowCacheSize};
 
 トランザクションには C<< $DB->tx(sub{...}) >> メソッドを用いる。
 DBセットを指定する時には C<< $DB->tx(dbset_name=>sub{...}) >> となる。
@@ -1772,7 +1783,7 @@ die なしにコードを抜けた時に自動的にコミットされる。
  });
 
 C<begin()> メソッドも実装はされているがその使用は非推奨である。 
-また、 C<< $DB->execute(q{BEGIN WORK}); >> は無効にされている。 
+また、 C<< $DB->execute(q{BEGIN WORK}); >> として利用することはできない。 
 
 =head2 拡張プレースホルダ詳細
 
@@ -1787,6 +1798,7 @@ L</"execute"> に渡されるSQL文には、通常のプレースホルダの他
   $DB->execute(
       q{SELECT * FROM a WHERE a IN (??) AND b = ?},
       ['AAA', 'BBB', 'CCC'], 800);
+  
   $DB->execute(
       q{SELECT * FROM a WHERE a IN (?, ?, ?) AND b = ?},
       'AAA', 'BBB', 'CCC', 800);

@@ -11,12 +11,12 @@ END {
 }
 
 if(!$ENV{TL_MEMCACHE_CHECK}){
-   plan skip_all => "Cache::Memcached check skip. Please set TL_MEMCACHE_CHECK = 1 when checking.";
+   plan skip_all => "skipping tests for Tripletail::MemCached for \$ENV{TL_MEMCACHE_CHECK} being false.";
 }
 
 eval "use Cache::Memcached";
 if ($@) {
-    plan skip_all => "Cache::Memcached are required for these tests...";
+    plan skip_all => "skipping tests for Tripletail::MemCached for Cache::Memcached being unavailable.";
 }
 
 plan tests => 15;

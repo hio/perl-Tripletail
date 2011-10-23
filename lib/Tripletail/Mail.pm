@@ -159,7 +159,7 @@ sub set {
 
 					$last and last;
 				} else {
-					die __PACKAGE__."#set: invalid multipart: we found no boundaries [$boundary] (マルチパート形式が不正です。バウンダリ[$boundary]が見つかりません)\n";
+					die __PACKAGE__."#set: invalid multipart: the boundary [$boundary] does not exist. (マルチパート形式が不正です。バウンダリ[$boundary]が見つかりません)\n";
 				}
 			}
 		} else {
@@ -195,7 +195,7 @@ sub setHeader {
 		$hash = { @_ };
 	} else {
 		my $ref = ref $_[0];
-		die __PACKAGE__."#setHeader: arg[1] is a bad Ref. [$ref] (第1引数が不正なリファレンスです)\n";
+		die __PACKAGE__."#setHeader: arg[1] is an unacceptable reference. [$ref] (第1引数が不正なリファレンスです)\n";
 	}
 
 	while(my ($key, $value) = each(%$hash)) {
@@ -308,11 +308,11 @@ sub attach {
 		if(!defined($opts->{type})) {
 			die __PACKAGE__."#attach: arg[type] is not defined. (typeが指定されていません)\n";
 		} elsif(ref($opts->{type})) {
-			die __PACKAGE__."#attach: arg[type] is a Ref. [$opts->{type}] (typeがリファレンスです)\n";
+			die __PACKAGE__."#attach: arg[type] is a reference. [$opts->{type}] (typeがリファレンスです)\n";
 		} elsif(!defined($opts->{data}) and !defined($opts->{path})) {
 			die __PACKAGE__."#attach: arg[data]/arg[path] is not defined. (dataもpathも指定されていません)\n";
 		} elsif(ref($opts->{data})) {
-			die __PACKAGE__."#attach: arg[data] is a Ref. [$opts->{data}] (dataがリファレンスです)\n";
+			die __PACKAGE__."#attach: arg[data] is a reference. [$opts->{data}] (dataがリファレンスです)\n";
 		}
 
 		# Content-Typeがマルチパートでなければ、そのように設定する。
@@ -555,12 +555,12 @@ sub getPart {
 	if(!defined($index)) {
 		die __PACKAGE__."#getPart: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($index)) {
-		die __PACKAGE__."#getPart: arg[1] is a Ref. [$index] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#getPart: arg[1] is a reference. [$index] (第1引数がリファレンスです)\n";
 	}
 
 	my $ent = $this->{entity}->parts($index);
 	if(!$ent) {
-		die __PACKAGE__."#getPart: no part [$index] found. (${index}番目のパートはありません)\n";
+		die __PACKAGE__."#getPart: the part [$index] does not exist. (${index}番目のパートはありません)\n";
 	}
 
 	my $obj = __PACKAGE__->_new;
@@ -575,13 +575,13 @@ sub deletePart {
 	if(!defined($index)) {
 		die __PACKAGE__."#deletePart: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($index)) {
-		die __PACKAGE__."#deletePart: arg[1] is a Ref. [$index] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#deletePart: arg[1] is a reference. [$index] (第1引数がリファレンスです)\n";
 	}
 
 	my @parts = $this->{entity}->parts;
 
 	if($index < 0 || $index >= @parts) {
-		die __PACKAGE__."#deletePart: no part [$index] found. (${index}番目のパートはありません)\n";
+		die __PACKAGE__."#deletePart: the part [$index] does not exist. (${index}番目のパートはありません)\n";
 	}
 
 	splice @parts, $index, 1;

@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-mysql.t,v 1.7 2007/09/14 05:50:08 hio Exp $
+# $Id: db-mysql.t 4304 2007-09-19 07:52:33Z pho $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -61,11 +61,11 @@ if ($@) {
 # -----------------------------------------------------------------------------
 # test spec.
 # -----------------------------------------------------------------------------
-plan tests => 1+3+26+25+15+5;
+plan tests => 1+3+25+25+15+5;
 
 &test_setup; #1.
 &test_getdb; #3.
-&test_misc;  #26.
+&test_misc;  #25.
 &test_tx_transaction; #25.
 &test_old_transaction;  #15.
 &test_locks;  #5.
@@ -160,10 +160,6 @@ sub test_misc
 				
 				is($DB->getLastInsertId(), 4, '[misc] getLastInsertId()');
 				is($DB->getLastInsertId(\'DBSET_test'), 4, '[misc] getLastInsertId() with dbname');
-				SKIP:{
-					#is($DB->getDbh()->func('last_insertid'), 4, '[misc] lastid via dbh func');
-					skip("[misc] no lastid dbh func", 1);
-				}
 				SKIP:{
 					if( !$DB->getDbh()->can('last_insert_id') )
 					{
@@ -303,7 +299,7 @@ sub test_tx_transaction
 			
 			# close-wait.
 			my $pkg = "Tripletail::DB";
-			my $msg = "act something on close-wait transaction";
+			my $msg = "you can't do anything related to DB after doing rollback or commit in tx";
 			foreach my $meth (qw(
 				execute
 				selectAllHash selectAllArray

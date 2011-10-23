@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-mssql.t,v 1.6 2007/09/14 05:50:08 hio Exp $
+# $Id: db-mssql.t 4304 2007-09-19 07:52:33Z pho $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -42,11 +42,11 @@ use Tripletail $t::make_ini::INI_FILE;
 my $has_DBD_ODBC = eval 'use DBD::ODBC;1';
 if( !$has_DBD_ODBC )
 {
-	plan skip_all => "no DBD::ODBC";
+	plan skip_all => "DBD::ODBC is not available";
 }
 if( !$DBINFO{dbname} )
 {
-	plan skip_all => "no MSSQL_DBNAME";
+	plan skip_all => "\$ENV{MSSQL_DBNAME} is not available";
 }
 eval {
 	$TL->trapError(

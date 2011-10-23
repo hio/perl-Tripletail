@@ -212,7 +212,7 @@ sub set {
 	if(ref($val))
 	{
 		if( !isa($val, ref($this)) ) {
-			die __PACKAGE__."#set: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+			die __PACKAGE__."#set: arg[1] is a reference. (第1引数がリファレンスです)\n";
 		}
 		$val = $val->toStr();
 	}
@@ -308,7 +308,7 @@ sub set {
 			}
 		}
 	} else {
-		die __PACKAGE__."#set: failed to parse date: $val (不正な日付形式です)\n";
+		die __PACKAGE__."#set: failed to parse the date: $val (不正な日付形式です)\n";
 	}
 
 	$this->setJulianDay($this->__getJulian($greg));
@@ -322,9 +322,9 @@ sub setEpoch {
 	if(!defined($epoch)) {
 		die __PACKAGE__."#setEpoch: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($epoch)) {
-		die __PACKAGE__."#setEpoch: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setEpoch: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($epoch !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setEpoch: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setEpoch: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->__getJulianOfEpoch + $epoch / 86400);
@@ -338,9 +338,9 @@ sub setJulianDay {
 	if(!defined($jd)) {
 		die __PACKAGE__."#setJulianDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($jd)) {
-		die __PACKAGE__."#setJulianDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setJulianDay: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($jd !~ m/^-?[\d\.]+$/) {
-		die __PACKAGE__."#setJulianDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setJulianDay: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->{jd} = $jd;
@@ -355,9 +355,9 @@ sub setYear {
 	if(!defined($year)) {
 		die __PACKAGE__."#setYear: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($year)) {
-		die __PACKAGE__."#setYear: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setYear: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($year !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setYear: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setYear: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	my $greg = $this->__getGregorian();
@@ -372,9 +372,9 @@ sub setMonth {
 	if(!defined($mon)) {
 		die __PACKAGE__."#setMonth: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($mon)) {
-		die __PACKAGE__."#setMonth: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setMonth: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($mon !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setMonth: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setMonth: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	} elsif($mon == 0) {
 		die __PACKAGE__."#setMonth: arg[1] == 0. (月が0です)\n";
 	} elsif($mon >= 13) {
@@ -398,9 +398,9 @@ sub setDay {
 	if(!defined($day)) {
 		die __PACKAGE__."#setDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($day)) {
-		die __PACKAGE__."#setDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setDay: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($day !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setDay: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	} elsif($day == 0) {
 		die __PACKAGE__."#setDay: arg[1] == 0. (日が0です)\n";
 	}
@@ -432,9 +432,9 @@ sub setHour {
 	if(!defined($hour)) {
 		die __PACKAGE__."#setHour: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($hour)) {
-		die __PACKAGE__."#setHour: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setHour: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($hour !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setHour: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setHour: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	} elsif($hour >= 24) {
 		die __PACKAGE__."#setHour: arg[1] >= 24. (第1引数が24以上です)\n";
 	} elsif($hour <= -24) {
@@ -456,9 +456,9 @@ sub setMinute {
 	if(!defined($min)) {
 		die __PACKAGE__."#setMinute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($min)) {
-		die __PACKAGE__."#setMinute: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setMinute: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($min !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setMinute: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setMinute: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	} elsif($min >= 60) {
 		die __PACKAGE__."#setHour: arg[1] >= 60. (第1引数が60以上です)\n";
 	} elsif($min <= -60) {
@@ -480,9 +480,9 @@ sub setSecond {
 	if(!defined($sec)) {
 		die __PACKAGE__."#setSecond: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($sec)) {
-		die __PACKAGE__."#setSecond: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setSecond: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($sec !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setSecond: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#setSecond: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	} elsif($sec >= 60) {
 		die __PACKAGE__."#setSecond: arg[1] >= 60. (第1引数が60以上です)\n";
 	} elsif($sec <= -60) {
@@ -504,7 +504,7 @@ sub setTimeZone {
 	local($_);
 
 	if(ref($tz)) {
-		die __PACKAGE__."#setTimeZone: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setTimeZone: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($tz)) {
@@ -1058,9 +1058,9 @@ sub addSecond {
 	if(!defined($sec)) {
 		die __PACKAGE__."#addSecond: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($sec)) {
-		die __PACKAGE__."#addSecond: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addSecond: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($sec !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addSecond: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addSecond: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $sec / 86400);
@@ -1073,9 +1073,9 @@ sub addMinute {
 	if(!defined($min)) {
 		die __PACKAGE__."#addMinute: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($min)) {
-		die __PACKAGE__."#addMinute: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addMinute: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($min !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addMinute: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addMinute: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $min / 1440);
@@ -1088,9 +1088,9 @@ sub addHour {
 	if(!defined($hour)) {
 		die __PACKAGE__."#addHour: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($hour)) {
-		die __PACKAGE__."#addHour: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addHour: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($hour !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addHour: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addHour: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $hour / 24);
@@ -1103,9 +1103,9 @@ sub addDay {
 	if(!defined($day)) {
 		die __PACKAGE__."#addDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($day)) {
-		die __PACKAGE__."#addDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addDay: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($day !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addDay: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->setJulianDay($this->{jd} + $day);
@@ -1119,9 +1119,9 @@ sub addMonth {
 	if(!defined($mon)) {
 		die __PACKAGE__."#addMonth: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($mon)) {
-		die __PACKAGE__."#addMonth: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addMonth: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($mon !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addMonth: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addMonth: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$greg->{mon} += $mon;
@@ -1150,9 +1150,9 @@ sub addYear {
 	if(!defined($year)) {
 		die __PACKAGE__."#addYear: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($year)) {
-		die __PACKAGE__."#addYear: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addYear: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($year !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addYear: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addYear: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$greg->{year} += $year;
@@ -1193,9 +1193,9 @@ sub addBusinessDay {
 	if(!defined($day)) {
 		die __PACKAGE__."#addBusinessDay: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($day)) {
-		die __PACKAGE__."#addBusinessDay: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addBusinessDay: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	} elsif($day !~ m/^-?\d+$/) {
-		die __PACKAGE__."#addBusinessDay: arg[1] is not numeric. (第1引数が数字ではありません)\n";
+		die __PACKAGE__."#addBusinessDay: arg[1] is not a number. (第1引数が数字ではありません)\n";
 	}
 
 	$this->addDay($day);
@@ -1289,13 +1289,13 @@ sub parseFormat {
 	if(!defined($format)) {
 		die __PACKAGE__."#parseFormat: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($format)) {
-		die __PACKAGE__."#parseFormat: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#parseFormat: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($str)) {
 		die __PACKAGE__."#parseFormat: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die __PACKAGE__."#parseFormat: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#parseFormat: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	my $f = $format;

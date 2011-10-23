@@ -71,7 +71,7 @@ sub setValue {
 	my $value = shift;
 
 	if((!$this->isHttps) && ($this->{mode} eq 'double' || $this->{mode} eq 'https')) {
-		die __PACKAGE__."#setValue: we can't modify session while we are using '$this->{mode}' mode and not in the https.".
+		die __PACKAGE__."#setValue: we can't modify session while we are using '$this->{mode}' mode but not in the https connection.".
 			" ($this->{mode}モードの場合はhttps接続中でのみセッション内容を変更できます)\n";
 	}
 
@@ -161,10 +161,10 @@ sub __createSid {
 
 	if($sid) {
 		if($TL->INI->get($this->{group} => 'logging', '0')) {
-			$TL->log(__PACKAGE__, "Created new session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+			$TL->log(__PACKAGE__, "created new session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 		}
 	} else {
-		die __PACKAGE__."#__createSid: cannot create session id. (セッションIDが作成できませんでした)\n";
+		die __PACKAGE__."#__createSid: failed to create a session ID. (セッションIDが作成できませんでした)\n";
 	}
 
 	$sid;
@@ -202,12 +202,12 @@ sub __removeSid {
 			die __PACKAGE__."#__removeSid: DB error. [$@]\n";
 		}
 	} else {
-		die __PACKAGE__."#__removeSid: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+		die __PACKAGE__."#__removeSid: the type of DB [$this->{dbgroup}] is [$type], which is not supported by the Tripletail::Session.".
 			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
 	if($TL->INI->get($this->{group} => 'logging', '0')) {
-		$TL->log(__PACKAGE__, "Remove session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		$TL->log(__PACKAGE__, "Removed the session ID [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 	}
 	
 	$sid;
@@ -274,12 +274,12 @@ sub __prepareSessionTable {
 			}
 			};
 		} else {
-			die __PACKAGE__."#__prepareSessionTable: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+			die __PACKAGE__."#__prepareSessionTable: the type of DB [$this->{dbgroup}] is [$type], which is not supported by the Tripletail::Session.".
 				" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 		}
 
 		if($TL->INI->get($this->{group} => 'logging', '0')) {
-			$TL->log(__PACKAGE__, "Created table [$this->{sessiontable}] on the DB [$this->{dbgroup}].");
+			$TL->log(__PACKAGE__, "created table [$this->{sessiontable}] on the DB [$this->{dbgroup}].");
 		}
 	}
 
@@ -296,7 +296,7 @@ sub _init {
 		$groups = [ @_ ];
 	} else {
 		my $ref = ref($_[0]);
-		die "Tripletail::Session#_init: arg[1]: group name is Wrong-Ref. [$ref] (第1引数が不正なリファレンスです)\n";
+		die "Tripletail::Session#_init: arg[1] is an unacceptable reference. [$ref] (第1引数が不正なリファレンスです)\n";
 	}
 
 	# postRequest時に古いデータを消す。
@@ -338,7 +338,7 @@ sub __new {
 	# モードチェック
 	if($this->{mode} eq 'https') {
 		if(!$this->isHttps) {
-			die __PACKAGE__."#__new: the 'https' mode of Session can't be used while we are not in the https.".
+			die __PACKAGE__."#__new: the session mode 'https' is not available because we are not in the https connection.".
 				" (httpsモードの場合はhttps接続中でのみセッションを利用できます)\n";
 		}
 	} elsif($this->{mode} eq 'http') {
@@ -350,9 +350,9 @@ sub __new {
 	}
 
 	$this->{dbgroup} = $TL->INI->get($this->{group} => 'dbgroup');
-	$this->{dbgroup} or die __PACKAGE__."#new: dbgroup is not set. (dbgroupが指定されていません)\n";
+	$this->{dbgroup} or die __PACKAGE__."#new: dbgroup is not defined for the INI group [$this->{group}]. (dbgroupが指定されていません)\n";
 	$this->{dbset} = $TL->INI->get($this->{group} => 'dbset');
-	$this->{dbset} or die __PACKAGE__."#new: dbset is not set. (dbsetが指定されていません)\n";
+	$this->{dbset} or die __PACKAGE__."#new: dbset is not defined for the INI group [$this->{group}]. (dbsetが指定されていません)\n";
 	$this->{readdbset} = $TL->INI->get($this->{group} => 'readdbset', $this->{dbset});
 	$this->{sessiontable} = $TL->INI->get($this->{group} => 'sessiontable', 'tl_session_' . $this->{group});
 
@@ -382,8 +382,8 @@ sub _getInstance {
 	if($_instance{$group}) {
 		$_instance{$group};
 	} else {
-		die "TL#getSession: the Session of $group group is not in use. ".
-			"Specify [-Session => '(group)'] at the call of TL#startCgi if you want to use this.".
+		die "TL#getSession: the session group [$group] has not been specified at the call of \$TL->startCgi() like ".
+			"-Session => '(group)'.".
 			" (セッショングループ $group は使用できません。startCgi の -Session で指定する必要があります)\n";
 	}
 }
@@ -408,11 +408,11 @@ sub _getRawCookie {
 
 	my $cookie = $TL->getRawCookie($group);
 	if($opts->{secure} && !$cookie->_isSecure) {
-		die __PACKAGE__."#_getRawCookie: cookie group [$group] is not secure.".
+		die __PACKAGE__."#_getRawCookie: cookie group [$group] is not declared to be secure.".
 			" We can't use it for secure part of session.".
 			" (セキュアなセッション部分でクッキーグループ $group を使用しようとしましたが、クッキーの secure 指定がされていません)\n";
 	} elsif(!$opts->{secure} and $cookie->_isSecure) {
-		die __PACKAGE__."#_getRawCookie: cookie group [$group] is secure.".
+		die __PACKAGE__."#_getRawCookie: cookie group [$group] is not declared to be secure.".
 		" We can't use it for insecure part of session.".
 			" (非セキュアなセッション部分でクッキーグループ $group を使用しようとしましたが、クッキーの secure 指定がされています)\n";
 	}
@@ -459,7 +459,7 @@ sub _setSessionDataToCookies {
 				$cookie->delete('SID' . $this->{group});
 			}
 		} else {
-			die __PACKAGE__."#_setSessionDataToCookies: session mode is https.".
+			die __PACKAGE__."#_setSessionDataToCookies: the session mode is `https'.".
 				" We can't use it for insecure part of session.".
 				" (httpsモードのセッションはhttps接続中でのみ使用できます)\n";
 		}
@@ -565,15 +565,15 @@ sub __setSession {
 
 			if(!scalar(@$sessiondata)) {
 				if($TL->INI->get($this->{group} => 'logging', '0')) {
-					$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+					$TL->log(__PACKAGE__, "The session is invalid: its session ID may not exist, or the checkval is invalid for the session: sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 				}
 			}elsif( $sessiondata->[0][2] eq 'x' || $sessiondata->[0][3] eq 'x' ) {
 				if($TL->INI->get($this->{group} => 'logging', '0')) {
-					$TL->log(__PACKAGE__, "Invalid session. session has deletion mark. sid [$sid] checkval [$$sessiondata->[0][2]] checkvalssl [$$sessiondata->[0][3]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+					$TL->log(__PACKAGE__, "The session is invalid: it has a deletion mark: sid [$sid] checkval [$$sessiondata->[0][2]] checkvalssl [$$sessiondata->[0][3]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 				}
 			} elsif(time - $sessiondata->[0][1] > $this->{timeout_period}) {
 				if($TL->INI->get($this->{group} => 'logging', '0')) {
-					$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+					$TL->log(__PACKAGE__, "The session is invalid: it has been expired: sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 				}
 			} else {
 				$this->{sid} = $sid;
@@ -598,11 +598,11 @@ sub __setSession {
 			my $now = time;
 			if(!scalar(@$sessiondata)) {
 				if($TL->INI->get($this->{group} => 'logging', '0')) {
-					$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+					$TL->log(__PACKAGE__, "The session is invalid: its session ID may not exist, or the checkval is invalid for the session: sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 				}
 			} elsif($now - $updatetime > $this->{timeout_period}) {
 				if($TL->INI->get($this->{group} => 'logging', '0')) {
-					$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]=$updatetime] on the DB [$this->{dbgroup}][$this->{sessiontable}], now=[$now], timeout=[$this->{timeout_period}].");
+					$TL->log(__PACKAGE__, "The session is invalid: it has been expired: sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]=$updatetime] on the DB [$this->{dbgroup}][$this->{sessiontable}], now=[$now], timeout=[$this->{timeout_period}].");
 				}
 			} else {
 				$this->{sid} = $sid;
@@ -616,18 +616,18 @@ sub __setSession {
 			die __PACKAGE__."#__setSession: DB error. [$@]\n";
 		}
 	} else {
-		die __PACKAGE__."#__setSession: the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+		die __PACKAGE__."#__setSession: the type of DB [$this->{dbgroup}] is [$type], which is not supported by the Tripletail::Session.".
 			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
 	if(defined $this->{sid}) {
 		my $datalog = (defined($this->{data}) ? $this->{data} : '(undef)');
 		if($TL->INI->get($this->{group} => 'logging', '0')) {
-			$TL->log(__PACKAGE__, "Valid session data read. secure [$opts{secure}] sid [$this->{sid}] checkval [$this->{checkval}] checkvalssl [$this->{checkvalssl}] data [$datalog] updatetime [$this->{updatetime}] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+			$TL->log(__PACKAGE__, "Succeeded to read a valid session data. secure [$opts{secure}] sid [$this->{sid}] checkval [$this->{checkval}] checkvalssl [$this->{checkvalssl}] data [$datalog] updatetime [$this->{updatetime}] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 		}
 	} else {
 		if($TL->INI->get($this->{group} => 'logging', '0')) {
-			$TL->log(__PACKAGE__, "Valid session data didn't read. secure [$opts{secure}] sid [$sid] $colname [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+			$TL->log(__PACKAGE__, "Failed to read a valid session data. secure [$opts{secure}] sid [$sid] $colname [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 		}
 	}
 
@@ -672,7 +672,7 @@ sub __updateSession {
 			die __PACKAGE__."#__updateSession: DB error. [$@]\n";
 		}
 	} else {
-		die __PACKAGE__."#__updateSession, the type of DB [$this->{dbgroup}] is [$type], which is not supported.".
+		die __PACKAGE__."#__updateSession, the type of DB [$this->{dbgroup}] is [$type], which is not supported by the Tripletail::Session.".
 			" (DB [$this->{dbgroup}] の [$type] は対応していないDBです)\n";
 	}
 
@@ -680,7 +680,7 @@ sub __updateSession {
 
 	my $datalog = (defined($this->{data}) ? $this->{data} : '(undef)');
 	if($TL->INI->get($this->{group} => 'logging', '0')) {
-		$TL->log(__PACKAGE__, "Update session. sid [$this->{sid}] data [$datalog] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		$TL->log(__PACKAGE__, "The session got updated. sid [$this->{sid}] data [$datalog] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 	}
 
 	$this;

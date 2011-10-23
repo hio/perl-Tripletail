@@ -949,7 +949,13 @@ servers = localhost:11211
 </p>
 
 <p>
-<span class="pod_lang">このモードでは fork が正しく動作しない事に注意。代わりに
+<span class="pod_lang">このモードでは <a href="#startCgi">$TL-&gt;startCgi</a> メソッドで <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を呼ぶ。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">FastCGIモードでは fork が正しく動作しない事に注意。代わりに
 <a href="#fork">$TL-&gt;fork</a> メソッドを使用する。
 
 </span>
@@ -1161,7 +1167,7 @@ FastCGIの場合は最後の1回だけ呼ばれる。
   );</code></pre>
 
 <p>
-<span class="pod_lang">通常スクリプトでは <a href="#trapError">&quot;trapError&quot;</a> を参照.
+<span class="pod_lang">通常のスクリプトを書く場合は <a href="#trapError">&quot;trapError&quot;</a> を参照.
 
 </span>
 </p>
@@ -1654,7 +1660,7 @@ $value は大文字で始まらなければならない。
 </span></a></h4>
 
 <p>
-<span class="pod_lang"><a href="././Tripletail/SMIME.html">Tripletail::SMIME</a> オブジェクトを作成。
+<span class="pod_lang"><a href="././Crypt/SMIME.html">Crypt::SMIME</a> オブジェクトを作成。
 
 </span>
 </p>

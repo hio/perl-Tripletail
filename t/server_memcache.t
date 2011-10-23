@@ -8,22 +8,22 @@ use Data::Dumper;
 our $HTTP_PORT = 8967;
 
 if(!$ENV{TL_MEMCACHE_CHECK}){
-   plan skip_all => "Cache::Memcached check skip. Please set TL_MEMCACHE_CHECK = 1 when checking.";
+   plan skip_all => "skipping tests for Tripletail::MemCached for \$ENV{TL_MEMCACHE_CHECK} being false.";
 }
 
 eval "use Cache::Memcached";
 if ($@) {
-    plan skip_all => "Cache::Memcached are required for these tests...";
+    plan skip_all => "skipping tests for Tripletail::MemCached for Cache::Memcached being unavailable.";
 }
 
 eval "use POE";
 if ($@) {
-    plan skip_all => "POE required for various tests using http server...";
+    plan skip_all => "POE is required for various tests using http server...";
 }
 
 eval "use POE::Component::Server::HTTP";
 if ($@) {
-    plan skip_all => "PoCo::Server::HTTP required for various tests using http server...";
+    plan skip_all => "PoCo::Server::HTTP is required for various tests using http server...";
 }
 
 eval q{

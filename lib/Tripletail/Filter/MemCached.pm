@@ -46,7 +46,7 @@ sub _new {
 
 	if($this->{option}{mode} ne 'write' && $this->{option}{mode} ne 'pass-through') {
 		die "TL#setContentFilter: option [mode] for [Tripletail::Filter::MemCache] ".
-			"must be 'write' or 'pass-through' instead of [$this->{option}{mode}].".
+			"must be 'write' or 'pass-through', not [$this->{option}{mode}].".
 			" (modeはwriteかpass-throughのいずれかを指定してください)\n";
 	}
 	
@@ -64,7 +64,7 @@ sub print {
 	my $data = shift;
 
 	if(ref($data)) {
-		die __PACKAGE__."#print: arg[1] is a Ref. [$data] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#print: arg[1] is a reference. [$data] (第1引数がリファレンスです)\n";
 	}
 	
 	return '' if($data eq '');
@@ -75,7 +75,7 @@ sub print {
 		if($this->{buffer} eq '') {
 			$this->{buffer} = $data;
 		} else {
-			die __PACKAGE__."#print: already output. (既に何らかの出力がされています)\n";
+			die __PACKAGE__."#print: some data have already been printed. (既に何らかの出力がされています)\n";
 		}
 	}
 	

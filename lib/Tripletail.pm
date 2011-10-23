@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v 1.231 2007/09/14 05:50:06 hio Exp $
+# $Id: Tripletail.pm 4726 2007-09-27 03:03:28Z mikage $
 package Tripletail;
 use strict;
 use warnings;
@@ -10,9 +10,10 @@ BEGIN{ our $_CHKDYNALDR=$INC{'DynaLoader.pm'} }
 use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
+use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -22,6 +23,10 @@ our %_FILE_CACHE;
 my $_FILE_CACHE_MAXSIZE = 10_1024*1024;
 my $_FILE_CACHE_CURSIZE = 150; # variables for caching.
 our $CWD;
+
+# 動的スコープにより startCgi 内部である事を表す。
+# 他のパッケージからも参照されるので削除してはならない。
+our $IN_EXTENT_OF_STARTCGI;
 
 require Unicode::Japanese;
 
@@ -33,7 +38,6 @@ if($ENV{TL_COVER_TEST_MODE}) {
 *errorTrap = \&_errorTrap_is_deprecated;
 sub _errorTrap_is_deprecated {
 	die "\$TL->errorTrap(..) is deprecated, use \$TL->trapEror(..)"
-	#&trapError;
 }
 
 if( $ENV{MOD_PERL} )
@@ -86,7 +90,7 @@ sub import {
 			my $trap = $1;
 			$SIG{__DIE__} = \&__die_handler_for_startup;
 		}
-		*{"$callpkg1\::CGI"} = _gensym(); # dummy to avoid strict.
+		*{"$callpkg1\::CGI"} = _gensym(); # dummy symbol to avoid the false alarm by strict.pm.
 	} else {
 		if(defined($_[0])) {
 			die "use Tripletail: ini file has been already loaded. (iniファイルを指定した use Tripletail は一度しか行えません)";
@@ -227,7 +231,9 @@ sub fork {
         
         if ($this->{fcgi_request}) {
             # 何故か FCGI::DESTROY を殺して置かないと、子プロセスの方が早く死んだ
-            # 時に Internal Server Error になってしまう。
+            # 時に Internal Server Error になってしまう。Detach しているのだから
+            # DESTROY がソケットを弄るのはおかしいのだが、現実としてそうなってい
+            # る。
             # http://wiki.dreamhost.com/Perl_FastCGI
             *FCGI::DESTROY = sub {};
         }
@@ -392,6 +398,8 @@ sub __die_handler_for_localeval
 sub startCgi {
 	my $this = shift;
 	my $param = { @_ };
+
+    local $IN_EXTENT_OF_STARTCGI = 1;
 	
 	$this->_clearCwd();
 	$this->{outputbuffering} = $this->INI->get(TL => 'outputbuffering', 0);
@@ -498,7 +506,7 @@ sub startCgi {
 				};
 				if($@) {
 					if($exit_requested) {
-						$this->log(FCGI => "FCGI_request->Accept() interrupted : $@");
+						$this->log(FCGI => "FCGI_request->Accept() got interrupted : $@");
 						#no warnings;
 						$this->{fcgi_request}->Finish();
 						last;
@@ -544,7 +552,7 @@ sub startCgi {
 			}
             $this->{fcgi_request} = undef;
 
-			$this->log(FCGI => "FCGI Loop terminated ($requestcount reqs processed).");
+			$this->log(FCGI => "FCGI Loop is terminated ($requestcount reqs processed).");
 		} else {
 			# CGIモード
 			$this->log(TL => 'CGI mode');
@@ -574,14 +582,7 @@ sub startCgi {
 		}
 
 		$this->_sendErrorIfNeeded($err);
-
-		# このevalでキャッチされたという事は、-mainの外で例外が起きた。
-		$this->log(startCgi => "$err");
-
-		# また、FCGIモードでなければエラーをstdoutにprintする意味がある。
-		if ($this->_getRunMode ne 'FCGI') {
-			$this->_call_fault_handler($err);
-		}
+        $this->_call_fault_handler($err);
 	}
 	!$@ && $main_err and $@ = $main_err;
 
@@ -608,7 +609,7 @@ sub _call_fault_handler
 		my ($modname, $subname) = $handler_name =~ /^(?:::)?(?:(\w+(?:::\w+)*)::)?(\w+)$/;
 		if( !defined($subname) )
 		{
-			$TL->log("fault_handler, invalid name [$handler_name]");
+			$TL->log("fault_handler: invalid name [$handler_name]");
 			last FAULT_HANDLER;
 		}
 		$modname ||= 'main';
@@ -623,20 +624,20 @@ sub _call_fault_handler
 				eval "require $modname; 1;";
 				if( $@ )
 				{
-					$TL->log("fault_handler, load module [$modname] failed: $@");
+					$TL->log("fault_handler: failed to load module [$modname]: $@");
 					last FAULT_HANDLER;
 				}
 			}
 			$sub = $modname->can($subname);
 			if( !$sub )
 			{
-				$TL->log("fault_handler, no such sub [$subname] in [$modname]");
+				$TL->log("fault_handler: no such subroutine [$subname] in [$modname]");
 				last FAULT_HANDLER;
 			}
 		}
 		if( !defined(&$sub) )
 		{
-			$TL->log("fault_handler, sub [$subname] in [$modname] is undefined");
+			$TL->log("fault_handler: subroutine [$subname] in [$modname] is undefined");
 			last FAULT_HANDLER;
 		}
 		
@@ -646,7 +647,7 @@ sub _call_fault_handler
 		};
 		if( $@ )
 		{
-			$TL->log("fault_handler, sub [$subname] in [$modname] is failed: $@");
+			$TL->log("fault_handler: subroutine [$subname] in [$modname] threw an error: $@");
 			last FAULT_HANDLER;
 		}
 		$printed = 1;
@@ -744,14 +745,14 @@ sub dispatch {
 
 	if(!defined($name)) {
 		if(!defined($param->{'default'})) {
-			die __PACKAGE__."#dispatch： arg[1] is not defined and default is not set. (第1引数もdefaultも指定されていません)\n";
+			die __PACKAGE__."#dispatch： arg[1] is not defined but no default value is specified. (第1引数もdefaultも指定されていません)\n";
 		} elsif(ref($param->{'default'})) {
-			die __PACKAGE__."#dispatch: arg[1] is not defined and default is a Ref [$param->{'default'}]. (default指定がリファレンスです)\n";
+			die __PACKAGE__."#dispatch: the default value is a reference [$param->{'default'}]. (default指定がリファレンスです)\n";
 		} else {
 			$name = $param->{'default'};
 		}
 	} elsif(ref($name)) {
-		die __PACKAGE__."#dispatch: arg[1] is a Ref. [$name] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#dispatch: arg[1] is a reference. [$name] (第1引数がリファレンスです)\n";
 	} elsif( $name !~ /^[A-Z]/ )
 	{
 		die __PACKAGE__."#dispatch: arg[1] must start with upper case character. (第1引数は大文字から始まる必要があります)\n";
@@ -772,7 +773,7 @@ sub dispatch {
 				$param->{'onerror'}();
 			};
 			if($@) {
-				die __PACKAGE__."#dispatch: onerror handler. [$@] (onerrorの関数でエラーが発生しました)\n";
+				die __PACKAGE__."#dispatch: onerror handler threw an error. [$@] (onerrorの関数でエラーが発生しました)\n";
 			}
 		}
 	}
@@ -875,8 +876,8 @@ sub _log {
 		};
 		if ($@){
 			print "Content-Type: text/plain\n\n";
-			print "Can't create directory for logdir [$path]\n";
-			warn "Can't create directory for logdir [$path] (logdirで指定されたログ用のディレクトリを作成できません)";
+			print "Failed to create a directory [$path]\n";
+			warn "Failed to create a directory [$path] (logdirで指定されたログ用のディレクトリを作成できません)";
 			$this->sendError(
 				title => "TL LogError",
 				error => "Failed to create a directory [$path]($!)",
@@ -895,8 +896,8 @@ sub _log {
 		my $fh = $this->_gensym;
 		if(!open($fh, ">>$path")) {
 			print "Content-Type: text/plain\n\n";
-			print "Can't open [$path]\n";
-			warn "Can't open [$path] (logdirで指定されたログ用のディレクトリにアクセスできません)";
+			print "Failed to open [$path]\n";
+			warn "Failed to open [$path] (logdirで指定されたログ用のディレクトリにアクセスできません)";
 			$this->sendError(
 				title => "TL LogError",
 				error => "Failed to open a log [$path]($!)",
@@ -950,22 +951,22 @@ sub setHook {
 		die __PACKAGE__."#setHook: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(ref($type)) {
-		die __PACKAGE__."#setHook: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setHook: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(!exists($this->{hook}{$type})) {
-		die __PACKAGE__."#setHook: hook type [$type] is not allowed. (hook type の指定が不正です)\n";
+		die __PACKAGE__."#setHook: [$type] is an invalid hook type. (hook type の指定が不正です)\n";
 	}
 	if(!defined($priority)) {
 		die __PACKAGE__."#setHook: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 	if(ref($priority)) {
-		die __PACKAGE__."#setHook: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#setHook: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 	if($priority !~ m/^-?\d+$/) {
-		die __PACKAGE__."#setHook: invalid priority. [$priority] (priorityは整数のみ指定できます)\n";
+		die __PACKAGE__."#setHook: arg[2] must be an integer. [$priority] (priorityは整数のみ指定できます)\n";
 	}
 	if(ref($code) ne 'CODE') {
-		die __PACKAGE__."#setHook: arg[3] is not CODE Ref. (第3引数がコードリファレンスではありません)\n";
+		die __PACKAGE__."#setHook: arg[3] is not a CODE Ref. (第3引数がコードリファレンスではありません)\n";
 	}
 
 	$this->{hook}{$type}{$priority} = $code;
@@ -988,16 +989,16 @@ sub removeHook {
 		die __PACKAGE__."#removeHook: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(ref($type)) {
-		die __PACKAGE__."#removeHook: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#removeHook: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(!exists($this->{hook}{$type})) {
-		die __PACKAGE__."#removeHook: hook type [$type] is not allowed. (hook type の指定が不正です)\n";
+		die __PACKAGE__."#removeHook: [$type] is an invalid hook type. (hook type の指定が不正です)\n";
 	}
 	if(!defined($priority)) {
 		die __PACKAGE__."#setHook: arg[2] is not defined. (第2引数が指定されていません)\n";
 	}
 	if(ref($priority)) {
-		die __PACKAGE__."#setHook: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#setHook: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	delete $this->{hook}{$type}{$priority};
@@ -1024,18 +1025,18 @@ sub setContentFilter {
 		if(!defined($classname)) {
 			die __PACKAGE__."#setContentFilter: arg[1][0] is not defined. (第1引数の配列の1番目の要素にクラス名が指定されていません)\n";
 		} elsif(ref($classname)) {
-			die __PACKAGE__."#setContentFilter: arg[1][0] is a Ref. (第1引数の配列の1番目の要素がリファレンスです)\n";
+			die __PACKAGE__."#setContentFilter: arg[1][0] is a reference. (第1引数の配列の1番目の要素がリファレンスです)\n";
 		}
 
 		if (!defined($priority)) {
 			die __PACKAGE__."#setContentFilter: arg[1][1] is not defined. (第1引数の配列の2番目の要素にプライオリティが指定されていません)\n";
 		} elsif(ref($priority)) {
-			die __PACKAGE__."#setContentFilter: arg[1][1] is a Ref. (第1引数の配列の2番目の要素がリファレンスです)\n";
+			die __PACKAGE__."#setContentFilter: arg[1][1] is a reference. (第1引数の配列の2番目の要素がリファレンスです)\n";
 		} elsif($priority !~ m/^\d+$/) {
-			die __PACKAGE__."#setContentFilter: invalid priority. [$priority] (priorityは整数のみ指定できます)\n";
+			die __PACKAGE__."#setContentFilter: arg[1][1] must be an integer. [$priority] (priorityは整数のみ指定できます)\n";
 		}
 	} elsif(ref($classname)) {
-		die __PACKAGE__."#setContentFilter: arg[1] is not scalar nor ARRAY ref. (第1引数がスカラでも配列のリファレンスでもありません)\n";
+		die __PACKAGE__."#setContentFilter: arg[1] is not a scalar nor an ARRAY ref. (第1引数がスカラでも配列のリファレンスでもありません)\n";
 	}
 
 	do {
@@ -1087,18 +1088,18 @@ sub setInputFilter {
 		if(!defined($classname)) {
 			die __PACKAGE__."#setInputFilter: arg[1][0] is not defined. (第1引数の配列の1番目の要素にクラス名が指定されていません)\n";
 		} elsif(ref($classname)) {
-			die __PACKAGE__."#setInputFilter: arg[1][0] is a Ref. (第1引数の配列の1番目の要素がリファレンスです)\n";
+			die __PACKAGE__."#setInputFilter: arg[1][0] is a reference. (第1引数の配列の1番目の要素がリファレンスです)\n";
 		}
 
 		if(!defined($priority)) {
 			die __PACKAGE__."#setInputFilter: arg[1][1] is not defined. (第1引数の配列の2番目の要素にプライオリティが指定されていません)\n";
 		} elsif(ref($priority)) {
-			die __PACKAGE__."#setInputFilter: arg[1][1] is a Ref. (第1引数の配列の2番目の要素がリファレンスです)\n";
+			die __PACKAGE__."#setInputFilter: arg[1][1] is a reference. (第1引数の配列の2番目の要素がリファレンスです)\n";
 		} elsif($priority !~ m/^\d+$/) {
-			die __PACKAGE__."#setInputFilter: invalid priority. [$priority] (priorityは整数のみ指定できます)\n";
+			die __PACKAGE__."#setInputFilter: arg[1][1] must be an integer. [$priority] (priorityは整数のみ指定できます)\n";
 		}
 	} elsif(ref($classname)) {
-		die __PACKAGE__."#setInputFilter: arg[1] is not scalar nor ARRAY ref. (第1引数がスカラでも配列のリファレンスでもありません)\n";
+		die __PACKAGE__."#setInputFilter: arg[1] is not a scalar nor an ARRAY ref. (第1引数がスカラでも配列のリファレンスでもありません)\n";
 	}
 
 	do {
@@ -1273,7 +1274,7 @@ sub location {
 	my $url = shift;
 	
 	if(exists($this->{printflag})) {
-		die __PACKAGE__."#location: location called after print. (printを実行後にlocationが呼び出されました)\n";
+		die __PACKAGE__."#location: \$TL->location() must not be called after calling \$TL->print(). (printを実行後にlocationが呼び出されました)\n";
 	}
 	
 	$this->getContentFilter->_location($url);
@@ -1423,6 +1424,10 @@ sub parseQuantity {
 sub getCookie {
 	my $this = shift;
 
+    if (not $IN_EXTENT_OF_STARTCGI) {
+        die __PACKAGE__.'#getCookie: this method must not be called outside $TL->startCgi(). (このメソッドを $TL->startCgi() の外から呼ぶ事は出来ません。)';
+    }
+
 	require Tripletail::Cookie;
 
 	Tripletail::Cookie->_getInstance(@_);
@@ -1523,6 +1528,10 @@ sub newPager {
 sub getRawCookie {
 	my $this = shift;
 
+    if (not $IN_EXTENT_OF_STARTCGI) {
+        die __PACKAGE__.'#getRawCookie: this method must not be called outside $TL->startCgi(). (このメソッドを $TL->startCgi() の外から呼ぶ事は出来ません。)';
+    }
+
 	require Tripletail::RawCookie;
 
 	Tripletail::RawCookie->_getInstance(@_);
@@ -1539,9 +1548,9 @@ sub newSendmail {
 sub newSMIME {
 	my $this = shift;
 
-	require Tripletail::SMIME;
+	require Crypt::SMIME;
 
-	Tripletail::SMIME->new(@_);
+	Crypt::SMIME->new(@_);
 }
 
 sub newTagCheck {
@@ -1722,7 +1731,7 @@ sub readFile {
 	if(!defined($fpath)) {
 		die __PACKAGE__."#readFile: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($fpath)) {
-		die __PACKAGE__."#readFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#readFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	my $cache = $this->_fetchFileCache($fpath);
@@ -1784,7 +1793,7 @@ sub writeFile {
 	if(!defined($fpath)) {
 		die __PACKAGE__."#writeFile: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($fpath)) {
-		die __PACKAGE__."#writeFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#writeFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	
 	$fmode = 0 if(!defined($fmode));
@@ -1810,7 +1819,7 @@ sub writeTextFile {
 		$coding = 'utf8';
 	}
 	if(ref($coding)) {
-		die __PACKAGE__."#writeTextFile: arg[4] is a Ref. (第4引数がリファレンスです)\n";
+		die __PACKAGE__."#writeTextFile: arg[4] is a reference. (第4引数がリファレンスです)\n";
 	}
 
 	$this->charconv(
@@ -1897,10 +1906,10 @@ sub setCacheFilter {
 	} elsif(ref($form) eq 'HASH') {
 		$form = $TL->newForm($form);
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#setCacheFilter: arg[1] is not instance of Tripletail::Form or HASH. (第1引数がFormオブジェクトではありません)\n";
+		die __PACKAGE__."#setCacheFilter: arg[1] is neither an instance of Tripletail::Form nor a HASH Ref. (第1引数がFormオブジェクトではありません)\n";
 	}
 	if(ref($charset)) {
-		die __PACKAGE__."#setCacheFilter: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#setCacheFilter: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 	
 	$charset = 'Shift_JIS' if(!defined($charset));
@@ -1917,15 +1926,15 @@ sub printCacheUnlessModified {
 	if(!defined($key)) {
 		die __PACKAGE__."#printCacheUnlessModified: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#printCacheUnlessModified: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#printCacheUnlessModified: arg[1] is a reference. [$key] (第1引数がリファレンスです)\n";
 	}
 	
 	if(!defined($status)) {
 		$status = 304;
 	} elsif(ref($status)) {
-		die __PACKAGE__."#printCacheUnlessModified: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#printCacheUnlessModified: arg[2] is a reference. [$key] (第2引数がリファレンスです)\n";
 	} elsif($status ne '200' && $status ne '304') {
-		die __PACKAGE__."#printCacheUnlessModified: arg[2] is not 200 or 304. [$key] (第2引数は200か304のみ指定できます)\n";
+		die __PACKAGE__."#printCacheUnlessModified: arg[2] is neither 200 nor 304. [$key] (第2引数は200か304のみ指定できます)\n";
 	}
 
 	my $cachedata = $TL->newMemCached->get($key);
@@ -1966,10 +1975,10 @@ sub setCache {
 	if(!defined($key)) {
 		die __PACKAGE__."#setCache: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#setCache: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setCache: arg[1] is a reference. [$key] (第1引数がリファレンスです)\n";
 	}
 	if(ref($priority)) {
-		die __PACKAGE__."#setCache: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#setCache: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	$priority = 1500 if(!defined($priority));
@@ -1989,7 +1998,7 @@ sub deleteCache {
 	if(!defined($key)) {
 		die __PACKAGE__."#deleteCache: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#deleteCache: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#deleteCache: arg[1] is a reference. [$key] (第1引数がリファレンスです)\n";
 	}
 
 	$TL->newMemCached->delete($key);
@@ -2011,11 +2020,14 @@ sub _gensym {
 sub _getRunMode {
 	my $this = shift;
 
-	if(!$ENV{PATH}) {
+    if (!defined(getpeername(STDIN)) and $! == ENOTCONN) {
+        # http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S2.2
 		'FCGI';
-	} elsif($ENV{GATEWAY_INTERFACE}) {
+	}
+    elsif ($ENV{GATEWAY_INTERFACE}) {
 		'CGI';
-	} else {
+	}
+    else {
 		'script';
 	}
 }
@@ -2523,7 +2535,9 @@ FastCGIとしてプログラムを動作させるモード。httpdからfcgiス�
 C<use Tripletail> したスクリプトファイルや、その L<Ini|Tripletail::Ini> ファイルの最終更新時刻
 も監視し、更新されていたら自動的に終了する。
 
-このモードでは fork が正しく動作しない事に注意。代わりに
+このモードでは L<< $TL->startCgi|/"startCgi" >> メソッドで L</"Main関数"> を呼ぶ。
+
+FastCGIモードでは fork が正しく動作しない事に注意。代わりに
 L<< $TL->fork|/"fork" >> メソッドを使用する。
 
 =item 一般スクリプトモード
@@ -2629,7 +2643,7 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
     -Session => ['Session1', 'Session2'],
   );
 
-通常スクリプトでは L</trapError> を参照.
+通常のスクリプトを書く場合は L</trapError> を参照.
 
 =head4 C<< CGI >>
 
@@ -2850,7 +2864,7 @@ L<Tripletail::Sendmail> オブジェクトを作成。
 
 =head4 C<< newSMIME >>
 
-L<Tripletail::SMIME> オブジェクトを作成。
+L<Crypt::SMIME> オブジェクトを作成。
 
 =head4 C<< getFileSentinel >>
 

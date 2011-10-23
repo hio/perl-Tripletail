@@ -5,7 +5,7 @@
  *
  * Copyright 2005 YAMASHINA Hio
  * ----------------------------------------------------------------------------
- * $Id: HtmlFilter.xs,v 1.17 2007/09/05 10:33:10 hio Exp $
+ * $Id: HtmlFilter.xs 4304 2007-09-19 07:52:33Z pho $
  * ------------------------------------------------------------------------- */
 
 #include "EXTERN.h"
@@ -779,17 +779,17 @@ CODE:
 
 	  /*
 	  if (not defined $key) {
-		  die __PACKAGE__."#attr, ARG[1] was undef.\n";
+		  die __PACKAGE__."#attr: ARG[1] is not defined.\n";
 	  }
 	  elsif (ref $key) {
-		  die __PACKAGE__."#attr, ARG[1] was bad Ref. [$key]\n";
+		  die __PACKAGE__."#attr: ARG[1] is a Ref. [$key]\n";
 	  }
 	  */
 	  if (key == &PL_sv_undef || !SvOK(key)) {
-		  croak("Tripletail::HtmlFilter::Element#attr, ARG[1] was undef.\n");
+		  croak("Tripletail::HtmlFilter::Element#attr: ARG[1] is not defined.\n");
 	  }
 	  else if (SvROK(key)) {
-		  croak("Tripletail::HtmlFilter::Element#attr, ARG[1] was bad Ref. [%s]\n",
+		  croak("Tripletail::HtmlFilter::Element#attr: ARG[1] is a Ref. [%s]\n",
 				SvPV_nolen(key));
 	  }
 
@@ -806,14 +806,14 @@ CODE:
 		  my $val = shift;
 
 		  if (ref $val) {
-			  die __PACKAGE__."#attr, ARG[2] was bad Ref. [$val]\n";
+			  die __PACKAGE__."#attr: ARG[2] is a Ref. [$val]\n";
 		  }
 		  */
 		  SV* val = ST(2);
 		  AV* attrs;
 
 		  if (SvROK(val)) {
-			  croak("Tripletail::HtmlFilter::Element#attr, ARG[2] was bad Ref. [%s]\n",
+			  croak("Tripletail::HtmlFilter::Element#attr: ARG[2] is a Ref. [%s]\n",
 					SvPV_nolen(val));
 		  }
 

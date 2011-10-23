@@ -43,7 +43,6 @@ find({
 }, '../lib');
 push(@pod,
 	 ['../ext/Tripletail-HtmlFilter/HtmlFilter.pm' => 'Tripletail/HtmlFilter.html'],
-	 ['../ext/Tripletail-SMIME/SMIME.pm'           => 'Tripletail/SMIME.html'],
 	 ['policy.pod', 'policy.html'],
 	 ['security.pod', 'security.html'],
 	 ['tips.pod', 'tips.html'],

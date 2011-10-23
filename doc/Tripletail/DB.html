@@ -136,7 +136,7 @@ Tripletail::DB - DBIのラッパ
     $DB-&gt;tx(sub{
       my $sth = $DB-&gt;execute(q{SELECT a, b FROM foo WHERE a = ?}, 999);
       while (my $hash = $sth-&gt;fetchHash) {
-        print $hash-&gt;{a};
+        $TL-&gt;print($hash-&gt;{a});
       }
       # commit is done implicitly.
     });
@@ -160,7 +160,7 @@ Tripletail::DB - DBIのラッパ
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">手動で接続/切断する場合は、connect/disconnectを使う。
+<span class="pod_lang">手動で接続/切断する場合は、connect/disconnectを使うこともできるが、なるべく使用しないことを推奨。
 
 </span>
 </p>
@@ -171,7 +171,7 @@ Tripletail::DB - DBIのラッパ
 </span></a></dt>
 <dd>
 </dd>
-<dt><a id="prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82"><span class="pod_lang">prepare/executeを分けない。fetchは分ける。
+<dt><a id="prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X81X93Xe3X81Xa8Xe3X82X82Xe3X81Xa7Xe3X81X8dXe3X82X8bXe3X80X82"><span class="pod_lang">prepare/executeを分けない。fetchは分けることもできる。
 
 </span></a></dt>
 <dd>
@@ -255,6 +255,19 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 </span>
 </p>
 
+<p>
+<span class="pod_lang">いずれのDBコネクションも利用可能である必要があり、
+接続できなかった場合はエラーとなる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">DBのフェイルオーバーには（現時点では）対応していない。
+
+</span>
+</p>
+
 </dd>
 </dl>
 
@@ -271,7 +284,8 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 </p>
 
 <p>
-<span class="pod_lang">DBIのインタフェースは以下のようなケースで利用できる。ただし、DBIを直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
+<span class="pod_lang">DBIのインタフェースは以下のようなケースで利用できる。
+ただし、DBIを直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
 
 </span>
 </p>
@@ -281,12 +295,6 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 
 </span></a></dt>
 <dd>
-<p>
-<span class="pod_lang">（例）$DB-&gt;{mysql_insertid}
-
-</span>
-</p>
-
 </dd>
 <dt><a id="Xe9XabX98Xe9X80X9fXe3X81XaaXe5X87Xa6Xe7X90X86Xe3X81X8cXe5XbfX85Xe8Xa6X81Xe3X81Xa7Xe3X80X81Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XaeXe3X82XaaXe3X83XbcXe3X83X90Xe3X83X98Xe3X83X83Xe3X83X89Xe3X82X92Xe5X9bX9eXe9X81XbfXe3X81X97Xe3X81X9fXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82"><span class="pod_lang">高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。
 
@@ -371,7 +379,7 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
  my $sth = $DB-&gt;execute(q{SELECT * FROM test LIMIT ??}, [$limit, $offset, \'SQL_INTEGER']);</code></pre>
 
 <p>
-<span class="pod_lang">最後にINSERTした行のAUTO_INCREMENT値の取得などは、拡張ラッパでは制御できないので、DBIのハンドラを直接利用する。
+<span class="pod_lang">INSERTした行のAUTO_INCREMENT値の取得は、getLastInsertId で行える。
 
 </span>
 </p>
@@ -379,7 +387,18 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 <pre class="pod_verbatim"><code> # DBI
  my $id = $DB-&gt;{mysql_insertid};
  # TL
- my $id = $DB-&gt;getDbh()-&gt;{mysql_insertid};</code></pre>
+ my $id = $DB-&gt;getLastInsertId;</code></pre>
+
+<p>
+<span class="pod_lang">拡張ラッパでは制御できない機能にアクセスする場合などは、DBIのハンドラを直接利用する。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> # DBI
+ my $id = $DB-&gt;{RowCacheSize};
+ # TL
+ my $id = $DB-&gt;getDbh()-&gt;{RowCacheSize};</code></pre>
 
 <p>
 <span class="pod_lang">トランザクションには <code class="pod_iseq_C">$DB-&gt;tx(sub{...})</code> メソッドを用いる。
@@ -403,7 +422,7 @@ die なしにコードを抜けた時に自動的にコミットされる。
 
 <p>
 <span class="pod_lang"><code class="pod_iseq_C">begin()</code> メソッドも実装はされているがその使用は非推奨である。 
-また、 <code class="pod_iseq_C">$DB-&gt;execute(q{BEGIN WORK});</code> は無効にされている。 
+また、 <code class="pod_iseq_C">$DB-&gt;execute(q{BEGIN WORK});</code> として利用することはできない。 
 
 </span>
 </p>
@@ -432,6 +451,7 @@ die なしにコードを抜けた時に自動的にコミットされる。
 <pre class="pod_verbatim"><code>  $DB-&gt;execute(
       q{SELECT * FROM a WHERE a IN (??) AND b = ?},
       ['AAA', 'BBB', 'CCC'], 800);
+  
   $DB-&gt;execute(
       q{SELECT * FROM a WHERE a IN (?, ?, ?) AND b = ?},
       'AAA', 'BBB', 'CCC', 800);</code></pre>
@@ -1367,7 +1387,7 @@ Tripletail::DB - DBIのラッパ
 <li><a href="#nameHash">nameHash</a></li>
 <li><a href="#namequery">namequery</a></li>
 <li><a href="#password">password</a></li>
-<li><a href="#prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分ける。</a></li>
+<li><a href="#prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X81X93Xe3X81Xa8Xe3X82X82Xe3X81Xa7Xe3X81X8dXe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分けることもできる。</a></li>
 <li><a href="#ret">ret</a></li>
 <li><a href="#rollback">rollback</a></li>
 <li><a href="#rows">rows</a></li>

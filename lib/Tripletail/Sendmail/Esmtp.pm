@@ -17,7 +17,7 @@ sub _new {
 
 	$this->{group} = $group;
 	$this->{dbgroup} = $TL->INI->get($group => 'dbgroup');
-	$this->{dbgroup} or die __PACKAGE__."#new: dbgroup is not set. (dbgroupが指定されていません)\n";
+	$this->{dbgroup} or die __PACKAGE__."#new: dbgroup is not defined for the INI group [$group]. (dbgroupが指定されていません)\n";
 
 	$this->{resend} = $TL->INI->get($group => 'resend', 1);
 	$this->{resendlimit} = $TL->INI->get($group => 'resendlimit', '24 hours');

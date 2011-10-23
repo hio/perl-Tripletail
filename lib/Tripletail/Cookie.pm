@@ -66,7 +66,7 @@ sub set {
 	if(!defined($form)) {
 		die __PACKAGE__."#set: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#set: arg[2] was not instance of Tripletail::Form. (第2引数がFormオブジェクトではありません)\n";
+		die __PACKAGE__."#set: arg[2] is not an instance of Tripletail::Form. (第2引数がFormオブジェクトではありません)\n";
 	}
 
 	my $raw = $form->_freeze;

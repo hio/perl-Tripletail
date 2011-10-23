@@ -75,8 +75,8 @@ sub _checkPathIsAcceptable {
 
 	for(my $i = 0; $i < @rootpath; $i++) {
 		if($rootpath[$i] ne $abspath[$i]) {
-			die __PACKAGE__."#_checkPathIsAcceptable: loading file [$path] was forbidden ".
-				"due to rootpath being [$this->{rootpath}]".
+            die __PACKAGE__."#_checkPathIsAcceptable: file [$path] is not allowed to be loaded ".
+              "because it is not under [$this->{rootpath}].".
 				" (ファイル[$path]はrootpath[$this->{rootpath}]以下にないので読み込めません)\n";
 		}
 	}
@@ -92,7 +92,8 @@ sub _expandInclude {
 
 	$$inccount += 1;
 	if($$inccount > 20) {
-		die __PACKAGE__."#_expandInclude: <!include> file was loop or too deep.".
+		die __PACKAGE__."#_expandInclude: <!include> has a limitation for the recursion depth which has just been exceeded. ".
+          "Maybe this is caused by a recursion loop.".
 			" (<!include>がループしているか、階層が深すぎます)\n";
 	}
 
@@ -125,7 +126,7 @@ sub setTemplate {
 	if(!defined($str)) {
 		die __PACKAGE__."#setTemplate: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($str)) {
-		die __PACKAGE__."#setTemplate: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setTemplate: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	my $inccount = 0;
@@ -150,7 +151,7 @@ sub loadTemplate {
 	if(!defined($filepath)) {
 		die __PACKAGE__."#loadTemplate: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($filepath)) {
-		die __PACKAGE__."#loadTemplate: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#loadTemplate: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$filepath = __rel2abs($filepath, $this->{basepath});
@@ -549,6 +550,8 @@ HTMLテンプレート中のフォームを解析し、中にセットされて�
 引数はフォームの name="..." で指定される名前。
 省略された場合は、name属性の存在しないform要素が取り出される。
 
+対象となるノードに未置換のタグがあった場合はエラーとなる。
+
 =item setForm
 
   $t->setForm($form)
@@ -573,6 +576,8 @@ L<Tripletail::Form>オブジェクトの代わりにハッシュのリファレ�
 しないキーの関しては、テンプレートの元のデータが
 保存される。
 
+対象となるノードに未置換のタグがあった場合はエラーとなる。
+
 =item extForm
 
   $t->extForm
@@ -585,6 +590,8 @@ HTMLテンプレート中のフォームが外部アプリケーションに対�
 
 通常のフォームはTLフレームワークに対するものとして、いくつかの操作が行われるが、
 extForm を行った場合はそれらの操作を行わない。
+
+対象となるノードに未置換のタグがあった場合はエラーとなる。
 
 =item addHiddenForm
 
@@ -604,6 +611,8 @@ L<Tripletail::Form>オブジェクトの代わりにハッシュのリファレ�
 
 渡されたフォームデータの全てのキーがhiddenとして追加される。
 既存の値に上書きはされず、 単純に追加される。
+
+対象となるノードに未置換のタグがあった場合はエラーとなる。
 
 =item addSessionCheck
 
@@ -625,6 +634,8 @@ csrfkeyとセッションIDを利用してキーを作成する為、csrfkeyは�
 使用中のセッションの mode が 'double' の場合は、
 第3引数に 0 または 1 を指定すると、http側、https側を指定できる。
 省略した場合は、そのときの通信が http/https のどちらであるかによって選択される。
+
+対象となるノードに未置換のタグがあった場合はエラーとなる。
 
 =item getHtml
 

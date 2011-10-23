@@ -93,10 +93,10 @@ sub set {
     my $html = shift;
 
     if (not defined $html) {
-		die __PACKAGE__."#set, ARG[1] was undef.\n";
+		die __PACKAGE__."#set: ARG[1] is not defined.\n";
     }
     elsif (ref $html) {
-		die __PACKAGE__."#set, ARG[1] was Ref.\n";
+		die __PACKAGE__."#set: ARG[1] is a Ref.\n";
     }
 
     @{$this->[HTML]} = split m/(<.+?>)/s, $html;
@@ -321,11 +321,11 @@ sub add {
     my $elem = shift;
 
     if (not defined $elem) {
-		die __PACKAGE__."#add, ARG[1] was undef.\n";
+		die __PACKAGE__."#add: ARG[1] is not defined.\n";
     }
     elsif (my $pkg = ref $elem) {
 		if ($pkg !~ m/^Tripletail::HtmlFilter::(?:Element|Text|Comment)$/) {
-			die __PACKAGE__."#add, ARG[1] was unacceptable Ref. [$elem]\n";
+			die __PACKAGE__."#add, ARG[1] is an unacceptable Ref. [$elem]\n";
 		}
     }
     else {
@@ -430,7 +430,7 @@ sub name {
 		$this->[NAME] = shift;
 
 		if (ref $this->[NAME]) {
-			die __PACKAGE__."#name, ARG[1] was bad Ref. [".$this->[NAME]."]\n";
+			die __PACKAGE__."#name: ARG[1] is a Ref. [".$this->[NAME]."]\n";
 		}
     }
     $this->[NAME];
@@ -441,7 +441,7 @@ sub _parse_pp {
     local($_) = shift;
 
     if (ref) {
-		die __PACKAGE__."#parse, ARG[1] was bad Ref. [$_]\n";
+		die __PACKAGE__."#parse: ARG[1] is a Ref. [$_]\n";
     }
 
     s/^<//;
@@ -463,17 +463,17 @@ sub _attr_pp {
     my $key = shift;
 
     if (not defined $key) {
-		die __PACKAGE__."#attr, ARG[1] was undef.\n";
+		die __PACKAGE__."#attr: ARG[1] is not defined.\n";
     }
     elsif (ref $key) {
-		die __PACKAGE__."#attr, ARG[1] was bad Ref. [$key]\n";
+		die __PACKAGE__."#attr: ARG[1] is a Ref. [$key]\n";
     }
     
     if (@_) {
 		my $val = shift;
 
 		if (ref $val) {
-			die __PACKAGE__."#attr, ARG[2] was bad Ref. [$val]\n";
+			die __PACKAGE__."#attr: ARG[2] is a Ref. [$val]\n";
 		}
 	
 		if (defined $val) {
@@ -529,7 +529,7 @@ sub end {
 		$this->[TAIL] = shift;
 
 		if (ref $this->[TAIL]) {
-			die __PACKAGE__."#end, ARG[1] was bad Ref. [$this->[TAIL]]\n";
+			die __PACKAGE__."#end: ARG[1] is a Ref. [$this->[TAIL]]\n";
 		}
     }
     $this->[TAIL];
@@ -577,7 +577,7 @@ sub str {
 		$this->[STR] = shift;
 
 		if (ref $this->[STR]) {
-			die ref($this)."#str, ARG[1] was bad Ref. [".$this->[STR]."]\n";
+			die ref($this)."#str: ARG[1] is a Ref. [".$this->[STR]."]\n";
 		}
     }
     $this->[STR];

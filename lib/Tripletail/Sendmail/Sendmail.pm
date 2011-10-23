@@ -30,7 +30,7 @@ sub send {
 	
 	foreach my $rcpt (@{$data->{rcpt}}) {
 		open my $sendmail, '|' . $this->{commandline}
-			or die __PACKAGE__."#send: Can't open sendmail command. [$this->{commandline}] (sendmailコマンドを使用できません)\n";
+			or die __PACKAGE__."#send: failed to execute the sendmail command. [$this->{commandline}] (sendmailコマンドを使用できません)\n";
 		
 		print $sendmail $data->{data};
 	}

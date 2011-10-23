@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.11 2007/09/14 05:50:08 hio Exp $
+# $Id: db-sqlite.t 4304 2007-09-19 07:52:33Z pho $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -302,7 +302,7 @@ sub test_tx_transaction
 			
 			# close-wait.
 			my $pkg = "Tripletail::DB";
-			my $msg = "act something on close-wait transaction";
+			my $msg = "you can't do anything related to DB after doing rollback or commit in tx";
 			foreach my $meth (qw(
 				execute
 				selectAllHash selectAllArray

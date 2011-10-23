@@ -33,7 +33,7 @@ sub _new {
 		require Tripletail::Sendmail::Esmtp;
 		Tripletail::Sendmail::Esmtp->_new($group);
 	} else {
-		die "TL#newSendmail: ini.method was invalid. [$method] (Iniファイルのmethodの指定が不正です)\n";
+		die "TL#newSendmail: unknown method [$method] is defined for the INI group [$group]. (Iniファイルのmethodの指定が不正です)\n";
 	}
 }
 
@@ -102,10 +102,10 @@ sub _getoptSend {
 	}
 
 	if(!defined($data->{from})) {
-		die "$pkg#send: arg[from] is undef and not readable from the data. (fromが指定されておらず、dataからも推測できません)\n";
+		die "$pkg#send: arg[from] is undef but the data don't have a valid `From' header. (fromが指定されておらず、dataからも推測できません)\n";
 	}
 	if(!defined($data->{rcpt})) {
-		die "$pkg#send: arg[rcpt] is undef and not readable from the data. (rcptが指定されておらず、dataからも推測できません)\n";
+		die "$pkg#send: arg[rcpt] is undef but the data don't have a valid `To' header. (rcptが指定されておらず、dataからも推測できません)\n";
 	}
 
 	if(ref($data->{rcpt}) ne 'ARRAY') {

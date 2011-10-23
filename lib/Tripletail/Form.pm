@@ -24,7 +24,7 @@ sub _new {
 		} elsif(ref($_[0]) eq 'HASH') {
 			$this->set(@_);
 		} elsif(ref($_[0])) {
-			die "TL#newForm: arg[1] is a Wrong-Ref. (第1引数が不正なリファレンスです)\n";
+			die "TL#newForm: arg[1] is an unacceptable reference. (第1引数が不正なリファレンスです)\n";
 		} else {
 			$this->setLink($_[0]);
 		}
@@ -78,11 +78,11 @@ sub addForm {
 	my $form = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#addForm: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#addForm: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(ref($form) ne 'Tripletail::Form') {
-		die __PACKAGE__."#addForm: args[1] is not Form Class. (第1引数がFormオブジェクトではありません)\n";
+		die __PACKAGE__."#addForm: args[1] is not instance of Tripletail::Form. (第1引数がFormオブジェクトではありません)\n";
 	}
 
 	if($this->{trace}) {
@@ -119,10 +119,10 @@ sub get {
 	my $joinstr = shift || ',';
 
 	if(ref($key)) {
-		die __PACKAGE__."#get: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#get: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(ref($joinstr)) {
-		die __PACKAGE__."#get: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#get: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	if(!exists($this->{form}{$key})) {
@@ -137,7 +137,7 @@ sub getValues {
 	my $key = shift;
 
 	if(ref($key)) {
-		die __PACKAGE__."#getValues: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#getValues: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!exists($this->{form}{$key})) {
@@ -156,7 +156,7 @@ sub getSlice {
 	foreach my $key (@key) {
 		if (ref($key)) {
 			my $ref = ref($key);
-			die __PACKAGE__."#getSlice: arg include Ref. [$key/$ref] (引数にリファレンスが含まれます)\n";
+			die __PACKAGE__."#getSlice: there is a reference in the arguments. [$key/$ref] (引数にリファレンスが含まれます)\n";
 		}
 
 		my @values = $this->getValues($key);
@@ -182,7 +182,7 @@ sub getSliceValues {
 	foreach my $key (@key) {
 		if(ref($key)) {
 			my $ref = ref($key);
-			die __PACKAGE__."#getSliceValues: arg include Ref. [$key/$ref] (引数にリファレンスが含まれます)\n";
+			die __PACKAGE__."#getSliceValues: there is a reference in the arguments. [$key/$ref] (引数にリファレンスが含まれます)\n";
 		}
 
 		my @values = $this->getValues($key);
@@ -204,10 +204,10 @@ sub lookup {
 	my $value = shift;
 
 	if(ref($key)) {
-		die __PACKAGE__."#lookup: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#lookup: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(ref($value)) {
-		die __PACKAGE__."#lookup: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#lookup: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	if(!exists($this->{form}{$key})) {
@@ -233,7 +233,7 @@ sub set {
 	my $this = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#set: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#set: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	my $data;
@@ -243,7 +243,7 @@ sub set {
 		$data = { @_ };
 	} else {
 		my $ref = ref($_[0]);
-		die __PACKAGE__."#set: arg[1] is Wrong-Ref. [$ref] (第1引数が不正なリファレンスです)\n";
+		die __PACKAGE__."#set: arg[1] is an unacceptable reference. [$ref] (第1引数が不正なリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -270,7 +270,7 @@ sub set {
 		if( ref($val) ne 'ARRAY' )
 		{
 			my $ref = ref($val);
-			die __PACKAGE__."#set: ARG[]: Data include Wrong-Ref. [$key/$ref] (不正なリファレンスが含まれています)\n";
+			die __PACKAGE__."#set: there is an unacceptable reference in the arguments. [$key/$ref] (不正なリファレンスが含まれています)\n";
 		}
 		
 		if( !@$val )
@@ -283,7 +283,7 @@ sub set {
 		
 		if( my ($ref) = grep{$_} map{ref($_)} @$val )
 		{
-			die __PACKAGE__."#set: ARG[]: Data include Wrong-Ref. [$key/$ref] (不正なリファレンスが含まれています)\n";
+			die __PACKAGE__."#set: there is an unacceptable reference in the arguments. [$key/$ref] (不正なリファレンスが含まれています)\n";
 		}
 		$this->{form}{$key} = [@$val]; # sharrow copy.
 		delete $this->{form_shared}{$key};
@@ -298,14 +298,14 @@ sub add {
 	my $value = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#add: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#add: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(ref($key)) {
-		die __PACKAGE__."#add: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#add: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(ref($value)) {
-		die __PACKAGE__."#add: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#add: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -337,7 +337,7 @@ sub exists {
 	my $key = shift;
 
 	if(ref($key)) {
-		die __PACKAGE__."#exists: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#exists: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(exists($this->{form}{$key})) {
@@ -353,22 +353,22 @@ sub remove {
 	my $value = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#remove: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#remove: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(!defined($key)) {
 		die __PACKAGE__."#remove: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
-		die __PACKAGE__."#remove: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#remove: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(!defined($value)) {
 		die __PACKAGE__."#remove: arg[2] is not defined. (第2引数が指定されていません)\n";
 	} elsif(ref($value)) {
-		die __PACKAGE__."#remove: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#remove: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	if(!exists($this->{form}{$key})) {
-		die __PACKAGE__."#remove: arg[1]: Not exists key [$key] (指定されたキーは存在しません)\n";
+		die __PACKAGE__."#remove: arg[1]: nonexistent key [$key] (指定されたキーは存在しません)\n";
 	}
 
 	if($this->{trace}) {
@@ -412,11 +412,11 @@ sub delete {
 	my $key = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#delete: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#delete: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(ref($key)) {
-		die __PACKAGE__."#delete: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#delete: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -441,7 +441,7 @@ sub getFile {
 	my $key = shift;
 
 	if (ref $key) {
-		die __PACKAGE__."#getFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#getFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$this->{filehandle}{$key};
@@ -452,7 +452,7 @@ sub existsFile {
 	my $key = shift;
 
 	if(ref($key)) {
-		die __PACKAGE__."#existsFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#existsFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if( defined($this->{filehandle}{$key}) )
@@ -468,7 +468,7 @@ sub isUploaded {
 	my $key = shift;
 
 	if(ref($key)) {
-		die __PACKAGE__."#isUploaded: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#isUploaded: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if( defined($this->{filename}{$key}) && $this->{filename}{$key} ne '' )
@@ -485,11 +485,11 @@ sub setFile {
 	my $value = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#setFile: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#setFile: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(ref($key)) {
-		die __PACKAGE__."#setFile: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -503,7 +503,7 @@ sub setFile {
 	if(!defined($value)) {
 		delete $this->{filehandle}{$key};
 	} elsif(!ref($value)) {
-		die __PACKAGE__."#setFile: arg[2] is not Ref. (第2引数がリファレンスではありません)\n";
+		die __PACKAGE__."#setFile: arg[2] is not a reference. (第2引数がリファレンスではありません)\n";
 	} else {
 		$this->{filehandle}{$key} = $value;
 	}
@@ -522,7 +522,7 @@ sub getFileName {
 	my $key = shift;
 
 	if(ref($key)) {
-		die __PACKAGE__."#getFileName: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#getFileName: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	$this->{filename}{$key};
@@ -534,14 +534,14 @@ sub setFileName {
 	my $value = shift;
 
 	if(exists($this->{const})) {
-		die __PACKAGE__."#setFileName: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#setFileName: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(ref($key)) {
-		die __PACKAGE__."#setFileName: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setFileName: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 	if(ref($value)) {
-		die __PACKAGE__."#setFileName: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+		die __PACKAGE__."#setFileName: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -566,14 +566,14 @@ sub setLink {
 	my $url = shift;
 
 	if($this->{const}) {
-		die __PACKAGE__."#setLink: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#setLink: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(!defined($url)) {
 		die __PACKAGE__."#setLink: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(ref($url)) {
-		die __PACKAGE__."#setLink: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setLink: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -597,14 +597,14 @@ sub addLink {
 	my $url = shift;
 
 	if($this->{const}) {
-		die __PACKAGE__."#addLink: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#addLink: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(!defined($url)) {
 		die __PACKAGE__."#addLink: arg[1] is not defined. (第1引数が指定されていません)\n";
 	}
 	if(ref($url)) {
-		die __PACKAGE__."#addLink: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#addLink: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -628,11 +628,11 @@ sub setFragment {
 	my $fragment = shift;
 
 	if($this->{const}) {
-		die __PACKAGE__."#setFragment: This instance is const object. (このFormオブジェクトの内容は変更できません)\n";
+		die __PACKAGE__."#setFragment: This instance is a const object. (このFormオブジェクトの内容は変更できません)\n";
 	}
 
 	if(ref($fragment)) {
-		die __PACKAGE__."#setFragment: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#setFragment: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if($this->{trace}) {
@@ -658,7 +658,7 @@ sub toLink {
 	my $base = shift;
 
 	if(ref($base)) {
-		die __PACKAGE__."#toLink: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#toLink: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($base)) {
@@ -707,7 +707,7 @@ sub toExtLink {
 	}
 	
 	if(ref($base)) {
-		die __PACKAGE__."#toExtLink: arg[1] is a Ref. (第1引数がリファレンスです)\n";
+		die __PACKAGE__."#toExtLink: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
 	if(!defined($base)) {
@@ -751,11 +751,11 @@ sub haveSessionCheck {
 	}
 	my $session = $TL->getSession($sessiongroup);
 	if(!defined($session)) {
-		die __PACKAGE__."#haveSessionCheck: session group ($sessiongroup) was not found. (セッショングループ${sessiongroup}がありません)\n";
+		die __PACKAGE__."#haveSessionCheck: session group ($sessiongroup) does not exist. (セッショングループ${sessiongroup}がありません)\n";
 	}
 	my $csrfkey = $TL->INI->get($sessiongroup => 'csrfkey', undef);
 	if(!defined($csrfkey)) {
-		die __PACKAGE__."#haveSessionCheck: csrfkey was not set. set INI [$sessiongroup]. (INIファイルでcsrfkeyが指定されていません)\n";
+		die __PACKAGE__."#haveSessionCheck: csrfkey is not defined in the INI group [$sessiongroup]. (INIファイルでcsrfkeyが指定されていません)\n";
 	}
 
 	do {
@@ -763,7 +763,7 @@ sub haveSessionCheck {
 		eval 'use Digest::HMAC_SHA1 qw(hmac_sha1_hex)';
 	};
 	if($@) {
-		die __PACKAGE__."#haveSessionCheck: failed to load HMAC_SHA1.pm [$@] (HMAC_SHA1.pmをロードできません)\n";
+		die __PACKAGE__."#haveSessionCheck: failed to load Digest::HMAC_SHA1 [$@] (Digest::HMAC_SHA1をロードできません)\n";
 	}
 
 	my ($key, $sid, $checkval) = $session->getSessionInfo($issecure);
