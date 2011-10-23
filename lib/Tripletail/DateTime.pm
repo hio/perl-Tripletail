@@ -155,6 +155,10 @@ my $re_generic_ymd = qr/($re_4year)$re_anydelim?($re_2month)$re_anydelim?($re_2d
 my $re_generic_hms = qr/($re_2hms)$re_anydelim?($re_2hms)$re_anydelim?($re_2hms)/;
 my $re_generic_ymdhms = qr/$re_generic_ymd\s*$re_generic_hms/;
 
+my $re_fuzzy_generic_ymd = qr/($re_4year)$re_anydelim($re_1month)$re_anydelim($re_1day)/;
+my $re_fuzzy_generic_hms = qr/($re_1hms)$re_anydelim($re_1hms)$re_anydelim($re_1hms)/;
+my $re_fuzzy_generic_ymdhms = qr/$re_fuzzy_generic_ymd\s*$re_fuzzy_generic_hms/;
+
 my $re_wdy = __a2r @WDAY_NAME;
 my $re_wdy_long = __a2r @WDAY_NAME_LONG;
 my $re_month = __a2r @MONTH_NAME;
@@ -237,14 +241,14 @@ sub set {
 		tz   => $this->{tz},
 	};
 
-	if($val =~ m/^$re_generic_ymdhms$/o) {
+	if($val =~ m/^$re_generic_ymdhms$/o or $val =~ m/^$re_fuzzy_generic_ymdhms$/) {
 		$greg->{year} = $1;
 		$greg->{mon} = $2;
 		$greg->{day} = $3;
 		$greg->{hour} = $4;
 		$greg->{min} = $5;
 		$greg->{sec} = $6;
-	} elsif($val =~ m/^$re_generic_ymd$/o) {
+	} elsif($val =~ m/^$re_generic_ymd$/o or $val =~ m/^$re_fuzzy_generic_ymd$/) {
 		$greg->{year} = $1;
 		$greg->{mon} = $2;
 		$greg->{day} = $3;
@@ -1840,6 +1844,11 @@ Tripletail::DateTime オブジェクトを生成。
  YYYY/MM/DD HH.MM.SS
  YYYYMMDD
  YYYYMMDDHHMMSS
+
+また、記号がある場合は次のように月、日、時、分、秒は一桁であっても良い。
+
+ YYYY-M-D
+ YYYY/M/D H:M:S
 
 =item B<< date コマンド >>
 

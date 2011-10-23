@@ -13,7 +13,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

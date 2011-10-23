@@ -316,9 +316,10 @@ sub getForm {
 		filter_text => 1,
 	);
 
-    $this->_dieIfAnyUnexpandedTag('getForm');
-
-	$filter->set($this->_compose);
+    my $source = $this->getHtml;
+    $this->_dieIfAnyNestedTag('getForm', $source);
+    
+	$filter->set($source);
 	my $form = $TL->newForm;
 
 	### html: $this->getHtml
@@ -480,12 +481,12 @@ sub setForm {
 		name => $name,
 	);
 
-    $this->_dieIfAnyUnexpandedTag('setForm');
-
-	my $html = $this->_compose;
+	my $html = $this->getHtml;
 	my $has_textarea = $html=~/<textarea\b/i;
 	my $has_option   = $html=~/<option\b/i;
 	my $no_filter_text = !$has_textarea && !$has_option;
+
+    $this->_dieIfAnyNestedTag('setForm', $html);
 	
 	my $filter = $TL->newHtmlFilter(
 		interest => ['input'],
@@ -639,13 +640,14 @@ sub extForm {
 		name => $name,
 	);
 
-    $this->_dieIfAnyUnexpandedTag('extForm');
+    my $source = $this->getHtml;
+    $this->_dieIfAnyNestedTag('extForm', $source);
 
 	my $filter = $TL->newHtmlFilter(
 		interest => ['form'],
 		filter_text => 0,
 	);
-	$filter->set($this->_compose);
+	$filter->set($source);
 
 	my $found;
 	while(my ($context, $elem) = $filter->next) {
@@ -701,12 +703,13 @@ sub addHiddenForm {
 		name => $name,
 	);
 
-    $this->_dieIfAnyUnexpandedTag('addHiddenForm');
+    my $source = $this->getHtml;
+    $this->_dieIfAnyNestedTag('addHiddenForm', $source);
 
 	my $filter = $TL->newHtmlFilter(
 		interest => ['form'],
 	);
-	$filter->set($this->_compose);
+	$filter->set($source);
 
 	my $found;
 	while(my ($context, $elem) = $filter->next) {
@@ -800,12 +803,13 @@ sub addSessionCheck {
 		name => $name,
 	);
 
-    $this->_dieIfAnyUnexpandedTag('addSessionCheck');
+    my $source = $this->getHtml;
+    $this->_dieIfAnyNestedTag('addSessionCheck', $source);
 
 	my $filter = $TL->newHtmlFilter(
 		interest => ['form'],
 	);
-	$filter->set($this->_compose);
+	$filter->set($source);
 
 	my $found;
 	while(my ($context, $elem) = $filter->next) {
@@ -947,6 +951,20 @@ sub _dieIfAnyUnexpandedTag {
 			}
 	}
 
+}
+
+sub _dieIfAnyNestedTag {
+    my $this   = shift;
+    my $method = shift;
+    my $html   = shift;
+
+    # 指定された HTML の中に、HTML タグの内部にある Template タグが存在したら、エ
+    # ラーにする。
+    ($html =~ /<[^<>]*<&/ or $html =~ /<[^<>]*<!(begin|end|copy)/)
+      and
+        die __PACKAGE__."#$method: when an HTML tag has a template tag inside, ".
+          "calling this method is not allowed. (HTML のタグの内部にテンプレート".
+            "のタグが存在する状態でこのメソッドを呼び出す事は出来ません。) ";
 }
 
 sub _flush {

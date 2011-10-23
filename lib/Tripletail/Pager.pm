@@ -21,7 +21,7 @@ sub _new {
 	$this->{formparam} = undef;
 	$this->{pagingtype} = 0;
 
-#結果群
+    #結果群
 	$this->{maxpages} = undef;
 	$this->{linkstart} = undef;
 	$this->{linkend} = undef;
@@ -330,23 +330,26 @@ sub _paging {
 		}
 	}
 
-	foreach my $i ($this->{linkstart} .. $this->{linkend}) {
-		if($i == $this->{current}) {
-			$node->node('PageNumLinks')->node('ThisPage')->add(
-				PAGENUM => $i,
-			);
-		} else {
-			$node->node('PageNumLinks')->node('OtherPage')->add(
-				PAGELINK => $this->{formparam}->set(
+    # 必須でないノード
+    if ($node->exists('PageNumLinks')) {
+        foreach my $i ($this->{linkstart} .. $this->{linkend}) {
+            if($i == $this->{current}) {
+                $node->node('PageNumLinks')->node('ThisPage')->add(
+                    PAGENUM => $i,
+                   );
+            }
+            else {
+                $node->node('PageNumLinks')->node('OtherPage')->add(
+                    PAGELINK => $this->{formparam}->set(
 						$this->{formkey} => $i,
-					)->toLink,
-				PAGENUM  => $i,
-			);
-		}
-		$node->node('PageNumLinks')->add;
-	}
-
-	# 必須でないノード
+                       )->toLink,
+                    PAGENUM  => $i,
+                   );
+            }
+            $node->node('PageNumLinks')->add;
+        }
+    }
+	
 	if($node->exists('MaxRows')) {
 		$node->node('MaxRows')->add(MAXROWS => $this->{maxrows});
 	}
@@ -430,7 +433,7 @@ Tripletail::Pager - ページング処理
 
 必須でないノードは次の通り:
   
-  MaxRows, FirstRow, LastRow, MaxPages,CurPage
+  PageNumLinks, MaxRows, FirstRow, LastRow, MaxPages, CurPage
 
 これらのノードが存在しない場合は、単に無視される。
 

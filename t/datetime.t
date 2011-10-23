@@ -1,6 +1,6 @@
 # -*- cperl -*-
 BEGIN{ $ENV{TZ}='JST-9'; }
-use Test::More tests => 333;
+use Test::More tests => 337;
 use Test::Exception;
 
 use strict;
@@ -20,11 +20,24 @@ $dt2 = $TL->newDateTime('2000-01-02 00:00:00');
 
 #-- set ----------------------------
 dies_ok {$dt->set(\123)} 'set die';
+
 $dt->set('2000/01/02 03.04.05');
 is($dt->toStr, '2000-01-02 03:04:05', 'generic ymdhms');
 
 $dt->set('2000-01-02');
 is($dt->toStr, '2000-01-02 00:00:00', 'generic ymd');
+
+$dt->set('2000-1-2 3:4:5');
+is($dt->toStr, '2000-01-02 03:04:05', 'generic fuzzy ymdhms');
+
+$dt->set('2000-1-2');
+is($dt->toStr, '2000-01-02 00:00:00', 'generic fuzzy ymd');
+
+$dt->set('20000102030405');
+is($dt->toStr, '2000-01-02 03:04:05', 'generic ymdhms with no delimitors');
+
+$dt->set('20000102');
+is($dt->toStr, '2000-01-02 00:00:00', 'generic ymd with no delimitors');
 
 $dt->set('Fri Feb 17 11:24:41 JST 2006');
 is($dt->toStr, '2006-02-17 11:24:41', 'date command');

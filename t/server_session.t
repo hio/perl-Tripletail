@@ -8,12 +8,13 @@ use lib '.';
 use t::test_server;
 
 &setup;
-plan tests => 19;
+plan tests => 25;
 
-&test_01_basic; #8.
-&test_02_info;  #1.
-&test_03_form;  #9.
-&teardown;      #1.
+&test_01_basic;  #8.
+&test_02_info;   #1.
+&test_03_form;   #9.
+&test_04_mobile; #6.
+&teardown;       #1.
 
 # -----------------------------------------------------------------------------
 # shortcut.
@@ -21,6 +22,7 @@ plan tests => 19;
 sub check_requires() { &t::test_server::check_requires; }
 sub start_server()   { &t::test_server::start_server; }
 sub request_get(@)   { &t::test_server::request_get; }
+sub raw_request(@)   { &t::test_server::raw_request; }
 sub rget($)
 {
 	request_get(
@@ -93,7 +95,7 @@ sub setup
 		plan skip_all => "request failure: $@";
 	}
 	$ver &&= $ver->[0];
-	diag("sqlite_version $ver");
+	diag("MySQL $ver");
 }
 
 # -----------------------------------------------------------------------------
@@ -244,6 +246,79 @@ sub test_03_form
 				});
 			$t->addSessionCheck('Session', 'TEST');
 		};} '[Template] addSessionCheck die';
+}
+
+# -----------------------------------------------------------------------------
+# mobile
+#
+sub test_04_mobile {
+    my $html = raw_request(
+        method => 'GET',
+        script => q{
+            $TL->setInputFilter('Tripletail::InputFilter::MobileHTML');
+            $TL->startCgi(
+                -main    => \&main,
+                -DB      => 'DB',
+                -Session => 'Session',
+               );
+            sub main {
+                $TL->setContentFilter('Tripletail::Filter::MobileHTML');
+                
+                my $s = $TL->getSession;
+                $s->setValue('123456789');
+
+                $TL->print(q{
+                      <a href="link-1"></a>
+                      <a href="link-2?INT=1"></a>
+                      <form action="index.cgi" name="form-1" EXT="1"></form>
+                      <form action="index.cgi" name="form-2"></form>
+                  });
+            }
+        },
+       )->content;
+
+    like $html, qr{<a href="link-1"></a>},
+      'the link without INT=1 is not rewritten';
+    
+    like $html, qr{<a href="link-2\?SIDSession=[^"]+"></a>},
+      'the link with INT=1 is rewritten';
+
+    like $html, qr{<form action="index.cgi" name="form-1"></form>},
+      'the form with EXT="1" is not rewritten';
+
+    like $html, qr{<form action="index.cgi" name="form-2">(.*?)<input type="hidden" name="SIDSession" value="[^"]+"></form>},
+      'the form without EXT="1" is rewritten';
+
+    # リンクから SID を取り出す
+    $html =~ m{<a href="link-2\?(SIDSession=[^"]+)"></a>} or die;
+    my $query = $1;
+
+    # フォームから取り出した SID が等しい事を確認。
+    $html =~ m{<input type="hidden" name="SIDSession" value="([^"]+)">} or die;
+    is $query, "SIDSession=$1", 'the session ID is the same';
+    
+    # セッションが繋がっているかどうかを確認。
+    is raw_request(
+        method  => 'GET',
+        env     => {
+            QUERY_STRING => $query,
+        },
+        script  => q{
+            $TL->setInputFilter('Tripletail::InputFilter::MobileHTML');
+            $TL->startCgi(
+                -main    => \&main,
+                -DB      => 'DB',
+                -Session => 'Session',
+               );
+            sub main {
+                $TL->setContentFilter('Tripletail::Filter::MobileHTML');
+                
+                my $s = $TL->getSession;
+                $TL->print($s->getValue);
+            }
+        },
+       )->content, '123456789',
+         'getting the session value through the link';
 }
 
 # -----------------------------------------------------------------------------

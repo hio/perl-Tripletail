@@ -94,7 +94,7 @@ sub setup
 		plan skip_all => "request failure: $@";
 	}
 	$ver &&= $ver->[0];
-	diag("sqlite_version $ver");
+	diag("MySQL $ver");
 }
 
 # -----------------------------------------------------------------------------

@@ -1,9 +1,19 @@
 Revision history for Tripletail
 
+0.36 Fri Sep 28 11:03:31 JST 2007
+	- [[重要:非互換な仕様変更]]
+	　- Template#getForm, setForm, extForm, addHiddenForm, addSessionCheck は対象
+	　　となるノードに単に未置換の <&タグ> があるだけではエラーにならないように変
+	　　更された。<foo <&tag>> のように HTML タグの内部に未置換のテンプレートタグ
+	　　がある場合にはエラーになる。<foo <!begin:bar>> 等も同様にエラーになる。
+
 0.35 Thu Sep 27 12:03:15 JST 2007
 	- [[重要:非互換な仕様変更]]
 	　- Template#getForm, setForm, extForm, addHiddenForm, addSessionCheck は対象
 	　　となるノードに未置換の <&タグ> がある場合にはエラーになるように変更された。
+	　- DateTime はこれまで YYYY-M-D H:M:S のように月日時分秒が一桁である形式の日
+	　　付を受け入れなかったが、受け入れるようになった。但し区切り記号が存在する
+	　　場合のみ。
 	- DBのクエリをデバッグする際に、パラメータが記録に残らないバグを修正。
 	- 意味の解り難い英文のエラーメッセージを全面的に見直し。
 	- Tripletail::SMIME を Tripletail フレームワークから独立させ、Crypt::SMIME に
@@ -18,6 +28,7 @@ Revision history for Tripletail
 	　られている通りにした。
 	- $TL->startCgi() の -main 関数の外でエラーが発生した場合にそのエラー内容が二
 	　重にログに出力される問題を解決。
+    - Pager の必須ノードであった PageNumLinks は必須でなくなった。
 
 0.34 Fri Sep 14 14:38:19 JST 2007
 	- [[重要:非互換な仕様変更]]

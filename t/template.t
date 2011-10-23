@@ -1,4 +1,4 @@
-use Test::More tests => 102;
+use Test::More tests => 103;
 use Test::Exception;
 use strict;
 use warnings;
@@ -393,8 +393,7 @@ is(trim $t->setTemplate($TMPL10)->setForm({ aa => '1' })->toStr, $TMPL10_1, 'set
 
 
 my $TMPL11 = <<EOF;
-<&tag>
-<form>
+<form <&tag>>
   <input type="text" name="foo" value="">
 </form>
 EOF
@@ -424,3 +423,15 @@ EOF
 lives_ok {
     $t->setTemplate($TMPL12)->setForm({foo => 100});
 } 'setForm() with <!mark> inside';
+
+
+my $TMPL13 = <<EOF;
+<&tag>
+<form>
+  <input type="text" name="foo" value="">
+</form>
+EOF
+
+lives_ok {
+    $t->setTemplate($TMPL13)->setForm({foo => 100});
+} 'setForm() with leaving an unexpanded template tag outside any HTML tags';
