@@ -7,7 +7,7 @@ use warnings;
 use UNIVERSAL qw(isa);
 use File::Spec;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

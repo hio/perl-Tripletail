@@ -181,7 +181,10 @@ sub _relink_html {
 				if (!defined($action) || !length($action)) {
 					# actionが空。
 					my $uri = $ENV{REQUEST_URI} || '';
-					$uri =~ s|.*/([^/]+)$|$1|; # ファイル名以外を消す
+                    
+                    # ファイル名以外を消す
+                    $uri =~ s/\?.*$//;
+					$uri =~ s|.*/([^/]+)$|$1|; 
 
 					#$TL->log(
 					#	__PACKAGE__,

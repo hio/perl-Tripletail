@@ -2,7 +2,6 @@ Changes
 MANIFEST
 Makefile.PL
 README
-META.yml
 data/jpholiday.pl
 doc/Makefile.PL
 doc/Tripletail.html

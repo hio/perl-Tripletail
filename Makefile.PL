@@ -29,9 +29,8 @@ WriteMakefile(
 sub MM::metafile_target
 {
     # from MakeMaker-6.30.
-    
     my $self = shift;
-
+    
     return <<'MAKE_FRAG' if $self->{NO_META};
 metafile:
 	$(NOECHO) $(NOOP)
@@ -42,7 +41,7 @@ MAKE_FRAG
         my $ver = $self->{PREREQ_PM}{$mod};
         $prereq_pm .= sprintf "    %-30s %s\n", "$mod:", $ver;
     }
-    
+
     my $meta = <<YAML;
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
@@ -57,15 +56,32 @@ no_index:
     - sample
     - t
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version $ExtUtils::MakeMaker::VERSION
+generated_by: ExtUtils::MakeMaker version 6.30 (modified by Tripletail $self->{VERSION})
 YAML
 
-    my @write_meta = $self->echo($meta, 'META.yml');
-    return sprintf <<'MAKE_FRAG', join "\n\t", @write_meta;
-metafile :
-	%s
-MAKE_FRAG
+    my @write_meta = $self->echo($meta, 'META_new.yml');
 
+    my $format;
+    if( $ExtUtils::MakeMaker::VERSION >= 6.30 )
+    {
+        $format = <<'MAKE_FRAG';
+# MM 6.30.
+metafile : create_distdir
+	$(NOECHO) $(ECHO) Generating META.yml
+	%s
+	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
+MAKE_FRAG
+    }else
+    {
+        $format = <<'MAKE_FRAG';
+# MM 6.25.
+metafile :
+	$(NOECHO) $(ECHO) Generating META.yml
+	%s
+	-$(NOECHO) $(MV) META_new.yml META.yml
+MAKE_FRAG
+    }
+    my $text= sprintf $format, join("\n\t", @write_meta);
 }
 
 # -----------------------------------------------------------------------------
