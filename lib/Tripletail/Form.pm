@@ -598,7 +598,7 @@ sub toLink {
 	}
 
 	if(!defined($base)) {
-		my $uri = $ENV{'SCRIPT_NAME'}||'';
+		my $uri = $ENV{'REQUEST_URI'}||'';
 		$uri =~ s/\?.*$//;
 		if($uri =~ m,/([^/]+)$,) {
 			$base = $1;
@@ -647,7 +647,7 @@ sub toExtLink {
 	}
 
 	if(!defined($base)) {
-		my $uri = $ENV{'SCRIPT_NAME'}||'';
+		my $uri = $ENV{'REQUEST_URI'}||'';
 		$uri =~ s/\?.*$//;
 		if($uri =~ m,/([^/]+)$,) {
 			$base = $1;

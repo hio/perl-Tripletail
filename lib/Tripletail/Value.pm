@@ -50,8 +50,9 @@ my $re_ipv4_addr = qr{^
 	)
 $}ix;
 
+# IPv4 射影 IPv6 アドレス は未サポート
 my $re_ipv6_addr = qr{^
-    [:.a-fA-F0-9]{2,39}
+    [:a-fA-F0-9]{2,39}
 $}x;
 
 1;
@@ -231,32 +232,52 @@ sub isEmpty {
 
 sub isWhitespace {
 	# 半角/全角スペース、タブのみで構成されているなら1。
-	# 空文字列やundefでも1。
+	# 空文字列やundefならundef。
 	my $this = shift;
 
 	if(length($this->{value})) {
-		$this->{value} =~ /^(?:\s|　)+$/ ? 1 : undef;
+		$this->{value} =~ /\A(?:\s|　)+\z/ ? 1 : undef;
 	} else {
+		undef;
+	}
+}
+
+sub isBlank {
+	my $this = shift;
+
+	if($this->isEmpty || $this->isWhitespace) {
 		1;
+	} else {
+		undef;
 	}
 }
 
 sub isPrintableAscii {
 	my $this = shift;
 
-	$this->{value} =~ /^[\x20-\x7e]+$/ ? 1 : undef;
+	if(length($this->{value})) {
+		$this->{value} =~ /\A[\x20-\x7e]*\z/ ? 1 : undef;
+	} else {
+		undef;
+	}
+
 }
 
 sub isWide {
 	my $this = shift;
+
+	if(length($this->{value})) {
 	
-	my $sjisvalue = $TL->charconv($this->{value}, 'UTF-8' => 'Shift_JIS');
-	
-	my $re_char = '[\x81-\x9f\xe0-\xef\xfa-\xfc][\x40-\x7e\x80-\xfc]|[\xa1-\xdf]|[\x00-\x7f]';
-	
-	my @chars = grep {defined && length} split /($re_char)/, $sjisvalue;
-	
-	!grep { length($_) == 1 } @chars;
+		my $sjisvalue = $TL->charconv($this->{value}, 'UTF-8' => 'Shift_JIS');
+		
+		my $re_char = '[\x81-\x9f\xe0-\xef\xfa-\xfc][\x40-\x7e\x80-\xfc]|[\xa1-\xdf]|[\x00-\x7f]';
+		
+		my @chars = grep {defined && length} split /($re_char)/, $sjisvalue;
+		
+		!grep { length($_) == 1 } @chars;
+	} else {
+		undef;
+	}
 }
 
 sub isPassword {
@@ -272,13 +293,13 @@ sub isPassword {
 sub isZipCode {
 	my $this = shift;
 
-	$this->{value} =~ /^\d{3}-\d{4}$/ ? 1 : undef;
+	$this->{value} =~ /\A\d{3}-\d{4}\z/ ? 1 : undef;
 }
 
 sub isTelNumber {
 	my $this = shift;
 
-	$this->{value} =~ /^\d[\d-]*\d$/ ? 1 : undef;
+	$this->{value} =~ /\A\d[\d-]+\d\z/ ? 1 : undef;
 }
 
 sub isEmail {
@@ -298,7 +319,7 @@ sub isInteger {
 	my $min = shift;
 	my $max = shift;
 
-	if($this->{value} =~ m/^-?\d+$/) {
+	if($this->{value} =~ m/\A-?\d+\z/) {
 		if(defined($min)) {
 			$this->{value} >= $min or return undef;
 		}
@@ -317,7 +338,7 @@ sub isReal {
 	my $min = shift;
 	my $max = shift;
 
-	if($this->{value} =~ m/^-?\d+(?:\.\d+)?$/) {
+	if($this->{value} =~ m/\A-?\d+(?:\.\d+)?\z/) {
 		if(defined($min)) {
 			$this->{value} >= $min or return undef;
 		}
@@ -334,13 +355,13 @@ sub isReal {
 sub isHira {
 	my $this = shift;
 
-	$this->{value} =~ m/^$re_hira+$/ ? 1 : undef;
+	$this->{value} =~ m/\A$re_hira+\z/ ? 1 : undef;
 }
 
 sub isKata {
 	my $this = shift;
 
-	$this->{value} =~ m/^$re_kata+$/ ? 1 : undef;
+	$this->{value} =~ m/\A$re_kata+\z/ ? 1 : undef;
 }
 
 sub isExistentDay {
@@ -354,31 +375,31 @@ sub isExistentDay {
 sub isGif {
 	my $this = shift;
 
-	$this->{value} =~ /^GIF8[79]a/ ? 1 : undef;
+	$this->{value} =~ /\AGIF8[79]a/ ? 1 : undef;
 }
 
 sub isJpeg {
 	my $this = shift;
 
-	$this->{value} =~ /^\xFF\xD8/ ? 1 : undef;
+	$this->{value} =~ /\A\xFF\xD8/ ? 1 : undef;
 }
 
 sub isPng {
 	my $this = shift;
 
-	$this->{value} =~ /^\x89PNG\x0D\x0A\x1A\x0A/ ? 1 : undef;
+	$this->{value} =~ /\A\x89PNG\x0D\x0A\x1A\x0A/ ? 1 : undef;
 }
 
 sub isHttpUrl {
 	my $this = shift;
 
-	$this->{value} =~ m!^http://! ? 1 : undef;
+	$this->{value} =~ m!\Ahttp://! ? 1 : undef;
 }
 
 sub isHttpsUrl {
 	my $this = shift;
 
-	$this->{value} =~ m!^https://! ? 1 : undef;
+	$this->{value} =~ m!\Ahttps://! ? 1 : undef;
 }
 
 sub isLen {
@@ -432,21 +453,8 @@ sub isCharLen {
 	1;
 }
 
-sub isHtmlTag {
-	# HTMLタグを含んでいるなら1
-	my $this = shift;
-
-	$this->{value} =~ m/<.+?>/ ? 1 : undef;
-}
-
-sub isTrailingSlash {
-	my $this = shift;
-
-	$this->{value} =~ m!/$! ? 1 : undef;
-}
-
-sub isUnportable {
-	# 機種依存文字を含んでいるなら1
+sub isPortable {
+	# 機種依存文字を含んでいないなら1
 	my $this = shift;
 	my $str  = $this->{value};
 
@@ -474,10 +482,10 @@ sub isUnportable {
 	foreach my $str (@str_euc) {
 		next if(!defined($str) || ($str eq ''));
 		my $str_sjis = $unijp->set($str, 'euc')->sjis . '';
-		return 1 if($str_sjis =~ m/^(?:$dep_regex)$/o);
+		return undef if($str_sjis =~ m/\A(?:$dep_regex)\z/o);
 	}
 
-	return undef;
+	return 1;
 }
 
 sub isIpAddress {
@@ -486,9 +494,9 @@ sub isIpAddress {
 	my $checkip  = $this->{value};
 	
 	if(!defined($checkmask)) {
-		die __PACKAGE__."#isIpaddress, ARG[1] was undef.\n";
+		return undef;
 	} elsif(ref($checkmask)) {
-		die __PACKAGE__."#isIpaddress, ARG[1] was a Ref. [$checkmask]\n";
+		return undef;
 	}
 
 	my @masks = split /\s+/, $checkmask;
@@ -497,7 +505,7 @@ sub isIpAddress {
 
 	if(@ip != 4 && @ip != 16) {
 		# パース失敗
-		die __PACKAGE__."#isIpaddress, Tripletail::Value->set was parse failure. [$checkip]\n";
+		return undef;
 	} else {
 		foreach my $mask (@masks) {
 			my $bits;
@@ -508,7 +516,7 @@ sub isIpAddress {
 			my @mask = $this->_parse_addr($mask);
 			if(@mask != 4 and @mask != 16) {
 				# パース失敗
-				die __PACKAGE__."#isIpaddress, ARG[1] was parse failure. [$mask/$checkmask]\n";
+				return undef;
 			}
 
 			if(@mask != @ip) {
@@ -777,23 +785,42 @@ sub forceMaxCharLen {
 	$this;
 }
 
-sub forceWhitespace {
+#---------------------------------- その他
+
+sub trimWhitespace {
 	# 文字列前後の半角/全角スペース、タブを削除
 	my $this = shift;
 
-	$this->{value} =~ s/^(?:\s|　)+//;
-	$this->{value} =~ s/(?:\s|　)+$//;
+	$this->{value} =~ s/\A(?:\s|　)+//;
+	$this->{value} =~ s/(?:\s|　)+\z//;
 
 	$this;
 }
-
-#---------------------------------- その他
 
 sub countWords {
 	my $this = shift;
 
 	my @words = split /(?:\s|　)+/, $this->{value};
 	scalar @words;
+}
+
+sub strCut {
+	my $this = shift;
+	my $charanum = shift;
+
+	my $v = $TL->newValue;
+	
+	my $value = $this->{value};
+	my @output;
+
+	while(length($value)) {
+		$v->{value} = $value;
+		my $temp = $v->forceMaxCharLen($charanum)->get;
+		$value = substr($value,length($temp));
+		push(@output,$temp);
+	}
+
+	@output;
 }
 
 #---------------------------------- 内部メソッド
@@ -857,7 +884,7 @@ sub _parse_addr {
 
 	if($addr =~ m/$re_ipv4_addr/) {
 		# IPv4
-		$1 =~ m/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;
+		$1 =~ m/\A(\d+)\.(\d+)\.(\d+)\.(\d+)\z/;
 		($1, $2, $3, $4);
 	} elsif($addr =~ m/$re_ipv6_addr/) {
 		# IPv6
@@ -1063,37 +1090,50 @@ numberwide
   $bool = $val->isEmpty
 
 値が空（undefまたは0文字）なら1。
+そうでなければundefを返す。
 
 =item isWhitespace
 
   $bool = $val->isWhitespace
 
-半角/全角スペース、タブのみで構成されているか、空（undefまたは0文字）なら1。
+半角/全角スペース、タブのみで構成されていれば1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
+
+=item isBlank
+
+  $bool = $val->isBlank
+
+値が空（undefまたは0文字）であるか、半角/全角スペース、タブのみで構成されていれば1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
+
 
 =item isPrintableAscii
 
   $bool = $val->isPrintableAscii
 
 文字列が制御コードを除くASCII文字のみで構成されているなら1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 =item isWide
 
   $bool = $val->isWide
 
 文字列が全角文字のみで構成されているなら1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 =item isPassword
 
   $bool = $val->isPassword
 
-文字列が半角の数字、アルファベット大文字、小文字、記号を
-全て最低1ずつ含んでいるなら1。
+文字列が半角の数字、アルファベット大文字、小文字、記号を全て最低1ずつ含んでいるなら1。
+そうでなければundefを返す。
 
 =item isZipCode
 
   $bool = $val->isZipCode
 
 7桁の郵便番号（XXX-XXXX形式）なら1。
+そうでなければundefを返す。
 
 実在する郵便番号かどうかは確認しない。
 
@@ -1101,21 +1141,24 @@ numberwide
 
   $bool = $val->isTelNumber
 
-電話番号（/^\d[\d-]*\d$/）なら1。
+電話番号（/^\d[\d-]+\d$/）なら1。
+そうでなければundefを返す。
 
-数字で始まり、数字で終わり、その間が数字とハイフン(-)のみで構成されていれば電話番号とみなす。
+数字で始まり、数字で終わり、ハイフン(-)が一つ以上あり、その間が数字とハイフン(-)のみで構成されていれば電話番号とみなす。
 
 =item isEmail
 
   $bool = $val->isEmail
 
 メールアドレスとして正しい形式であれば1。
+そうでなければundefを返す。
 
 =item isMobileEmail
 
   $bool = $val->isMobileEmail
 
 メールアドレスとして正しい形式であれば1。
+そうでなければundefを返す。
 
 但し携帯電話のメールアドレスでは、アカウント名の末尾にピリオドを含んでいる場合がある為、これも正しい形式であるとみなす。
 
@@ -1123,37 +1166,46 @@ numberwide
 
 =item isInteger($min,$max)
 
+  $bool = $val->isInteger
   $bool = $val->isInteger($min,$max)
 
-整数で、かつ$min以上$max以下なら1。省略可能。
+整数で、かつ$min以上$max以下なら1。$mix,$maxは省略可能。
+そうでなければundefを返す。
+空もしくはundefの場合は、undefを返す。
 
-デフォルトでは、最大最小のチェックは行わなず整数であれば1。
+デフォルトでは、最大最小のチェックは行わなず整数であれば1を返す。
 
 =item isReal($min,$max)
 
+  $bool = $val->isReal
   $bool = $val->isReal($min,$max)
 
-整数もしくは小数で、かつ$min以上$max以下なら1。省略可能。
-	
-デフォルトでは、最大最小のチェックは行わなず、整数もしくは小数であれば1。
+整数もしくは小数で、かつ$min以上$max以下なら1。$mix,$maxは省略可能。
+そうでなければundefを返す。
+空もしくはundefの場合は、undefを返す。
+
+デフォルトでは、最大最小のチェックは行わなず、整数もしくは小数であれば1を返す。
 
 =item isHira
 
   $bool = $val->isHira
 
 平仮名だけが含まれている場合は1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 =item isKata
 
   $bool = $val->isKata
 
 片仮名だけが含まれている場合は1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 =item isExistentDay
 
   $bool = $val->isExistentDay
 
 YYYY-MM-DDで設定された日付が実在するものなら1。
+そうでなければundefを返す。
 
 =item isGif
 
@@ -1168,6 +1220,7 @@ YYYY-MM-DDで設定された日付が実在するものなら1。
   $bool = $val->isPng
 
 それぞれの形式の画像なら1。
+そうでなければundefを返す。
 
 画像として厳密に正しい形式であるかどうかは確認しない。
 ( L<file(1)> 程度の判断のみ。)
@@ -1177,58 +1230,51 @@ YYYY-MM-DDで設定された日付が実在するものなら1。
   $bool = $val->isHttpUrl
 
 "http://" で始まる文字列なら1。
+そうでなければundefを返す。
 
 =item isHttpsUrl
 
   $bool = $val->isHttpsUrl
 
 "https://" で始まる文字列なら1。
+そうでなければundefを返す。
 
 =item isLen($min,$max)
 
   $bool = $val->isLen($min,$max)
 
-バイト数の範囲が指定値以内かチェックする。
-undefを指定した場合はチェックを行わない。
+バイト数の範囲が指定値以内かチェックする。$mix,$maxは省略可能。
+範囲内であれば1、そうでなければundefを返す。
 
 =item isSjisLen($min,$max)
 
   $bool = $val->isSjisLen($min,$max)
 
-Shift-Jisでのバイト数の範囲が指定値以内かチェックする。
-undefを指定した場合はチェックを行わない。
+Shift-Jisでのバイト数の範囲が指定値以内かチェックする。$mix,$maxは省略可能。
+範囲内であれば1、そうでなければundefを返す。
 
 =item isCharLen($min,$max)
 
   $bool = $val->isCharLen($min,$max)
 
-文字数の範囲が指定値以内かチェックする。
-undefを指定した場合はチェックを行わない。
+文字数の範囲が指定値以内かチェックする。$mix,$maxは省略可能。
+範囲内であれば1、そうでなければundefを返す。
 
-=item isHtmlTag
+=item isPortable
 
-  $bool = $val->isHtmlTag
+  $bool = $val->isPortable
 
-HTMLタグを含んでいるなら1。でなければundef。
+機種依存文字以外のみで構成されていれば1。
+そうでなければ（機種依存文字を含んでいれば）undefを返す。
 
-=item isTrailingSlash
-
-  $bool = $val->isTrailingSlash
-
-文字列が半角スラッシュで終わっているなら1。でなければundef。
-
-=item isUnportable
-
-  $bool = $val->isUnportable
-
-機種依存文字を含んでいるなら1。でなければundef。
+値が0文字やundefの場合は1を返す。
 
 =item isIpAddress
 
   $bool = $val->isIpAddress($checkmask)
 
-$checkmaskに対して、設定されたIPアドレスが一致すれば1。でなければundef。
-	
+$checkmaskに対して、設定されたIPアドレスが一致すれば1。そうでなければundef。
+
 $checkmaskは空白で区切って複数個指定する事が可能。
 
 例：'10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1'。
@@ -1352,11 +1398,6 @@ SJISの文字単位でカットする。
 
 最大文字数を指定。超える場合はその文字数以下までカットする。
 
-=item forceWhitespace
-
-  $val->forceWhitespace
-
-値の前後に付いている半角/全角スペース、タブを削除する。
 
 =back
 
@@ -1365,12 +1406,22 @@ SJISの文字単位でカットする。
 
 =over 4
 
+=item trimWhitespace
+
+  $val->trimWhitespace
+
+値の前後に付いている半角/全角スペース、タブを削除する。
+
 =item countWords
 
 全角/半角スペースで単語に区切った時の個数を返す。
 
-=back
+=item strCut
+  @str = $val->strCut($charanum)
 
+指定された文字数で文字列を区切り、配列に格納する。
+
+=back
 
 =head1 SEE ALSO
 

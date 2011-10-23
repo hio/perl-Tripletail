@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 118;
+use Test::More tests => 139;
 
 #---------------------------------- 一般
 
@@ -52,27 +52,99 @@ sub toHash {
   is($error->{name}, 'NotEmpty', 'check');
   is($error->{email}, 'Email', 'check');
 
+#---Blank
+  $form->delete('notexists');
+  $form->set(space => ' ');
+  $form->set(null => '');
+  $form->set(null2 => '');
+  $form->set(notblank => '123');
+  ok($validator->addFilter({
+      notexists => 'Blank',
+      space     => 'Blank',
+      null      => 'Blank',
+      null2     => 'Blank;Email',
+      notblank  => 'Blank',
+  }), 'addFilter');
+  $error = $validator->check($form);
+  is($error->{notexists}, undef, 'check');
+  is($error->{space},     undef, 'check');
+  is($error->{null},      undef, 'check');
+  is($error->{null2},     undef, 'check');
+  is($error->{notblank},  undef, 'check');
+
+#---NotBlank
+  $form->delete('notexists');
+  $form->set(space => ' ');
+  $form->set(null => '');
+  $form->set(email => 'tl@tripletail.jp');
+  ok($validator->addFilter({
+      notexists => 'NotBlank',
+      space     => 'NotBlank',
+      null      => 'NotBlank',
+      email     => 'NotBlank',
+  }), 'addFilter');
+  $error = $validator->check($form);
+  is($error->{notexists}, 'NotBlank', 'check');
+  is($error->{space},     'NotBlank', 'check');
+  is($error->{null},      'NotBlank', 'check');
+  is($error->{email},          undef, 'check');
+
+#---Empty
+  $form->delete('notexists');
+  $form->set(space => ' ');
+  $form->set(null => '');
+  $form->set(null2 => '');
+  $form->set(notempty => '123');
+  ok($validator->addFilter({
+      notexists => 'Empty',
+      space     => 'Empty',
+      null      => 'Empty',
+      null2     => 'Empty;Email',
+      notempty  => 'Empty',
+  }), 'addFilter');
+  $error = $validator->check($form);
+  is($error->{notexists}, undef, 'check');
+  is($error->{space},     undef, 'check');
+  is($error->{null},      undef, 'check');
+  is($error->{null2},     undef, 'check');
 
 #---NotEmpty
+  $form->delete('notexists');
+  $form->set(space => ' ');
+  $form->set(null => '');
+  $form->set(email => 'tl@tripletail.jp');
+  ok($validator->addFilter({
+      notexists => 'NotEmpty',
+      space     => 'NotEmpty',
+      null      => 'NotEmpty',
+      email     => 'NotEmpty',
+  }), 'addFilter');
   ok($validator->addFilter({
       true  => 'NotEmpty',
       false  => 'NotEmpty',
   }), 'addFilter');
-  $form->delete('false');
-  $form->set(true => ' ');
   $error = $validator->check($form);
-  is($error->{true}, undef, 'check');
-  is($error->{false}, 'NotEmpty', 'check');
+  is($error->{notexists}, 'NotEmpty', 'check');
+  is($error->{space},          undef, 'check');
+  is($error->{null},      'NotEmpty', 'check');
+  is($error->{email},          undef, 'check');
 
 #---NotWhitespace
+  $form->delete('notexists');
+  $form->set(space => ' ');
+  $form->set(null => '');
+  $form->set(email => 'tl@tripletail.jp');
   ok($validator->addFilter({
-      true  => 'NotWhitespace',
-      false  => 'NotWhitespace',
+      notexists => 'NotWhitespace',
+      space     => 'NotWhitespace',
+      null      => 'NotWhitespace',
+      email     => 'NotWhitespace',
   }), 'addFilter');
-  $form->set(true => 'a', false => '  ');
   $error = $validator->check($form);
-  is($error->{true}, undef, 'check');
-  is($error->{false}, 'NotWhitespace', 'check');
+  is($error->{notexists},           undef, 'check');
+  is($error->{space},     'NotWhitespace', 'check');
+  is($error->{null},                undef, 'check');
+  is($error->{email},               undef, 'check');
 
 #---PrintableAscii
   ok($validator->addFilter({
@@ -334,26 +406,6 @@ sub toHash {
   is($error->{true3}, undef, 'check');
   is($error->{false}, 'CharLen', 'check');
 
-#---HtmlTag
-  ok($validator->addFilter({
-      true  => 'HtmlTag',
-      false  => 'HtmlTag',
-  }), 'addFilter');
-  $form->set(true => '<A HREF="http://tripletail.jp/">', false => 'http://tripletail.jp/');
-  $error = $validator->check($form);
-  is($error->{true}, undef, 'check');
-  is($error->{false}, 'HtmlTag', 'check');
-
-#---TrailingSlash
-  ok($validator->addFilter({
-      true  => 'TrailingSlash',
-      false  => 'TrailingSlash',
-  }), 'addFilter');
-  $form->set(true => 'http://tripletail.jp/', false => 'http://tripletail.jp');
-  $error = $validator->check($form);
-  is($error->{true}, undef, 'check');
-  is($error->{false}, 'TrailingSlash', 'check');
-
 #---Portable
   ok($validator->addFilter({
       true  => 'Portable',
@@ -363,6 +415,24 @@ sub toHash {
   $error = $validator->check($form);
   is($error->{true}, undef, 'check');
   is($error->{false}, 'Portable', 'check');
+
+#---IpAddress
+  ok($validator->addFilter({
+      true  => 'IpAddress(127.0.0.1/24)',
+      false  => 'IpAddress(127.0.0.1/24)',
+  }), 'addFilter');
+  $form->set(true => '127.0.0.1', false => '128.0.0.1');
+  $error = $validator->check($form);
+  is($error->{true}, undef, 'check');
+  is($error->{false}, 'IpAddress', 'check');
+  ok($validator->addFilter({
+      true  => 'IpAddress(0.0.0.0/0)',
+      false  => 'IpAddress(0.0.0.0/0)',
+  }), 'addFilter');
+  $form->set(true => '127.0.0.1', false => '1.0.0');
+  $error = $validator->check($form);
+  is($error->{true}, undef, 'check');
+  is($error->{false}, 'IpAddress', 'check');
 
 #---Enum
   ok($validator->addFilter({

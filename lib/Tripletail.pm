@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use UNIVERSAL qw(isa);
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -72,7 +72,7 @@ sub import {
 				
 				my $err = $TL->newError(error => $msg);
 				
-				print "Content-Type: text/plain\n\n$err";
+				$err->{appear} eq 'sudden' and print "Content-Type: text/plain\n\n$err";
 				
 				die $err;
 			};

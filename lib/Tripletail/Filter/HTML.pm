@@ -155,7 +155,7 @@ sub _make_header {
 sub _relink_html {
 	# $this->{save}の内容でhtmlを書換える。
 	# 書換え内容:
-	#   * form.action : 空ならSCRIPT_NAMEにする。相対リンクならhiddenで$saveの内容を追加する。
+	#   * form.action : 空ならREQUEST_URIにする。相対リンクならhiddenで$saveの内容を追加する。
 	my $this = shift;
 	my $opts = { @_ };
 	my $html = $opts->{html}; # 書換えるHTML
@@ -180,7 +180,7 @@ sub _relink_html {
 				my $action = $elem->attr('action');
 				if (!defined($action) || !length($action)) {
 					# actionが空。
-					my $uri = $ENV{SCRIPT_NAME} || '';
+					my $uri = $ENV{REQUEST_URI} || '';
 					$uri =~ s|.*/([^/]+)$|$1|; # ファイル名以外を消す
 
 					#$TL->log(

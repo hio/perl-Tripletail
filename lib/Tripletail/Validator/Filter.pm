@@ -121,21 +121,6 @@ sub doFilter {
 }
 
 # -----------------------------------------------------------------------------
-# Tripletail::Validator::Filter::HtmlTag - HtmlTagフィルタ
-# -----------------------------------------------------------------------------
-package Tripletail::Validator::Filter::HtmlTag;
-use Tripletail;
-
-use base qw{Tripletail::Validator::Filter};
-
-sub doFilter {
-	my $this   = shift;
-	my $values = shift;
-
-	return grep { !$TL->newValue($_)->isHtmlTag() } @$values;
-}
-
-# -----------------------------------------------------------------------------
 # Tripletail::Validator::Filter::HttpsUrl - HttpsUrlフィルタ
 # -----------------------------------------------------------------------------
 package Tripletail::Validator::Filter::HttpsUrl;
@@ -255,6 +240,53 @@ sub doFilter {
 }
 
 # -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::Blank - Blankフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::Blank;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	my $notblank = grep {! $TL->newValue($_)->isBlank() } @$values;
+	(@$values != 0 && $notblank) ? undef : [];
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::NotBlank - NotBlankフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::NotBlank;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	return @$values == 0 || grep {$TL->newValue($_)->isBlank() } @$values;
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::Empty - Emptyフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::Empty;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	my $notempty = grep {! $TL->newValue($_)->isEmpty() } @$values;
+	(@$values != 0 && $notempty) ? undef : [];
+}
+
+# -----------------------------------------------------------------------------
 # Tripletail::Validator::Filter::NotEmpty - NotEmptyフィルタ
 # -----------------------------------------------------------------------------
 package Tripletail::Validator::Filter::NotEmpty;
@@ -266,7 +298,7 @@ sub doFilter {
 	my $this   = shift;
 	my $values = shift;
 
-	return @$values == 0 || grep { $TL->newValue($_)->isEmpty() } @$values;
+	return @$values == 0 || grep {$TL->newValue($_)->isEmpty() } @$values;
 }
 
 # -----------------------------------------------------------------------------
@@ -423,21 +455,6 @@ sub doFilter {
 }
 
 # -----------------------------------------------------------------------------
-# Tripletail::Validator::Filter::TrailingSlash - TrailingSlashフィルタ
-# -----------------------------------------------------------------------------
-package Tripletail::Validator::Filter::TrailingSlash;
-use Tripletail;
-
-use base qw{Tripletail::Validator::Filter};
-
-sub doFilter {
-	my $this   = shift;
-	my $values = shift;
-
-	return grep { !$TL->newValue($_)->isTrailingSlash() } @$values;
-}
-
-# -----------------------------------------------------------------------------
 # Tripletail::Validator::Filter::Portable - Portableフィルタ
 # -----------------------------------------------------------------------------
 package Tripletail::Validator::Filter::Portable;
@@ -449,7 +466,23 @@ sub doFilter {
 	my $this   = shift;
 	my $values = shift;
 
-	return grep { $TL->newValue($_)->isUnportable() } @$values;
+	return grep { !$TL->newValue($_)->isPortable() } @$values;
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::IpAddress - IpAddressフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::IpAddress;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+	my $args   = shift;
+
+	return grep { !$TL->newValue($_)->isIpAddress($args) } @$values;
 }
 
 # -----------------------------------------------------------------------------

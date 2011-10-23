@@ -136,7 +136,7 @@ sub start_server () {
 							}
 						}
 
-						$ENV{SCRIPT_NAME} = '/';
+						$ENV{REQUEST_URI} = '/';
 						$ENV{SERVER_NAME} = 'localhost';
 						$ENV{REQUEST_METHOD} = $req->method;
 						$ENV{CONTENT_TYPE} = defined $req->header('Content-Type') ?

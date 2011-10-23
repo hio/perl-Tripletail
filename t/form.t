@@ -128,9 +128,11 @@ dies_ok {$f->setFragment} 'setFragment const';
 
 my $f1;
 $f1 = $TL->newForm;
-$ENV{'SCRIPT_NAME'} = q{/test.cgi};
+{
+local($ENV{'REQUEST_URI'}) = q{/test.cgi};
 is($f1->toLink, 'test.cgi?INT=1', 'toLink');
 is($f1->toExtLink, 'test.cgi', 'toLink');
+}
 
 $f1->set(aaa => 111);
 $f1->add(aaa => 111);

@@ -15,6 +15,7 @@ my $PADWALKER_AVAILABLE; # PadWalker が利用可能であるかどうか。unde
 
 my $VARIABLE_LENGTH_LIMIT = 32 * 1024; # 1変数あたりの表示する最大長 (バイト)
 
+# {{ DEFAULT_ERROR_TEMPLATE:
 my $DEFAULT_ERROR_TEMPLATE = <<'END';
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11.dtd">
@@ -751,6 +752,7 @@ my $DEFAULT_ERROR_TEMPLATE = <<'END';
   </body>
 </html>
 END
+# DEFAULT_ERROR_TEMPLATE:}}
 
 1;
 
@@ -772,6 +774,7 @@ sub _new {
 	$this->{show_vars}  = undef;
 	$this->{show_src}   = undef;
 	$this->{suppress_internal} = 1;
+	$this->{appear} = 'sudden'; # sudden/tltrap/usertrap
 
 	my $switch = $TL->INI->get(TL => 'stacktrace', 'onlystack');
 	if ($switch eq 'none') {
@@ -840,22 +843,26 @@ sub _fetch_frames {
 	my $level = 0;
 	my $pad_level = 0;
 	
+	$this->{appear} = 'sudden';
 	for (my $i = 0; my @c = caller $i; $i++) {
 		my ($package, $filename, $line, $sub, $hasargs,
 			$wantarray, $evaltext, $is_require, $hints, $bitmask) = @c;
 
-		my $is_die_handler;
 		if ($sub eq 'Tripletail::__ANON__') {
 			$sub = 'Tripletail::((die handler))';
 			
 			$found_die_handler = 1;
-			$is_die_handler = 1;
+			$this->{appear} = 'tltrap';
 		}
 		elsif ($sub eq '(eval)') {
 			if ($is_require) {
 				$sub = "((require/use $package))";
 			}
 			else {
+				if( $this->{appear} eq 'sudden' )
+				{
+					$this->{appear} = 'usertrap';
+				}
 				if (defined $evaltext) {
 					$evaltext =~ s!\s*|\s*!!g;
 					if (length($evaltext) > 30) {

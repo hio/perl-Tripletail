@@ -5,14 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <link rel="stylesheet" type="text/css" href="../../style.css" />
-  <title>Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス</title>
+  <title>Tripletail::Sendmail::Sendmail - Sendmailメール送信</title>
   <link rel="index"     href="./" />
   <link rel="up"        href="../" />
 </head>
 <body>
 
 <div class="pod_title_block">
-Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
+Tripletail::Sendmail::Sendmail - Sendmailメール送信
 
 
 </div>
@@ -38,7 +38,17 @@ Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
 
 </span></a>
 </li>
+<li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
+
+</span></a>
+</li>
 </ul>
+</li>
+<li><a href="#SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a>
 </li>
 <li><a href="#AUTHOR_INFORMATION">
 <span class="pod_lang">AUTHOR INFORMATION
@@ -59,7 +69,7 @@ Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
 </span></a></h1>
 
 <p>
-<span class="pod_lang">Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
+<span class="pod_lang">Tripletail::Sendmail::Sendmail - Sendmailメール送信
 
 </span>
 </p>
@@ -72,7 +82,7 @@ Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
 </span></a></h1>
 
 <p>
-<span class="pod_lang"><a href="../.././Tripletail/Validator.html">Tripletail::Validator</a> 参照
+<span class="pod_lang">sendmailコマンドを利用してメールを送信する。
 
 </span>
 </p>
@@ -83,16 +93,77 @@ Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
 </span></a></h2>
 
 <dl>
-<dt><a id="item_getFilter"><span class="pod_lang">getFilter
+<dt><a id="item_new"><span class="pod_lang">new
 
 </span></a></dt>
 <dd>
+</dd>
+<dt><a id="item_send"><span class="pod_lang">send
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $smail-&gt;send(-data =&gt; $data)
+  $smail-&gt;send(-data =&gt; $data)</code></pre>
+
 <p>
-<span class="pod_lang"><a href="../.././Tripletail/Validator.html">Tripletail::Validator</a> 参照
+<span class="pod_lang">宛先は-dataのヘッダからsendmailが抽出し、送信する。
 
 </span>
 </p>
 
+</dd>
+</dl>
+
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
+
+</span></a></h2>
+
+<dl>
+<dt><a id="item_commandline"><span class="pod_lang">commandline
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  commandline = /usr/sbin/sendmail -t -i</code></pre>
+
+<p>
+<span class="pod_lang">sendmailコマンドを指定する。オプションも同時に指定する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">ヘッダから送信先を取り出す「-t」オプションと、EOFでメールの終端を認識する「-i」オプションの指定は必須となる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは「/usr/sbin/sendmail -t -i」
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+
+<hr />
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a></h1>
+
+<dl>
+<dt><a id="item_X_"><span class="pod_lang"><a href="../.././Tripletail.html">Tripletail</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__00"><span class="pod_lang"><a href="../.././Tripletail/Sendmail.html">Tripletail::Sendmail</a>
+
+</span></a></dt>
+<dd>
 </dd>
 </dl>
 
@@ -139,7 +210,7 @@ Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
 <!-- End CONTENT -->
 
 <div class="pod_title_block">
-Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
+Tripletail::Sendmail::Sendmail - Sendmailメール送信
 
 
 </div>
@@ -151,15 +222,21 @@ Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
 <ul class="pod_idx">
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">Ini パラメータ</a></li>
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#NAME">NAME</a></li>
-<li><a href="#item_getFilter">getFilter</a></li>
+<li><a href="#SEE_ALSO">SEE ALSO</a></li>
+<li><a href="#item_X_">Tripletail</a></li>
+<li><a href="#item_X__00">Tripletail::Sendmail</a></li>
+<li><a href="#item_commandline">commandline</a></li>
+<li><a href="#item_new">new</a></li>
+<li><a href="#item_send">send</a></li>
 </ul>
 </div>
 <!-- End INDEX -->
 
 <div class="pod_title_block">
-Tripletail::Validator::FilterFactory - Tripletail::Validator 内部クラス
+Tripletail::Sendmail::Sendmail - Sendmailメール送信
 
 
 </div>

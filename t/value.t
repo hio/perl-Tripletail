@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 120;
+use Test::More tests => 130;
 
 #---------------------------------- 一般
 my $v;
@@ -62,12 +62,21 @@ dies_ok {$v->getRegexp('***')} 'getRegexp';
 ok($v->set('')->isEmpty, 'isEmpty');
 
 ok($v->set(' ')->isWhitespace, 'isWhitespace');
-ok($v->set('')->isWhitespace, 'isWhitespace');
+ok(! $v->set('')->isWhitespace, 'isWhitespace');
 
+ok($v->set(' ')->isBlank, 'isBlank');
+ok($v->set('')->isBlank, 'isBlank');
+
+ok(! $v->set('')->isPrintableAscii, 'isPrintableAscii');
+ok(! $v->set('　')->isPrintableAscii, 'isPrintableAscii');
+ok($v->set(' ')->isPrintableAscii, 'isPrintableAscii');
 ok($v->set('a')->isPrintableAscii, 'isPrintableAscii');
-ok(! $v->set("\x01")->isPrintableAscii, 'isPrintableAscii');
+ok($v->set('a ')->isPrintableAscii, 'isPrintableAscii');
+ok(! $v->set("\n")->isPrintableAscii, 'isPrintableAscii');
 
-ok($v->set('１あＡ')->isWide, 'isWide');
+ok(! $v->set('')->isWide, 'isWide');
+ok($v->set('　')->isWide, 'isWide');
+ok(! $v->set('1あＡ')->isWide, 'isWide');
 ok(! $v->set('1あＡ')->isWide, 'isWide');
 ok(! $v->set('ｱ')->isWide, 'isWide');
 
@@ -119,10 +128,10 @@ ok(! $v->isCharLen(0, 2), 'isCharLen');
 
 is($v->set("192.168.0.1")->isIpAddress("10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1"), 1, 'isIpAddress');
 is($v->set("255.168.0.1")->isIpAddress("10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1"), undef, 'isIpAddress');
-dies_ok {$v->set("255.168.0.1")->isIpAddress} 'isIpAddress undef';
-dies_ok {$v->set("255.168.0.1")->isIpAddress(\123)} 'isIpAddress ref';
-dies_ok {$v->set("fe80::1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1")->isIpAddress('192.168.0.1')} 'isIpAddress die';
-dies_ok {$v->set("255.168.0.1")->isIpAddress('fe80::1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1/10')} 'isIpAddress die';
+is($v->set("255.168.0.1")->isIpAddress, undef, 'isIpAddress error');
+is($v->set("255.168.0.1")->isIpAddress(\123), undef, 'isIpAddress error');
+is($v->set("fe80::1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1")->isIpAddress('192.168.0.1'), undef, 'isIpAddress error');
+is($v->set("255.168.0.1")->isIpAddress('fe80::1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1/10'), undef, 'isIpAddress error');
 
 #---------------------------------- conv系
 
@@ -172,14 +181,20 @@ is($v->set('あえいおう')->forceMaxCharLen(4)->get, 'あえいお', 'forceMa
 
 #---------------------------------- その他
 
-is($v->set(' A ')->forceWhitespace->get, 'A', 'forceWhitespace');
-is($v->set('　A　')->forceWhitespace->get, 'A', 'forceWhitespace');
-is($v->set("\t\tA\t\t")->forceWhitespace->get, 'A', 'forceWhitespace');
-is($v->set("\t\t 　\tA  A\t 　　\t")->forceWhitespace->get, 'A  A', 'forceWhitespace');
-ok($v->set('aaa<foo>')->isHtmlTag, 'isHtmlTag');
-ok(! $v->set('aaa foo ')->isHtmlTag, 'isHtmlTag');
-ok($v->set('http://foo/')->isTrailingSlash, 'isTrailingSlash');
-ok(! $v->set('http://foo')->isTrailingSlash, 'isTrailingSlash');
-ok($v->set(Unicode::Japanese->new("\xED\x40", 'sjis')->utf8)->isUnportable, 'isUnportable');
-ok(! $v->set('あ')->isUnportable, 'isUnportable');
+is($v->set(' A ')->trimWhitespace->get, 'A', 'trimWhitespace');
+is($v->set('　A　')->trimWhitespace->get, 'A', 'trimWhitespace');
+is($v->set("\t\tA\t\t")->trimWhitespace->get, 'A', 'trimWhitespace');
+is($v->set("\t\t 　\tA  A\t 　　\t")->trimWhitespace->get, 'A  A', 'trimWhitespace');
+ok(! $v->set(Unicode::Japanese->new("\xED\x40", 'sjis')->utf8)->isPortable, 'isPortable');
+ok($v->set('あ')->isPortable, 'isPortable');
 is($v->set("あああ　えええ")->countWords, 2, 'countWords');
+
+my @str;
+ok(@str = $v->set('あabいうえcdお')->strCut(2), 'strCut');
+
+is($str[0],'あa','strCut');
+is($str[1],'bい','strCut');
+is($str[2],'うえ','strCut');
+is($str[3],'cd','strCut');
+is($str[4],'お','strCut');
+

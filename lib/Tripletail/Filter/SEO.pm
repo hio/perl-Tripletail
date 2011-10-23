@@ -23,7 +23,7 @@ our @ISA = qw(Tripletail::Filter);
 # body要素も存在しなければ何も挿入されない。
 # 元々base要素が存在した場合はそのhref属性が置き換えられる。
 #
-# SCRIPT_NAME: http://foo.com/bar/baz.cgi
+# REQUEST_URI: http://foo.com/bar/baz.cgi
 # 挿入される要素: <base href="http://foo.com/bar/">
 
 # オプション一覧:
@@ -169,10 +169,10 @@ sub _rebase {
 	);
 	$filter->set($html);
 
-	my $baseurl = $ENV{SCRIPT_NAME} || '';
+	my $baseurl = $ENV{REQUEST_URI} || '';
 	$baseurl =~ s![^/]+$!!;
 	if(!length($baseurl)) {
-		# SCRIPT_NAMEが与えられていないので何も出来ない。
+		# REQUEST_URIが与えられていないので何も出来ない。
 		return $html;
 	}
 	$baseurl = sprintf(
@@ -348,7 +348,7 @@ Tripletail::Filter::SEO - SEO出力フィルタ
 body要素開始直前にhead要素が挿入されるが、body要素も存在しなければ
 何も挿入されない。元々base要素が存在した場合はそのhref属性が置き換えられる。
 
-  SCRIPT_NAME: http://foo.com/bar/baz.cgi
+  REQUEST_URI: http://foo.com/bar/baz.cgi
   挿入される要素: <base href="http://foo.com/bar/">
 
 

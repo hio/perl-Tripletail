@@ -1,5 +1,26 @@
 Revision history for Tripletail
 
+0.15	Tue Aug 15 14:22:42 JST 2006
+	- [[重要:0.14からの非互換な仕様変更]]
+	　- Value#isWhitespace、Value#isPrintableAscii、Value#isWideに関して、従来は空白で真を返していたが、
+	　　他との整合性を取るため、空白で偽を返すように変更
+	　- Value#forceWhitespaceをtrimWhitespaceに名称変更
+	　- Value#isUnportableを削除
+	　- Value#isHtmlTag、Validator#HtmlTagを削除
+	　- Value#isTrailingslash、Validator#TrailingSlashを削除
+	　- Value#isIpAddressでIPアドレス形式が正しくなかった場合、dieせずundefを返すように変更
+	- Value#isBlankを追加
+	- Value#isPortableを追加
+	- Value#strCutを追加
+	- Validator#NotBlankを追加
+	- Validator#Blankを追加
+	- Validator#Emptyを追加
+	- Validator#IpAddressを追加
+	- Valueクラスで、改行コードが含まれている場合に正常なチェックが行えないケースがある
+	　問題を修正
+	- Sendmailクラスの送信方法にsendmailを追加。sendmailコマンドを利用して送信する
+	- opensslライブラリが使用できない場合はSMIMEクラスのインストールをスキップするように修正
+
 0.14    Tue Aug  8 10:19:08 JST 2006
 	- デバッグ機能利用時にDBエラーが正しく表示されないことがある問題を修正
 	- <input type="TEXT" ...> のように type 属性が大文字になっている html テンプレートに対する

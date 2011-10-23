@@ -23,6 +23,9 @@ sub _new {
 	if($method eq 'smtp') {
 		require Tripletail::Sendmail::Smtp;
 		Tripletail::Sendmail::Smtp->_new($group);
+	} elsif($method eq 'sendmail') {
+		require Tripletail::Sendmail::Sendmail;
+		Tripletail::Sendmail::Sendmail->_new($group);
 	} elsif($method eq 'mailqueue') {
 		require Tripletail::Sendmail::MailQueue;
 		Tripletail::Sendmail::MailQueue->_new($group);
@@ -187,7 +190,7 @@ sendメソッドを使用した後は、disconnectしなければならない。
   method = smtp
 
 送信メソッドを指定する。省略可能。
-指定可能なメソッドはsmtp、mailqueue、 esmtp の３種類。
+指定可能なメソッドはsmtp、sendmail、mailqueue、 esmtp の３種類。
 
 デフォルトはsmtp。
 
@@ -213,6 +216,8 @@ sendメソッドを使用した後は、disconnectしなければならない。
 =over 4
 
 =item L<Tripletail::Sendmail::Smtp> - SMTP送信
+
+=item L<Tripletail::Sendmail::Sendmail> - Sendmail送信
 
 =item L<Tripletail::Sendmail::MailQueue> - Lib7用メールキュー
 

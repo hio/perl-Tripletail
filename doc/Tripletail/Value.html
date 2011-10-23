@@ -97,6 +97,7 @@ Tripletail::Value - 値の検証や変換
 <!-- End TABLE_OF_CONTENTS -->
 
 <!-- Begin CONTENT -->
+<!-- =encoding utf-8 -->
 
 <hr />
 <h1><a id="NAME">
@@ -375,6 +376,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">値が空（undefまたは0文字）なら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -387,7 +389,22 @@ $min、$secは省略でき、省略時は0が使用される。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isWhitespace</code></pre>
 
 <p>
-<span class="pod_lang">半角/全角スペース、タブのみで構成されているか、空（undefまたは0文字）なら1。
+<span class="pod_lang">半角/全角スペース、タブのみで構成されていれば1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isBlank"><span class="pod_lang">isBlank
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isBlank</code></pre>
+
+<p>
+<span class="pod_lang">値が空（undefまたは0文字）であるか、半角/全角スペース、タブのみで構成されていれば1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 </span>
 </p>
@@ -401,6 +418,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">文字列が制御コードを除くASCII文字のみで構成されているなら1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 </span>
 </p>
@@ -414,6 +432,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">文字列が全角文字のみで構成されているなら1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 </span>
 </p>
@@ -426,8 +445,8 @@ $min、$secは省略でき、省略時は0が使用される。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isPassword</code></pre>
 
 <p>
-<span class="pod_lang">文字列が半角の数字、アルファベット大文字、小文字、記号を
-全て最低1ずつ含んでいるなら1。
+<span class="pod_lang">文字列が半角の数字、アルファベット大文字、小文字、記号を全て最低1ずつ含んでいるなら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -441,6 +460,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">7桁の郵便番号（XXX-XXXX形式）なら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -459,13 +479,14 @@ $min、$secは省略でき、省略時は0が使用される。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isTelNumber</code></pre>
 
 <p>
-<span class="pod_lang">電話番号（/^\d[\d-]*\d$/）なら1。
+<span class="pod_lang">電話番号（/^\d[\d-]+\d$/）なら1。
+そうでなければundefを返す。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">数字で始まり、数字で終わり、その間が数字とハイフン(-)のみで構成されていれば電話番号とみなす。
+<span class="pod_lang">数字で始まり、数字で終わり、ハイフン(-)が一つ以上あり、その間が数字とハイフン(-)のみで構成されていれば電話番号とみなす。
 
 </span>
 </p>
@@ -479,6 +500,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">メールアドレスとして正しい形式であれば1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -492,6 +514,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">メールアドレスとして正しい形式であれば1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -513,16 +536,19 @@ $min、$secは省略でき、省略時は0が使用される。
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $bool = $val-&gt;isInteger($min,$max)</code></pre>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isInteger
+  $bool = $val-&gt;isInteger($min,$max)</code></pre>
 
 <p>
-<span class="pod_lang">整数で、かつ$min以上$max以下なら1。省略可能。
+<span class="pod_lang">整数で、かつ$min以上$max以下なら1。$mix,$maxは省略可能。
+そうでなければundefを返す。
+空もしくはundefの場合は、undefを返す。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">デフォルトでは、最大最小のチェックは行わなず整数であれば1。
+<span class="pod_lang">デフォルトでは、最大最小のチェックは行わなず整数であれば1を返す。
 
 </span>
 </p>
@@ -532,16 +558,19 @@ $min、$secは省略でき、省略時は0が使用される。
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $bool = $val-&gt;isReal($min,$max)</code></pre>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isReal
+  $bool = $val-&gt;isReal($min,$max)</code></pre>
 
 <p>
-<span class="pod_lang">整数もしくは小数で、かつ$min以上$max以下なら1。省略可能。
-	
+<span class="pod_lang">整数もしくは小数で、かつ$min以上$max以下なら1。$mix,$maxは省略可能。
+そうでなければundefを返す。
+空もしくはundefの場合は、undefを返す。
+
 </span>
 </p>
 
 <p>
-<span class="pod_lang">デフォルトでは、最大最小のチェックは行わなず、整数もしくは小数であれば1。
+<span class="pod_lang">デフォルトでは、最大最小のチェックは行わなず、整数もしくは小数であれば1を返す。
 
 </span>
 </p>
@@ -555,6 +584,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">平仮名だけが含まれている場合は1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 </span>
 </p>
@@ -568,6 +598,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">片仮名だけが含まれている場合は1。
+そうでなければundefを返す。値が0文字やundefの場合もundefを返す。
 
 </span>
 </p>
@@ -581,6 +612,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">YYYY-MM-DDで設定された日付が実在するものなら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -608,6 +640,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">それぞれの形式の画像なら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -628,6 +661,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">&quot;http://&quot; で始まる文字列なら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -641,6 +675,7 @@ $min、$secは省略でき、省略時は0が使用される。
 
 <p>
 <span class="pod_lang">&quot;https://&quot; で始まる文字列なら1。
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -653,8 +688,8 @@ $min、$secは省略でき、省略時は0が使用される。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isLen($min,$max)</code></pre>
 
 <p>
-<span class="pod_lang">バイト数の範囲が指定値以内かチェックする。
-undefを指定した場合はチェックを行わない。
+<span class="pod_lang">バイト数の範囲が指定値以内かチェックする。$mix,$maxは省略可能。
+範囲内であれば1、そうでなければundefを返す。
 
 </span>
 </p>
@@ -667,8 +702,8 @@ undefを指定した場合はチェックを行わない。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isSjisLen($min,$max)</code></pre>
 
 <p>
-<span class="pod_lang">Shift-Jisでのバイト数の範囲が指定値以内かチェックする。
-undefを指定した場合はチェックを行わない。
+<span class="pod_lang">Shift-Jisでのバイト数の範囲が指定値以内かチェックする。$mix,$maxは省略可能。
+範囲内であれば1、そうでなければundefを返す。
 
 </span>
 </p>
@@ -681,47 +716,28 @@ undefを指定した場合はチェックを行わない。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isCharLen($min,$max)</code></pre>
 
 <p>
-<span class="pod_lang">文字数の範囲が指定値以内かチェックする。
-undefを指定した場合はチェックを行わない。
+<span class="pod_lang">文字数の範囲が指定値以内かチェックする。$mix,$maxは省略可能。
+範囲内であれば1、そうでなければundefを返す。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="item_isHtmlTag"><span class="pod_lang">isHtmlTag
+<dt><a id="item_isPortable"><span class="pod_lang">isPortable
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $bool = $val-&gt;isHtmlTag</code></pre>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPortable</code></pre>
 
 <p>
-<span class="pod_lang">HTMLタグを含んでいるなら1。でなければundef。
+<span class="pod_lang">機種依存文字以外のみで構成されていれば1。
+そうでなければ（機種依存文字を含んでいれば）undefを返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="item_isTrailingSlash"><span class="pod_lang">isTrailingSlash
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $bool = $val-&gt;isTrailingSlash</code></pre>
-
 <p>
-<span class="pod_lang">文字列が半角スラッシュで終わっているなら1。でなければundef。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="item_isUnportable"><span class="pod_lang">isUnportable
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $bool = $val-&gt;isUnportable</code></pre>
-
-<p>
-<span class="pod_lang">機種依存文字を含んでいるなら1。でなければundef。
+<span class="pod_lang">値が0文字やundefの場合は1を返す。
 
 </span>
 </p>
@@ -734,8 +750,8 @@ undefを指定した場合はチェックを行わない。
 <pre class="pod_verbatim"><code>  $bool = $val-&gt;isIpAddress($checkmask)</code></pre>
 
 <p>
-<span class="pod_lang">$checkmaskに対して、設定されたIPアドレスが一致すれば1。でなければundef。
-	
+<span class="pod_lang">$checkmaskに対して、設定されたIPアドレスが一致すれば1。そうでなければundef。
+
 </span>
 </p>
 
@@ -992,19 +1008,6 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
-<dt><a id="item_forceWhitespace"><span class="pod_lang">forceWhitespace
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $val-&gt;forceWhitespace</code></pre>
-
-<p>
-<span class="pod_lang">値の前後に付いている半角/全角スペース、タブを削除する。
-
-</span>
-</p>
-
-</dd>
 </dl>
 
 <h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96">
@@ -1013,12 +1016,37 @@ SJISの文字単位でカットする。
 </span></a></h3>
 
 <dl>
+<dt><a id="item_trimWhitespace"><span class="pod_lang">trimWhitespace
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;trimWhitespace</code></pre>
+
+<p>
+<span class="pod_lang">値の前後に付いている半角/全角スペース、タブを削除する。
+
+</span>
+</p>
+
+</dd>
 <dt><a id="item_countWords"><span class="pod_lang">countWords
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">全角/半角スペースで単語に区切った時の個数を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_strCut_@str_=_$val->strCut($charanum)"><span class="pod_lang">strCut
+  @str = $val-&gt;strCut($charanum)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">指定された文字数で文字列を区切り、配列に格納する。
 
 </span>
 </p>
@@ -1118,7 +1146,6 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#item_forceMaxUtf8Len($max)">forceMaxUtf8Len($max)</a></li>
 <li><a href="#item_forceMin($max,$val)">forceMin($max,$val)</a></li>
 <li><a href="#item_forceNumber">forceNumber</a></li>
-<li><a href="#item_forceWhitespace">forceWhitespace</a></li>
 <li><a href="#forceXe7Xb3Xbb">force系</a></li>
 <li><a href="#item_get">get</a></li>
 <li><a href="#item_getAge">getAge</a></li>
@@ -1127,13 +1154,13 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#item_getRegexp">getRegexp</a></li>
 <li><a href="#item_getSjisLen">getSjisLen</a></li>
 <li><a href="#getXe7Xb3Xbb">get系</a></li>
+<li><a href="#item_isBlank">isBlank</a></li>
 <li><a href="#item_isCharLen($min,$max)">isCharLen($min,$max)</a></li>
 <li><a href="#item_isEmail">isEmail</a></li>
 <li><a href="#item_isEmpty">isEmpty</a></li>
 <li><a href="#item_isExistentDay">isExistentDay</a></li>
 <li><a href="#item_isGif">isGif</a></li>
 <li><a href="#item_isHira">isHira</a></li>
-<li><a href="#item_isHtmlTag">isHtmlTag</a></li>
 <li><a href="#item_isHttpUrl">isHttpUrl</a></li>
 <li><a href="#item_isHttpsUrl">isHttpsUrl</a></li>
 <li><a href="#item_isInteger($min,$max)">isInteger($min,$max)</a></li>
@@ -1144,12 +1171,11 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#item_isMobileEmail">isMobileEmail</a></li>
 <li><a href="#item_isPassword">isPassword</a></li>
 <li><a href="#item_isPng">isPng</a></li>
+<li><a href="#item_isPortable">isPortable</a></li>
 <li><a href="#item_isPrintableAscii">isPrintableAscii</a></li>
 <li><a href="#item_isReal($min,$max)">isReal($min,$max)</a></li>
 <li><a href="#item_isSjisLen($min,$max)">isSjisLen($min,$max)</a></li>
 <li><a href="#item_isTelNumber">isTelNumber</a></li>
-<li><a href="#item_isTrailingSlash">isTrailingSlash</a></li>
-<li><a href="#item_isUnportable">isUnportable</a></li>
 <li><a href="#item_isWhitespace">isWhitespace</a></li>
 <li><a href="#item_isWide">isWide</a></li>
 <li><a href="#item_isZipCode">isZipCode</a></li>
@@ -1159,6 +1185,8 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#item_setDateTime">setDateTime</a></li>
 <li><a href="#item_setTime">setTime</a></li>
 <li><a href="#setXe7Xb3Xbb">set系</a></li>
+<li><a href="#item_strCut_@str_=_$val->strCut($charanum)">strCut @str = $val-&gt;strCut($charanum)</a></li>
+<li><a href="#item_trimWhitespace">trimWhitespace</a></li>
 <li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">その他</a></li>
 <li><a href="#Xe4Xb8X80Xe8X88Xac">一般</a></li>
 </ul>
