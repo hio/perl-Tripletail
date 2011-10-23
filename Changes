@@ -1,5 +1,18 @@
 Revision history for Tripletail
 
+0.28    Fri Jun 15 12:33:46 JST 2007
+	- FCGI動作中は、SIGTERMが流れた時にスタックダンプを出力しないようにする
+	- $TL->fork() を追加。FastCGI 環境で通常の fork を行うと正しく動作しないため。
+	- mod_perl Handler 対応.
+	- 処理の最適化.
+	- HtmlFilterで正規表現マッチが動作しないバグの修正.
+	- Template#getForm，Template#setForm で，空文字列や 0 を値に持つ
+	　option要素を正しく扱えないバグを修正．
+	- tltail.pl(1) を追加.
+	- Validator#correct メソッドを追加．チェックと同時に値の修正を行える
+	　ように機能を拡張．
+	　（Thanks to Haruka Kataoka.）
+
 0.27	Tue Mar 27 22:16:06 JST 2007
     - xhtml タグ調整追加(option).
 

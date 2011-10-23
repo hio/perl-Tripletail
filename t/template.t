@@ -1,4 +1,4 @@
-use Test::More tests => 95;
+use Test::More tests => 98;
 use Test::Exception;
 use strict;
 use warnings;
@@ -40,7 +40,7 @@ my $TMPL3_XML = qq{
   <select name="menu1" onChange="MM_jumpMenu('parent',this,0)">
     <option selected>unnamed1</option>
   </select>
-  <input type="submit" name="submit" value="���M">
+  <input type="submit" name="submit" value="送信">
       </FORM>
       <FORM ACTION="" NAME="FORM">
       </FORM>
@@ -65,7 +65,7 @@ my $TMPL3 = qq{
   <select name="menu1" onChange="MM_jumpMenu('parent',this,0)">
     <option selected>unnamed1</option>
   </select>
-  <input type="submit" name="submit" value="���M">
+  <input type="submit" name="submit" value="送信">
       </FORM>
       <FORM ACTION="" NAME="FORM">
       </FORM>
@@ -214,9 +214,9 @@ is($form->toLink('./'), './?aaa=111&INT=1', 'getForm (2)');
 
 ### form: $t->node('FORM')
 
-dies_ok {$t->node('FORM')->setForm} 'setForm die';
-dies_ok {$t->node('FORM')->setForm(\123)} 'setForm die';
-dies_ok {$t->node('FORM')->setForm($form->set(aaa => 333), \123)} 'setForm die';
+dies_ok {$t->node('FORM')->setForm} 'setForm die (no arg)';
+dies_ok {$t->node('FORM')->setForm(\123)} 'setForm die (scalar-ref)';
+dies_ok {$t->node('FORM')->setForm($form->set(aaa => 333), \123)} 'setForm die (scalar-ref on form name)';
 dies_ok {$t->node('FORM')->extForm(\123)} 'extForm die';
 dies_ok {$t->addHiddenForm} 'addHiddenForm die';
 dies_ok {$t->addHiddenForm(\123)} 'addHiddenForm die';
@@ -281,7 +281,7 @@ dies_ok {$t->setTemplate(qq{<!include:include$$.txt>})->toStr} 'include die';
 ok($t->setTemplate(qq{<!include:tmp$$.ini>})->toStr, 'include test');
 
 dies_ok {$t->setTemplate(q{<FORM ACTION="" NAME="FORM"></FORM>})->getForm('test')} 'getForm die';
-dies_ok {$t->setTemplate(q{<FORM ACTION="" NAME="FORM"></FORM>})->setForm($form->set(aaa => '333'), 'test')} 'setForm die';
+dies_ok {$t->setTemplate(q{<FORM ACTION="" NAME="FORM"></FORM>})->setForm($form->set(aaa => '333'), 'test')} 'setForm die (no form for name)';
 dies_ok {$t->setTemplate(q{<FORM ACTION="" NAME="FORM"></FORM>})->extForm('test')} 'extForm die';
 dies_ok {$t->setTemplate(q{<FORM ACTION="" NAME="FORM"></FORM>})->addHiddenForm($TL->newForm(bbb => 666), \123)} 'addHiddenForm die';
 dies_ok {$t->setTemplate(q{<FORM ACTION="" NAME="FORM"></FORM>})->addHiddenForm($TL->newForm(bbb => 666), 'test')} 'addHiddenForm die';
@@ -328,3 +328,68 @@ ok($t->addHiddenForm($TL->newForm(bbb => 666)));
 $t->setTemplate($TMPL5);
 $t->setForm({}, 'form');
 is(trim $t->toStr, trim $TMPL5, 'the form is unchanged');
+
+
+my $TMPL10 = q{
+<HTML>
+  <BODY>
+        <FORM method="post" action="test2.cgi"><input type="hidden" name="CCC" value="愛">
+        <select name="aa">
+        <option value="">空欄</option>
+        <option value="0">ゼロ</option>
+        <option value="1">位置</option>
+        </select>
+        <input type="submit" value="ボタン">
+        aaa
+        </FORM>
+  </BODY>
+</HTML>
+};
+my $TMPL10_undef = q{<HTML>
+<BODY>
+<FORM method="post" action="test2.cgi"><input type="hidden" name="CCC" value="愛">
+<select name="aa">
+<option value="" selected>空欄</option>
+<option value="0">ゼロ</option>
+<option value="1">位置</option>
+</select>
+<input type="submit" value="ボタン">
+aaa
+</FORM>
+</BODY>
+</HTML>};
+
+my $TMPL10_0 = q{<HTML>
+<BODY>
+<FORM method="post" action="test2.cgi"><input type="hidden" name="CCC" value="愛">
+<select name="aa">
+<option value="">空欄</option>
+<option value="0" selected>ゼロ</option>
+<option value="1">位置</option>
+</select>
+<input type="submit" value="ボタン">
+aaa
+</FORM>
+</BODY>
+</HTML>};
+
+my $TMPL10_1 = q{<HTML>
+<BODY>
+<FORM method="post" action="test2.cgi"><input type="hidden" name="CCC" value="愛">
+<select name="aa">
+<option value="">空欄</option>
+<option value="0">ゼロ</option>
+<option value="1" selected>位置</option>
+</select>
+<input type="submit" value="ボタン">
+aaa
+</FORM>
+</BODY>
+</HTML>};
+
+is(trim $t->setTemplate($TMPL10)->setForm({ aa => '' })->toStr, $TMPL10_undef, 'setForm empty value');
+is(trim $t->setTemplate($TMPL10)->setForm({ aa => '0' })->toStr, $TMPL10_0, 'setForm 0 value');
+is(trim $t->setTemplate($TMPL10)->setForm({ aa => '1' })->toStr, $TMPL10_1, 'setForm 1 value');
+
+
+

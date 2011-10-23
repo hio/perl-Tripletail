@@ -48,8 +48,13 @@ Tripletail::Validator - 値の検証の一括処理
 
 </span></a>
 <ul>
-<li><a href="#Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
-<span class="pod_lang">組み込みフィルタ
+<li><a href="#Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcheckXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
+<span class="pod_lang">組み込みcheckフィルタ
+
+</span></a>
+</li>
+<li><a href="#Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcorrectXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
+<span class="pod_lang">組み込みcorrectフィルタ
 
 </span></a>
 </li>
@@ -221,8 +226,53 @@ Tripletail::Validator - 値の検証の一括処理
 <p>
 <span class="pod_lang">２番目の引数に関数リファレンスを渡すと, エラー時にそれが呼ばれる。
 エラーがなかった場合には呼ばれない。
-引数として、１つめに check メソッドが返すのと同じハッシュを,
-２つめに文字列でのエラーメッセージを渡す.
+引数として、１つめに check メソッドが返すのと同じハッシュを、
+２つめに文字列でのエラーメッセージを渡す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">変更用フィルタを使用しようとした場合はエラーを返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="correct"><span class="pod_lang">correct
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $error = $validator-&gt;correct($form)
+  $error = $validator-&gt;correct($form, sub{...} )</code></pre>
+
+<p>
+<span class="pod_lang">設定したフィルタを利用して、フォームの値を検証する。
+また、変更用フィルタを使った場合はフォームの値を修正する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">それぞれのフォームのキーに対してエラーがあれば、「[message]」、
+もしくは指定がない場合はフィルタ名を値としたハッシュリファレンスを返す。
+エラーがなければ、そのキーは含まれない。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">２番目の引数に関数リファレンスを渡すと, エラー時にそれが呼ばれる。
+エラーがなかった場合には呼ばれない。
+引数として、１つめに check メソッドが返すのと同じハッシュを、
+２つめに文字列でのエラーメッセージを渡す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">$form に const メソッドが呼ばれた Form オブジェクトが渡された場合、
+エラーを返す。
 
 </span>
 </p>
@@ -248,8 +298,8 @@ Tripletail::Validator - 値の検証の一括処理
 
 </span></a></h2>
 
-<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
-<span class="pod_lang">組み込みフィルタ
+<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcheckXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
+<span class="pod_lang">組み込みcheckフィルタ
 
 </span></a></h3>
 
@@ -694,6 +744,266 @@ Tripletail::Validator - 値の検証の一括処理
 </dd>
 </dl>
 
+<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcorrectXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
+<span class="pod_lang">組み込みcorrectフィルタ
+
+</span></a></h3>
+
+<p>
+<span class="pod_lang"><a href="#correct">&quot;correct&quot;</a> で使用できる変更用フィルタ。
+<a href="#correct">&quot;correct&quot;</a> では check フィルタと correct フィルタの
+両方を利用できるが、<a href="#check">&quot;check&quot;</a> で correct フィルタを使用した場合には
+エラーとなる。
+
+</span>
+</p>
+
+<dl>
+<dt><a id="ConvHira"><span class="pod_lang">ConvHira
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">ひらがなに変換する。
+<a href=".././Tripletail/Value.html#convHira">&quot;convHira&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvKata"><span class="pod_lang">ConvKata
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">カタカナに変換する。
+<a href=".././Tripletail/Value.html#convKata">&quot;convKata&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvNumber"><span class="pod_lang">ConvNumber
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角数字に変換する。
+<a href=".././Tripletail/Value.html#convNumber">&quot;convNumber&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvNarrow"><span class="pod_lang">ConvNarrow
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">全角文字を半角に変換する。
+<a href=".././Tripletail/Value.html#convNarrow">&quot;convNarrow&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvWide"><span class="pod_lang">ConvWide
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角文字を全角に変換する。
+<a href=".././Tripletail/Value.html#convWide">&quot;convWide&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvKanaNarrow"><span class="pod_lang">ConvKanaNarrow
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">全角カタカナを半角に変換する。
+<a href=".././Tripletail/Value.html#convKanaNarrow">&quot;convKanaNarrow&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvKanaWide"><span class="pod_lang">ConvKanaWide
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角カタカナを全角に変換する。
+<a href=".././Tripletail/Value.html#convKanaWide">&quot;convKanaWide&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvComma"><span class="pod_lang">ConvComma
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角数字を3桁区切りのカンマ表記に変換する。
+<a href=".././Tripletail/Value.html#convComma">&quot;convComma&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvLF"><span class="pod_lang">ConvLF
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">改行コードを LF (\n) に変換する。
+<a href=".././Tripletail/Value.html#convLF">&quot;convLF&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ConvBR"><span class="pod_lang">ConvBR
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">改行コードを &lt;BR&gt;\n に変換する。
+<a href=".././Tripletail/Value.html#convBR">&quot;convBR&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceHira"><span class="pod_lang">ForceHira
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">ひらがな以外の文字は削除。
+<a href=".././Tripletail/Value.html#forceHira">&quot;forceHira&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceKata"><span class="pod_lang">ForceKata
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">カタカナ以外の文字は削除。
+<a href=".././Tripletail/Value.html#forceKata">&quot;forceKata&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceNumber"><span class="pod_lang">ForceNumber
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角数字以外の文字は削除。
+<a href=".././Tripletail/Value.html#forceNumber">&quot;forceNumber&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceMin($max,$val)"><span class="pod_lang">ForceMin($max,$val)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角数字以外の文字を削除し、min未満なら$valをセットする。$val省略時はundefをセットする。
+<a href=".././Tripletail/Value.html#forceMin($max,$val)">&quot;forceMin($max,$val)&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceMax($max,$val)"><span class="pod_lang">ForceMax($max,$val)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">半角数字以外の文字を削除し、maxより大きければ$valをセットする。$val省略時はundefをセットする。
+<a href=".././Tripletail/Value.html#forceMax($max,$val)">&quot;forceMax($max,$val)&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceMaxLen($max)"><span class="pod_lang">ForceMaxLen($max)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">最大バイト数を指定。超える場合はそのバイト数までカットする。
+<a href=".././Tripletail/Value.html#forceMaxLen($max)">&quot;forceMaxLen($max)&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceMaxUtf8Len($max)"><span class="pod_lang">ForceMaxUtf8Len($max)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">UTF-8での最大バイト数を指定。
+超える場合はそのバイト数以下まで
+UTF-8の文字単位でカットする。
+<a href=".././Tripletail/Value.html#forceMaxUtf8Len($max)">&quot;forceMaxUtf8Len($max)&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceMaxSjisLen($max)"><span class="pod_lang">ForceMaxSjisLen($max)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">SJISでの最大バイト数を指定。超える場合はそのバイト数以下まで
+SJISの文字単位でカットする。
+<a href=".././Tripletail/Value.html#forceMaxSjisLen($max)">&quot;forceMaxSjisLen($max)&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForceMaxCharLen($max)"><span class="pod_lang">ForceMaxCharLen($max)
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">最大文字数を指定。超える場合はその文字数以下までカットする。
+<a href=".././Tripletail/Value.html#forceMaxCharLen($max)">&quot;forceMaxCharLen($max)&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="TrimWhitespace"><span class="pod_lang">TrimWhitespace
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">値の前後に付いている半角/全角スペース、タブを削除する。
+<a href=".././Tripletail/Value.html#trimWhitespace">&quot;trimWhitespace&quot; in Tripletail::Value</a>。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
 <h3><a id="Xe3X83Xa6Xe3X83XbcXe3X82Xb6Xe3X83XbcXe5XaeX9aXe7XbeXa9Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XabXe3X81Xa4Xe3X81X84Xe3X81Xa6">
 <span class="pod_lang">ユーザー定義フィルタについて
 
@@ -917,11 +1227,30 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#Blank">Blank</a></li>
 <li><a href="#CharLen($min,$max)">CharLen($min,$max)</a></li>
+<li><a href="#ConvBR">ConvBR</a></li>
+<li><a href="#ConvComma">ConvComma</a></li>
+<li><a href="#ConvHira">ConvHira</a></li>
+<li><a href="#ConvKanaNarrow">ConvKanaNarrow</a></li>
+<li><a href="#ConvKanaWide">ConvKanaWide</a></li>
+<li><a href="#ConvKata">ConvKata</a></li>
+<li><a href="#ConvLF">ConvLF</a></li>
+<li><a href="#ConvNarrow">ConvNarrow</a></li>
+<li><a href="#ConvNumber">ConvNumber</a></li>
+<li><a href="#ConvWide">ConvWide</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#Email">Email</a></li>
 <li><a href="#Empty">Empty</a></li>
 <li><a href="#Enum($a,$b,$c)">Enum($a,$b,$c)</a></li>
 <li><a href="#ExistentDay">ExistentDay</a></li>
+<li><a href="#ForceHira">ForceHira</a></li>
+<li><a href="#ForceKata">ForceKata</a></li>
+<li><a href="#ForceMax($max,$val)">ForceMax($max,$val)</a></li>
+<li><a href="#ForceMaxCharLen($max)">ForceMaxCharLen($max)</a></li>
+<li><a href="#ForceMaxLen($max)">ForceMaxLen($max)</a></li>
+<li><a href="#ForceMaxSjisLen($max)">ForceMaxSjisLen($max)</a></li>
+<li><a href="#ForceMaxUtf8Len($max)">ForceMaxUtf8Len($max)</a></li>
+<li><a href="#ForceMin($max,$val)">ForceMin($max,$val)</a></li>
+<li><a href="#ForceNumber">ForceNumber</a></li>
 <li><a href="#Gif">Gif</a></li>
 <li><a href="#Hira">Hira</a></li>
 <li><a href="#HttpUrl($mode)">HttpUrl($mode)</a></li>
@@ -950,12 +1279,14 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#SjisLen($min,$max)">SjisLen($min,$max)</a></li>
 <li><a href="#TelNumber">TelNumber</a></li>
 <li><a href="#TestFilter.pm">TestFilter.pm</a></li>
+<li><a href="#TrimWhitespace">TrimWhitespace</a></li>
 <li><a href="#X_">Tripletail</a></li>
 <li><a href="#X__00">Tripletail::Value</a></li>
 <li><a href="#Wide">Wide</a></li>
 <li><a href="#ZipCode">ZipCode</a></li>
 <li><a href="#addFilter">addFilter</a></li>
 <li><a href="#check">check</a></li>
+<li><a href="#correct">correct</a></li>
 <li><a href="#getKeys">getKeys</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XaeXe6Xa7X8bXe7XafX89">フィルタの構築</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XaeXe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81Xbf">フィルタの組み込み</a></li>
@@ -963,7 +1294,8 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#Xe3X83Xa6Xe3X83XbcXe3X82Xb6Xe3X83XbcXe5XaeX9aXe7XbeXa9Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XabXe3X81Xa4Xe3X81X84Xe3X81Xa6">ユーザー定義フィルタについて</a></li>
 <li><a href="#Xe4XbdXbfXe3X81X84Xe6X96Xb9">使い方</a></li>
 <li><a href="#Xe4XbeX8b">例</a></li>
-<li><a href="#Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">組み込みフィルタ</a></li>
+<li><a href="#Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcheckXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">組み込みcheckフィルタ</a></li>
+<li><a href="#Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcorrectXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">組み込みcorrectフィルタ</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

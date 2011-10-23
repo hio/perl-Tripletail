@@ -134,18 +134,40 @@ sub _flush_header {
 		}
 	}
 
-	# 文字列化
-	my $output = '';
-	while(my ($key, $val) = each %$header) {
-		if(ref($val) eq 'ARRAY') {
-			foreach(@$val) {
-				$output .= sprintf "%s: %s\r\n", $key, $_;
-			}
-		} else {
-			$output .= sprintf "%s: %s\r\n", $key, $val;
+	my $output;
+	if( $TL->{mod_perl} )
+	{
+		my $r = $TL->{mod_perl}{request};
+		$r->content_type(delete $header->{'Content-Type'});
+		if( exists($header->{'Location'}) )
+		{
+			$r->status(302); # 302 Found.
 		}
+		my $headers_out = $r->headers_out;
+		while(my ($key, $val) = each %$header) {
+			if(ref($val) eq 'ARRAY') {
+				foreach(@$val) {
+					$headers_out->add($key, $_);
+				}
+			} else {
+				$headers_out->set($key, $val);
+			}
+		}
+		$output = '';
+	}else
+	{
+		# 文字列化
+		while(my ($key, $val) = each %$header) {
+			if(ref($val) eq 'ARRAY') {
+				foreach(@$val) {
+					$output .= sprintf "%s: %s\r\n", $key, $_;
+				}
+			} else {
+				$output .= sprintf "%s: %s\r\n", $key, $val;
+			}
+		}
+		$output .= "\r\n";
 	}
-	$output .= "\r\n";
 
 	$this->{header_flushed} = 1;
 	$output;

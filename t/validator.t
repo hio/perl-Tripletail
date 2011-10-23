@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 139;
+use Test::More tests => 141;
 
 use t::make_ini {
 	ini => {
@@ -466,3 +466,13 @@ sub toHash {
 
   ok($validator->addFilter({true => 'test;file'}), 'addFilter');
   dies_ok {$validator->check($form)} 'check die';
+
+#---check with correct filter
+  my $validator_correct = $TL->newValidator->addFilter({ correct => 'ForceNumber' });
+  dies_ok {$validator->check($form)} 'check with correct filter';
+
+#---correct with const form
+  my $form_const = $TL->newForm->set(correct => 'test123')->const;
+  dies_ok {$validator->correct($form_const)} 'correct with const form';
+
+

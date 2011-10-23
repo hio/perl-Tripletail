@@ -137,7 +137,18 @@ sub __createSid {
 				REPLACE INTO $this->{sessiontable}
 					VALUES (NULL, ?, ?, ?, now())
 			}, $checkval, $checkvalssl, $data);
-			$sid = $DB->getDbh($this->{dbset})->{'mysql_insertid'};
+			$sid = $DB->getLastInsertId(\$this->{dbset});
+		};
+		if($@) {
+			die __PACKAGE__."#__createSid, cannot create sid. [$@]\n";
+		}
+	}elsif($type eq 'sqlite') {
+		eval {
+			$DB->execute(\$this->{dbset} => qq{
+				REPLACE INTO $this->{sessiontable}
+					VALUES (NULL, ?, ?, ?, CURRENT_TIMESTAMP)
+			}, $checkval, $checkvalssl, $data);
+			$sid = $DB->getLastInsertId(\$this->{dbset});
 		};
 		if($@) {
 			die __PACKAGE__."#__createSid, cannot create sid. [$@]\n";
@@ -169,6 +180,18 @@ sub __removeSid {
 					WHERE sid = ?
 			}, $sid);
 		};
+	}elsif($type eq 'sqlite') {
+		eval {
+			$DB->execute(\$this->{dbset} => qq{
+				UPDATE $this->{sessiontable}
+				   SET checkval = 'x',
+				       checkvalssl = 'x',
+				       data = null,
+				       updatetime = CURRENT_TIME
+					WHERE sid = ?
+			}, $sid);
+		};
+		$@ and die "mark as deleted failed: $@";
 	} else {
 		die __PACKAGE__."#__removeSid, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
 	}
@@ -204,6 +227,22 @@ sub __prepareSessionTable {
 					MAX_ROWS = 300000000
 				});
 			};
+			$@ and die "CREATE TABLE failed: $@";
+		}elsif($type eq 'sqlite') {
+			# sqlite3: 9223372036854775807. (64bit/signed)
+			eval {
+				$DB->execute(\$this->{dbset} => qq{
+					CREATE TABLE $this->{sessiontable} (
+						sid           INTEGER NOT NULL,
+						checkval      BLOB NOT NULL,
+						checkvalssl   BLOB NOT NULL,
+						data          BLOB,
+						updatetime    TIMESTAMP NOT NULL,
+						PRIMARY KEY (sid)
+					)
+				});
+			};
+			$@ and die "CREATE TABLE failed: $@";
 		} else {
 			die __PACKAGE__."#__prepareSessionTable, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
 		}
@@ -227,17 +266,18 @@ sub _init {
 		die "Tripletail::Session#_init, ARG[1]: group name is Wrong-Ref. [$ref]\n";
 	}
 
+	# postRequest時に古いデータを消す。
+	$TL->setHook(
+		'postRequest',
+		_POST_REQUEST_HOOK_PRIORITY,
+		sub {
+			foreach my $group (@$groups) {
+				$_instance{$group}->__reset;
+			}
+		},
+	);
 	foreach my $group (@$groups) {
 		$_instance{$group} = Tripletail::Session->__new($group);
-
-		# postRequest時に古いデータを消す。
-		$TL->setHook(
-			'postRequest',
-			_POST_REQUEST_HOOK_PRIORITY,
-			sub {
-				$_instance{$group}->__reset;
-			},
-		);
 	}
 
 	undef;
@@ -488,12 +528,38 @@ sub __setSession {
 
 			if(!scalar(@$sessiondata)) {
 				$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+			}elsif( $sessiondata->[0][2] eq 'x' || $sessiondata->[0][3] eq 'x' ) {
+				$TL->log(__PACKAGE__, "Invalid session. session has deletion mark. sid [$sid] checkval [$$sessiondata->[0][2]] checkvalssl [$$sessiondata->[0][3]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 			} elsif(time - $sessiondata->[0][1] > $this->{timeout_period}) {
 				$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 			} else {
 				$this->{sid} = $sid;
 				$this->{data} = $sessiondata->[0][0];
 				$this->{updatetime} = $sessiondata->[0][1];
+				$this->{checkval} = $sessiondata->[0][2];
+				$this->{checkvalssl} = $sessiondata->[0][3];
+			}
+		};
+	}elsif($type eq 'sqlite') {
+		eval {
+			my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
+
+			my $sessiondata = $DB->selectAllArray(\$this->{readdbset} => qq{
+				SELECT data, datetime(updatetime, 'localtime'), checkval, checkvalssl
+					FROM $this->{sessiontable}
+					WHERE sid = ? AND $colname = ?
+			}, $sid, $checkval);
+
+			my $updatetime = $sessiondata && @$sessiondata && $TL->newDateTime($sessiondata->[0][1])->getEpoch();
+			my $now = time;
+			if(!scalar(@$sessiondata)) {
+				$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+			} elsif($now - $updatetime > $this->{timeout_period}) {
+				$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]=$updatetime] on the DB [$this->{dbgroup}][$this->{sessiontable}], now=[$now], timeout=[$this->{timeout_period}].");
+			} else {
+				$this->{sid} = $sid;
+				$this->{data} = $sessiondata->[0][0];
+				$this->{updatetime} = $updatetime;
 				$this->{checkval} = $sessiondata->[0][2];
 				$this->{checkvalssl} = $sessiondata->[0][3];
 			}
@@ -534,6 +600,16 @@ sub __updateSession {
 			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
 				UPDATE $this->{sessiontable}
 					SET updatetime = now(), data = ?
+					WHERE sid = ?
+			}, $this->{data}, $this->{sid});
+		};
+	}elsif($type eq 'sqlite') {
+		eval {
+			my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
+
+			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
+				UPDATE $this->{sessiontable}
+					SET updatetime = CURRENT_TIMESTAMP, data = ?
 					WHERE sid = ?
 			}, $this->{data}, $this->{sid});
 		};

@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.7 2007/03/08 07:27:08 hio Exp $
+# $Id: db-sqlite.t,v 1.8 2007/04/16 02:42:45 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -50,12 +50,12 @@ if( !$DBINFO{dbname} )
 # -----------------------------------------------------------------------------
 # test spec.
 # -----------------------------------------------------------------------------
-plan tests => 1+3+25+24+15+4;
+plan tests => 1+3+26+25+15+4;
 
 &test_setup; #1.
 &test_getdb; #3.
-&test_misc;  #25.
-&test_tx_transaction; #24.
+&test_misc;  #26.
+&test_tx_transaction; #25.
 &test_old_transaction;  #15.
 &test_locks;  #4.
 
@@ -148,7 +148,10 @@ sub test_misc
 				is($row2, undef, '[misc] no second record');
 				
 				is($DB->getLastInsertId(), 4, '[misc] getLastInsertId()');
-				is($DB->getDbh()->func('last_insert_rowid'), 4, '[misc] lastid via dbh func');
+				is($DB->getLastInsertId(\'DBSET_test'), 4, '[misc] getLastInsertId() with dbname');
+				SKIP:{
+					is($DB->getDbh()->func('last_insert_rowid'), 4, '[misc] lastid via dbh func');
+				}
 				SKIP:{
 					if( !$DB->getDbh()->can('last_insert_id') )
 					{
@@ -246,6 +249,7 @@ sub test_tx_transaction
 			# create test data (blue red yellow green aqua cyan)
 			_create_table_colors($DB);
 			is $DB->getLastInsertId(), 6, "[tx_tran] lastid";
+			is $DB->getLastInsertId(\'DBSET_test'), 6, "[tx_tran] lastid with dbname";
 			{
 				my $s = $DB->selectAllHash("SELECT * FROM test_colors");
 				is(@$s, 6, '[tx_tran] implicit commit, 6 records in tx');

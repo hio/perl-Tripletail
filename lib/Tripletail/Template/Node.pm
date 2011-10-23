@@ -7,6 +7,8 @@ use warnings;
 use Tripletail;
 #use Smart::Comments;
 
+my @_SPLIT_CACHE;
+
 1;
 
 # テンプレートをパーツ毎に分割
@@ -295,10 +297,15 @@ sub toStr {
 
 	# 値の定義されていない挿入タグが残っていたらエラー。(expandAll や
 	# flushなどがある為、これが起こり得る。)
-	foreach my $seg (@{$this->{tmplvec}}) {
-		if(ref($seg) && $seg->[0] eq 'tag' && !defined($this->{valmap}{"tag:$seg->[1]"})) {
-			die __PACKAGE__."#toStr, tag [$seg->[1]] was left unexpanded.\n";
-		}
+	my $valmap = $this->{valmap};
+	foreach my $seg (@{$this->{tmpltags}}) {
+			if( $seg->[0] eq 'tag' )
+			{
+				if( !defined($valmap->{${$seg->[2]}}) )
+				{
+					die __PACKAGE__."#toStr, tag [$seg->[1]] was left unexpanded.\n";
+				}
+			}
 	}
 
 	$this->_compose;
@@ -400,7 +407,8 @@ sub getForm {
 				my $select = $context->in('select');
 				if($select && defined(my $name = $select->attr('name'))) {
 					my $value = do {
-						if(my $str = $option->attr('value')) {
+						my $str = $option->attr('value');
+						if(defined($str)) {
 							$str;
 						} else {
 							my $str = $elem->str;
@@ -435,6 +443,19 @@ sub getForm {
 	$form;
 }
 
+sub __popform
+{
+	# 指定されたkeyの先頭の値を取り出し、それを消す。
+	my $form = shift;
+	my $key  = shift;
+
+	my @array = $form->getValues($key);
+	my $val = shift @array;
+
+	$form->remove($key => $val);
+	$val;
+}
+
 sub setForm {
 	my $this = shift;
 	my $form = shift;
@@ -455,17 +476,6 @@ sub setForm {
 	# $formは後で変更してしまうのでcloneして置く
 	$form = $form->clone;
 
-	local *popform = sub {
-		# 指定されたkeyの先頭の値を取り出し、それを消す。
-		my $key = shift;
-
-		my @array = $form->getValues($key);
-		my $val = shift @array;
-
-		$form->remove($key => $val);
-		$val;
-	};
-
 	if(!defined $name) {
 		$name = '';
 	}
@@ -477,35 +487,54 @@ sub setForm {
 		name => $name,
 	);
 
+	my $html = $this->getHtml();
+	my $has_textarea = $html=~/<textarea\b/i;
+	my $has_option   = $html=~/<option\b/i;
+	my $no_filter_text = !$has_textarea && !$has_option;
+	
 	my $filter = $TL->newHtmlFilter(
 		interest => ['input'],
 		track => [qw(form textarea select option)],
-		filter_text => 1,
+		filter_text => !$no_filter_text,
 	);
-	$filter->set($this->getHtml);
+	$filter->set($html);
 
 	my $found;
-	while(my ($context, $elem) = $filter->next) {
-		if(my $f = $context->in('form')) {
-			my $curname = $f->attr('name');
-			$curname = defined $curname ? $curname : '';
+	my $last_form = 0;
+	my $on_form;
+	while(my ($context, $elem) = $filter->next)
+	{
+		if( my $f = $context->in('form') )
+		{
+			if( $f!=$last_form )
+			{
+				my $curname = $f->attr('name');
+				$curname = defined $curname ? $curname : '';
 
-			if($curname ne $name) {
-				# 関係無いフォーム
-				next;
-			} else {
-				$found = 1;
+				if($curname ne $name) {
+					# 関係無いフォーム
+					$on_form &&= undef;
+					next;
+				} else {
+					$on_form ||= $found ||= 1;
+				}
+				$last_form = $f;
 			}
+			$on_form or next;
 		} else {
 			# form要素の中でない。
 			next;
 		}
 
-		if($elem->isElement) {
-			if(lc $elem->name eq 'input') {
-				if(defined(my $name = $elem->attr('name'))) {
+		if( $no_filter_text || $elem->isElement )
+		{
+			# elem is always 'input'.
+				my $name = $elem->attr('name');
+				if( defined($name) )
+				{
 					$name = $TL->unescapeTag($name);
-					my $type = lc $elem->attr('type');
+					my $type = $elem->attr('type');
+					$type &&= lc $type;
 
 					if(!defined($type)
 					|| $type eq '' 
@@ -516,7 +545,7 @@ sub setForm {
 						if($form->exists($name)) {
 							# valueを書換える
 							$elem->attr(
-								value => $TL->escapeTag(popform($name))
+								value => $TL->escapeTag(__popform($form, $name))
 							);
 						}
 					} elsif($type eq 'radio' || $type eq 'checkbox') {
@@ -539,7 +568,6 @@ sub setForm {
 						}
 					}
 				}
-			}
 		} elsif($elem->isText) {
 			if(my $textarea = $context->in('textarea')) {
 				if(defined(my $name = $textarea->attr('name'))) {
@@ -548,7 +576,7 @@ sub setForm {
 					if($form->exists($name)) {
 						# textareaの中身を置き換える
 						$elem->str(
-							$TL->escapeTag(popform($name)));
+							$TL->escapeTag(__popform($form, $name)));
 					}
 				}
 			} elsif(my $option = $context->in('option')) {
@@ -557,7 +585,8 @@ sub setForm {
 					$name = $TL->unescapeTag($name);
 
 					my $value = do {
-						if(my $str = $option->attr('value')) {
+						my $str = $option->attr('value');
+						if(defined($str)) {
 							$str;
 						} else {
 							my $str = $elem->str;
@@ -928,7 +957,7 @@ sub _flush {
 			while(my $seg = shift @{$this->{tmplvec}}) {
 				if(ref($seg)) {
 					if($seg->[0] eq 'tag') {
-						my $ref = \$this->{valmap}{"tag:$seg->[1]"};
+						my $ref = \$this->{valmap}{${$seg->[2]}};
 
 						if(defined($$ref)) {
 							$ret .= $$ref;
@@ -936,7 +965,7 @@ sub _flush {
 							die __PACKAGE__."#flush, tag [$seg->[1]] was left unexpanded.\n";
 						}
 					} elsif($seg->[0] eq 'mark' || $seg->[0] eq 'copy') {
-						my $ref = \$this->{valmap}{"node:$seg->[1]"};
+						my $ref = \$this->{valmap}{${$seg->[2]}};
 
 						if(defined($$ref)) {
 							$ret .= $$ref;
@@ -1011,7 +1040,7 @@ sub _expand {
 				ref $seg or next;
 				$seg->[0] eq 'tag' or next;
 				
-				unless(defined($this->{valmap}{"tag:$seg->[1]"})) {
+				unless(defined($this->{valmap}{${$seg->[2]}})) {
 					die __PACKAGE__."#expand, key [$seg->[1]] was left unexpanded.\n";
 				}
 			}
@@ -1065,8 +1094,20 @@ sub _split {
 	my $src = shift;
 	my $tmpwrite = shift;
 
+	foreach my $cache (@_SPLIT_CACHE)
+	{
+		if( $cache->{src} eq $src )
+		{
+			$this->{tmplvec}  = [ @{$cache->{vec}}  ];
+			$this->{tmpltags} = [ @{$cache->{tags}} ];
+			$this->{tmplback} = [ @{$cache->{vec}}  ] if($tmpwrite);
+			$this->{valmap} = {};
+			return;
+		}
+	}
+	
 	my $vec = [];
-	my $tags = [];
+	my %tags;
 
 	foreach my $part (split $re_split, $src) {
 		defined $part or next;
@@ -1076,22 +1117,33 @@ sub _split {
 			push @$vec, $part;
 		} else {
 			if($part =~ m/<&(.+?)>/) {
-				push @$vec, [tag => lc $1];
-				push @$tags, lc $1;
+				my $key = lc $1;
+				my $elm = [tag => $key, \((keys%{{"tag:$key"=>1}})[0]) ];
+				push @$vec, $elm;
+				$tags{${$elm->[2]}} ||= $elm;
 			} elsif($part =~ m/<!(mark|copy):(.+?)>/) {
-				push @$vec, [$1 => lc $2];
+				my $key = lc $2;
+				push @$vec, [$1 => $key, \((keys%{{"node:$key"=>1}})[0]) ];
 			} else {
 				push @$vec, $part;
 			}
 		}
 	}
 
-	$this->{tmplvec} = $vec;
-	$this->{tmpltags} = $tags;
-	$this->{tmplback} = [ @$vec ] if($tmpwrite);
-	$this->{valmap} = {};
+	my $tags = [ values %tags ];
+	push(@_SPLIT_CACHE, +{
+		src  => $src,
+		vec  => $vec,
+		tags => $tags,
+	});
+	
+	$this->{tmplvec}  = [ @$vec  ];
+	$this->{tmpltags} = [ @$tags ];
+	$this->{tmplback} = [ @$vec  ] if($tmpwrite);
+	$this->{valmap}   = {};
 }
 
+# テンプレート処理を施した結果を作る.
 sub _compose {
 	# このメソッドの動作速度は重要。
 	my $this = shift;
@@ -1100,16 +1152,32 @@ sub _compose {
 	
 	my $save_marks = $opts->{save_marks};
 
-	foreach my $seg (@{$this->{tmplvec}}) {
-		if(ref($seg)) {
-			my $dest = ($seg->[0] eq 'tag' ? 'tag' : 'node');
-			my $ref = \$this->{valmap}{"$dest:$seg->[1]"};
-
-			if(defined($$ref)) {
-				$ret .= $$ref;
+	if( !$save_marks )
+	{
+		foreach my $seg (@{$this->{tmplvec}}) {
+			if(ref $seg ) {
+				my $ref = \$this->{valmap}{${$seg->[2]}};
+				
+				if(defined($$ref)) {
+					$ret .= $$ref;
+				}
+				
+				# save_marks 処理は省略.
+			} else {
+				$ret .= $seg;
 			}
-
-			if($save_marks) {
+		}
+	}else
+	{
+		foreach my $seg (@{$this->{tmplvec}}) {
+			if(ref($seg)) {
+				my $ref = \$this->{valmap}{${$seg->[2]}};
+	
+				if(defined($$ref)) {
+					$ret .= $$ref;
+				}
+	
+				# save_marks 処理.
 				if($seg->[0] eq 'tag') {
 					if(!defined($$ref)) {
 						$ret .= sprintf '<&%s>', $seg->[1];
@@ -1117,9 +1185,9 @@ sub _compose {
 				} else {
 					$ret .= sprintf '<!%s:%s>', $seg->[0], $seg->[1];
 				}
+			} else {
+				$ret .= $seg;
 			}
-		} else {
-			$ret .= $seg;
 		}
 	}
 

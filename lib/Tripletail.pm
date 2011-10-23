@@ -1,6 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
+# $Id: Tripletail.pm,v 1.194 2007/06/15 03:39:52 hio Exp $
 package Tripletail;
 use strict;
 use warnings;
@@ -9,13 +10,18 @@ BEGIN{ our $_CHKDYNALDR=$INC{'DynaLoader.pm'} }
 use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
+use Cwd ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
 our $LOG_SERIAL = 0;
 our $LASTERROR;
+our %_FILE_CACHE;
+my $_FILE_CACHE_MAXSIZE = 10_1024*1024;
+my $_FILE_CACHE_CURSIZE = 150; # variables for caching.
+our $CWD;
 
 require Unicode::Japanese;
 
@@ -28,6 +34,11 @@ if($ENV{TL_COVER_TEST_MODE}) {
 sub _errorTrap_is_deprecated {
 	die "\$TL->errorTrap(..) is deprecated, use \$TL->trapEror(..)"
 	#&trapError;
+}
+
+if( $ENV{MOD_PERL} )
+{
+	&PreloadModperl;
 }
 
 1;
@@ -49,7 +60,13 @@ sub import {
 				or die "use Tripletail, ARG[1]: not defined. Usage: \"use Tripletail qw(config.ini);\"\n";
 			$inifile = '/dev/null';
 		}
-		$TL->{INI} = $TL->newIni($inifile);
+		if( $inifile ne '/dev/null' && $inifile ne 'nul' )
+		{
+			$TL->{INI} = $TL->newIni($inifile);
+		}else
+		{
+			$TL->{INI} = $TL->newIni();
+		}
 		$TL->{INI}->const;
 		
 		if(defined($_[0])) {
@@ -76,6 +93,17 @@ sub import {
 		}
 	}
 }
+
+sub PreloadModperl
+{
+	require Apache2::RequestRec;
+	require Apache2::RequestIO;
+	require Apache2::RequestUtil;
+	require Apache2::Const;
+	Apache2::Const->import(-compile => qw(OK REDIRECT));
+	require APR::Table;
+}
+
 sub __die_handler_for_startup
 {
 	my $msg = shift;
@@ -157,6 +185,8 @@ sub __new {
 
 	$this->{encode_is_available} = undef; # undef: 不明  0: Encode利用不可  1: Encode利用可
 
+    $this->{fcgi_request} = undef; # FCGI または undef
+
 	$this;
 }
 
@@ -176,6 +206,31 @@ sub CGI {
 sub INI {
 	my $this = shift;
 	$this->{INI};
+}
+
+sub fork {
+    my $this = shift;
+
+    if ($this->{fcgi_request}) {
+        $this->{fcgi_request}->Detach;
+    }
+
+    my $pid = CORE::fork();
+    
+    if (not defined $pid) {
+        die "fork failed: $!";
+    }
+    elsif ($pid == 0) {
+        # child
+    }
+    else {
+        # parent
+        if ($this->{fcgi_request}) {
+            $this->{fcgi_request}->Attach;
+        }
+    }
+
+    return $pid;
 }
 
 sub escapeTag {
@@ -325,6 +380,7 @@ sub startCgi {
 	my $this = shift;
 	my $param = { @_ };
 	
+	$this->_clearCwd();
 	$this->{outputbuffering} = $this->INI->get(TL => 'outputbuffering', 0);
 
 	my $main_err;
@@ -349,12 +405,6 @@ sub startCgi {
 			}
 		}
 
-		if(defined(my $groups = $param->{-Session})) {
-			require Tripletail::Session;
-
-			Tripletail::Session->_init($groups);
-		}
-
 		if(!defined($param->{'-main'})) {
 			die __PACKAGE__."#startCgi, -main handler was undef.\n";
 		}
@@ -366,6 +416,11 @@ sub startCgi {
 		if(!$this->getInputFilter) {
 			$this->setInputFilter('Tripletail::InputFilter::HTML');
 		}
+		if( $ENV{MOD_PERL} )
+		{
+			my $r = Apache2::RequestUtil->request;
+			$TL->{mod_perl} = { request => $r };
+		}
 
 		if($this->_getRunMode eq 'FCGI') {
 			# FCGIモードならメモリ監視フックとファイル監視フックをインストール
@@ -373,7 +428,6 @@ sub startCgi {
 			$this->getFileSentinel->__install;
 		}
 
-		$this->__executeHook('init');
 
 		if($this->_getRunMode eq 'FCGI') {
 			# FCGIモード
@@ -384,6 +438,7 @@ sub startCgi {
 
 			do {
 				local $SIG{__DIE__} = 'DEFAULT';
+				#no warnings;
 				eval 'use FCGI';
 			};
 			if($@) {
@@ -393,26 +448,46 @@ sub startCgi {
 			my $exit_requested;
 			my $handling_request;
 			local $SIG{USR1} = sub {
+				$this->log("SIGUSR1 received");
 				$exit_requested = 1;
-				die "SIGUSR1 received\n";
 			};
 			local $SIG{TERM} = sub {
+				# NB: FCGIモードでは、fastcgiマネージャから
+				#     SIGTERMが送られてくる為、
+				#     状況に応じて挙動を変更する(以下を参照)
+				# http://d.tir.jp/pw?mod_fastcgi の一番下
+				# https://192.168.0.17/mantis/view.php?id=1037
+				$this->log("SIGTERM received");
 				$exit_requested = 1;
-				die "SIGTERM received\n";
 			};
 			local $SIG{PIPE} = 'IGNORE';
 
-			my $request = FCGI::Request(
-				\*STDIN, \*STDOUT, \*STDERR, \%ENV,
-				0, FCGI::FAIL_ACCEPT_ON_INTR());
+			{
+				#no warnings;
+				$this->{fcgi_request} = FCGI::Request(
+					\*STDIN, \*STDOUT, \*STDERR, \%ENV,
+					0, FCGI::FAIL_ACCEPT_ON_INTR());
+			}
 
 			while(1) {
 				my $accepted = eval {
-					$request->Accept() >= 0;
+					#no warnings;
+					local $SIG{__DIE__} = 'DEFAULT';
+					local $SIG{USR1} = sub {
+						$exit_requested = 1;
+						die("SIGUSR1 received\n");
+					};
+					local $SIG{TERM} = sub {
+						$exit_requested = 1;
+						die("SIGTERM received\n");
+					};
+					$this->{fcgi_request}->Accept() >= 0;
 				};
 				if($@) {
 					if($exit_requested) {
 						$this->log(FCGI => "FCGI_request->Accept() interrupted : $@");
+						#no warnings;
+						$this->{fcgi_request}->Finish();
 						last;
 					}else {
 						$this->log(FCGI => "FCGI_request->Accept() failed : $@");
@@ -424,23 +499,50 @@ sub startCgi {
 					last;
 				}
 
+				if( $requestcount==0 )
+				{
+					# 最初のリクエスト受信時でプロセスの初期化.
+					if(defined(my $groups = $param->{-Session})) {
+						require Tripletail::Session;
+
+						Tripletail::Session->_init($groups);
+					}
+					$this->__executeHook('init');
+				}
+				
 				$this->__executeCgi($param->{-main});
 				$main_err = $@;
 
-				$request->Flush;
+				{
+					#no warnings;
+					$this->{fcgi_request}->Flush;
+				}
 
 				$requestcount++;
 
 				if($exit_requested || ($maxrequestcount && ($requestcount >= $maxrequestcount))) {
 					last;
 				}
+				$this->{fcgi_restart} and last;
 			}
-			$request->Finish;
+			{
+				#no warnings;
+				$this->{fcgi_request}->Finish;
+			}
+            $this->{fcgi_request} = undef;
 
-			$this->log(FCGI => 'FCGI Loop terminated.');
+			$this->log(FCGI => "FCGI Loop terminated ($requestcount reqs processed).");
 		} else {
 			# CGIモード
 			$this->log(TL => 'CGI mode');
+			
+			# プロセスの初期化.
+			if(defined(my $groups = $param->{-Session})) {
+				require Tripletail::Session;
+
+				Tripletail::Session->_init($groups);
+			}
+			$this->__executeHook('init');
 
 			$this->__executeCgi($param->{-main});
 			$main_err = $@;
@@ -470,8 +572,21 @@ sub startCgi {
 	}
 	!$@ && $main_err and $@ = $main_err;
 
-	$this;
+	if( $ENV{MOD_PERL} )
+	{
+		Apache2::Const->OK;
+	}else
+	{
+		$this;
+	}
 }
+
+sub _fcgi_restart
+{
+	my $this = shift;
+	@_ and $this->{fcgi_restart} = shift;
+	$this->{fcgi_restart};
+} 
 
 sub trapError {
 	my $this = shift;
@@ -1277,7 +1392,7 @@ sub getDebug {
 	my $this = shift;
 
 	require Tripletail::Debug;
-
+	
 	Tripletail::Debug->_getInstance(@_);
 }
 
@@ -1463,6 +1578,79 @@ sub charconv {
 	Tripletail::CharConv->_getInstance()->_charconv(@_);
 }
 
+# -----------------------------------------------------------------------------
+# ファイル関連.
+# -----------------------------------------------------------------------------
+
+sub _filecacheMax
+{
+	my $this = shift;
+	@_ and $_FILE_CACHE_MAXSIZE = shift;
+	$_FILE_CACHE_MAXSIZE;
+}
+
+sub _filecacheMemorySize
+{
+	$_FILE_CACHE_CURSIZE;
+}
+
+sub _fetchFileCache
+{
+	my $this = shift;
+	my $fpath = shift;
+	
+	my $now = time;
+	
+	my ($inode, $size, $mtime);
+	
+	if( my $cache = $_FILE_CACHE{$fpath} )
+	{
+		if( $cache->{fetch_at}==$now )
+		{
+			return $cache;
+		}
+		
+		my @st = stat($fpath);
+		@st or die __PACKAGE__."#_fetchFileCache, Failed to stat file [$fpath]: $!\n";
+		($inode, $size, $mtime) = @st[1, 7, 9];
+		if( $inode==$cache->{inode} && $size==$cache->{size} && $mtime==$cache->{mtime} )
+		{
+			$cache->{fetch_at} = $now;
+			return $cache;
+		}
+		
+		# unload.
+		$_FILE_CACHE_CURSIZE -= $cache->{cache_size};
+		delete $_FILE_CACHE{$fpath};
+	}else
+	{
+		my @st = stat($fpath);
+		@st or die __PACKAGE__."#_fetchFileCache, Failed to stat file [$fpath]: $!\n";
+		($inode, $size, $mtime) = @st[1, 7, 9];
+	}
+	
+	my $cache = {
+		inode => $inode,
+		size  => $size,
+		mtime => $mtime,
+		path  => $fpath,
+		data  => undef,
+		text  => undef,
+		
+		fetch_at   => $now,
+		cache_size => 312 + 24*5 + (25+length($fpath)) + 12*2,
+	};
+	if( $mtime < $now )
+	{
+		$_FILE_CACHE{$fpath} = $cache;
+		$_FILE_CACHE_CURSIZE += $cache->{cache_size};
+	}else
+	{
+		$cache->{cache_size} = undef;
+	}
+	$cache;
+}
+
 sub readFile {
 	my $this = shift;
 	my $fpath = shift;
@@ -1473,11 +1661,21 @@ sub readFile {
 		die __PACKAGE__."#readFile, ARG[1] was a Ref. [$fpath]\n";
 	}
 
-	open my $fh, '<', $fpath
-	  or die __PACKAGE__."#readFile, Failed to read file [$fpath]: $!\n";
+	my $cache = $this->_fetchFileCache($fpath);
+	if( !defined($cache->{data}) )
+	{
+		open my $fh, '<', $fpath
+			or die __PACKAGE__."#readFile, Failed to read file [$fpath]: $!\n";
 
-	local $/ = undef;
-	<$fh>;
+		local $/ = undef;
+		$cache->{data} = <$fh>;
+		if( $cache->{cache_size} )
+		{
+			$cache->{cache_size} += 25 + length($cache->{data});
+			$_FILE_CACHE_CURSIZE  += 25 + length($cache->{data});
+		}
+	}
+	$cache->{data};
 }
 
 sub readTextFile {
@@ -1486,12 +1684,33 @@ sub readTextFile {
 	my $coding = shift;
 	my $prefer_encode = shift;
 
-	$this->charconv(
-		$this->readFile($fpath),
-		$coding,
-		'utf8',
-		$prefer_encode,
-	);
+	my $cache = $this->_fetchFileCache($fpath);
+	if( !defined($cache->{text}) )
+	{
+		$cache->{text} = $this->charconv(
+			$this->readFile($fpath),
+			$coding,
+			'utf8',
+			$prefer_encode,
+		);
+		if( $cache->{cache_size} )
+		{
+			$cache->{cache_size} += 25 + length($cache->{text});
+			$_FILE_CACHE_CURSIZE += 25 + length($cache->{text});
+		}
+		
+		# rawデータは使わないと思うので削除.
+		if( defined($cache->{data}) )
+		{
+			if( $cache->{cache_size} )
+			{
+				$cache->{cache_size} -= 25 + length($cache->{data});
+				$_FILE_CACHE_CURSIZE -= 25 + length($cache->{data});
+			}
+			delete $cache->{data};
+		}
+	}
+	$cache->{text};
 }
 
 sub writeFile {
@@ -1541,6 +1760,9 @@ sub writeTextFile {
 	);
 }
 
+# -----------------------------------------------------------------------------
+# --
+# -----------------------------------------------------------------------------
 sub watch {
 	my $this = shift;
 
@@ -1863,6 +2085,15 @@ sub __flushContentFilter {
 	print $str;
 }
 
+sub _cwd
+{
+	$CWD ||= Cwd::cwd;
+}
+sub _clearCwd
+{
+	$CWD = undef;
+}
+
 __END__
 
 =encoding utf-8
@@ -2090,6 +2321,9 @@ FastCGIとしてプログラムを動作させるモード。httpdからfcgiス�
 C<use Tripletail> したスクリプトファイルや、その L<Ini|Tripletail::Ini> ファイルの最終更新時刻
 も監視し、更新されていたら自動的に終了する。
 
+このモードでは fork が正しく動作しない事に注意。代わりに
+L<< $TL->fork|/"fork" >> メソッドを使用する。
+
 =item 一般スクリプトモード
 
 CGIでない一般のスクリプトとしてプログラムを動作させるモード。
@@ -2149,74 +2383,9 @@ L</"Main関数"> が呼ばれた直後。
 
 =head2 METHODS
 
-=over 4
+=head3 よく使うもの
 
-=item C<< INI >>
-
-  $TL->INI
-
-C<< use Tripletail qw(filename.ini); >> で読み込まれた L<Tripletail::Ini> を返す。
-
-=item C<< CGI >>
-
-  $TL->CGI
-  $CGI
-
-リクエストを受け取った L<Tripletail::Form> オブジェクトを返す。
-また、このオブジェクトは startCgi メソッドの呼び出し元パッケージに export される。
-
-このメソッドがundefでない値を返すのは、 L</"preRequest"> フックが呼ばれる
-直前から L</"postRequest"> フックが呼ばれた直後までである。
-
-=item C<< escapeTag >>
-
-  $result = $TL->escapeTag($value)
-
-&E<lt>E<gt>"' の文字をエスケープ処理した文字列を返す。
-
-=item C<< unescapeTag >>
-
-  $result = $TL->unescapeTag($value)
-
-&E<lt>E<gt>"'&#??;&#x??; にエスケープ処理された文字を元に戻した文字列を返す。
-
-=item C<< escapeJs >>
-
-  $result = $TL->escapeJs($value)
-
-'"\ の文字を \ を付けてエスケープし，'\r' '\n' について '\\r' '\\n' に置き換える。
-
-=item C<< unescapeJs >>
-
-  $result = $TL->unescapeJs($value)
-
-escapeJs した文字列を元に戻す。
-
-=item C<< encodeURL >>
-
-  $result = $TL->encodeURL($value)
-
-文字列をURLエンコードした結果を返す。
-
-=item C<< decodeURL >>
-
-  $result = decodeURL($value)
-
-URLエンコードを解除し元に戻した文字列を返す。
-
-=item C<< escapeSqlLike >>
-
-  $result = $TL->escapeSqlLike($value)
-
-% _ \ の文字を \ でエスケープ処理した文字列を返す。
-
-=item C<< unescapeSqlLike >>
-
-  $result = $TL->unescapeSqlLike($value)
-
-\% \_ \\ にエスケープ処理された文字を元に戻した文字列を返す。
-
-=item C<< startCgi >>
+=head4 C<< startCgi >>
 
   $TL->startCgi(
     -main        => \&Main,    # メイン関数
@@ -2242,19 +2411,20 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
     -Session => ['Session1', 'Session2'],
   );
 
-=item C<< trapError >>
+通常スクリプトでは L</trapError> を参照.
 
-  $TL->trapError(
-    -main => \&Main, # メイン関数
-    -DB   => 'DB',   # DBを使う場合，iniのグループ名を指定
-  );
+=head4 C<< CGI >>
 
-環境を整え、 L</"Main関数"> を実行する。
-L</"Main関数"> がdieした場合は、エラー内容が標準エラーへ出力される。
+  $TL->CGI
+  $CGI
 
-L</"startCgi"> と同様に、C<DB> には配列へのリファレンスを渡す事も出来る。
+リクエストを受け取った L<Tripletail::Form> オブジェクトを返す。
+また、このオブジェクトは startCgi メソッドの呼び出し元パッケージに export される。
 
-=item C<< dispatch >>
+このメソッドがundefでない値を返すのは、 L</"preRequest"> フックが呼ばれる
+直前から L</"postRequest"> フックが呼ばれた直後までである。
+
+=head4 C<< dispatch >>
 
   $result = $TL->dispatch($value, default => $default, onerror => \&Error)
 
@@ -2281,105 +2451,7 @@ onerrorが設定されていた場合、関数が存在しなければ onerror�
       ...
   }
 
-=item C<< log >>
-
-  $TL->log($group => $log)
-
-ログを記録する。グループとログデータの２つを受け取る。
-
-第一引数のグループは省略可能。
-
-ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
-
-=item C<< getLogHeader >>
-
-  my $logid = $TL->getLogHeader
-
-ログを記録するときのヘッダと同じ形式の文字列を生成する。
-「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現」の形の文字列が返される。
-
-=item C<< setHook >>
-
-  $TL->setHook($type, $priority, \&func)
-
-指定タイプの指定プライオリティのフックを設定する。
-既に同一タイプで同一プライオリティのフックが設定されていた場合、
-古いフックの設定は解除される。
-
-typeは、L</"init">, L</"term">, L</"preRequest">, L</"postRequest">
-の４種類が存在する。
-
-なお、1万の整数倍のプライオリティは Tripletail 内部で使用される。アプリ
-ケーション側で不用意に用いるとフックを上書きしてしまう可能性があるので
-注意する。
-
-=item C<< removeHook >>
-
-  $TL->removeHook($type, $priority)
-
-指定タイプの指定プライオリティのフックを削除する。
-
-=item C<< setContentFilter >>
-
-  $TL->setContentFilter($classname, %option)
-  $TL->setContentFilter([$classname, $priority], %option)
-  $TL->setContentFilter('Tripletail::Filter::HTML', charset => 'Shift_JIS')
-  $TL->setContentFilter(
-      'Tripletail::Filter::CSV', charset => 'Shift_JIS', filename => 'テストデータ.csv')
-
-L</"出力フィルタ"> を設定する。
-全ての出力の前に実行する必要がある。
-２番目の書式では、プライオリティを指定して独自のコンテンツフィルタを
-追加できる。省略時は優先度は1000となる。小さい優先度のフィルタが先に、
-大きい優先度のフィルタが後に呼ばれる。同一優先度のフィルタが既に
-セットされているときは、以前のフィルタ設定は解除される。
-
-返される値は、指定された L<Tripletail::Filter> のサブクラスのインスタンスである。
-
-設定したフィルタは、L</"preRequest"> のタイミングで保存され、
-L</"postRequest"> のタイミングで元に戻される。従って、L</"Main関数">内
-で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
-されない。
-
-=item C<< getContentFilter >>
-
-  $TL->getContentFilter($priority)
-
-指定されたプライオリティのフィルタを取得する。省略時は1000となる。
-
-=item C<< removeContentFilter >>
-
-  $TL->removeContentFilter($priority)
-
-指定されたプライオリティのフィルタを削除する。省略時は1000となる。
-フィルタが１つもない場合は、致命的エラーとなり出力関数は使用できなくなる。
-
-=item C<< setInputFilter >>
-
-  $TL->setInputFilter($classname, %option)
-  $TL->setInputFilter([$classname, $priority], %option)
-
-L</"入力フィルタ"> を設定する。
-L</"startCgi"> の前に実行する必要がある。
-
-返される値は、指定された L<Tripletail::InputFilter> のサブクラスのインスタンスである。
-
-=item C<< getInputFilter >>
-
-  $TL->getInputFilter($priority)
-
-=item C<< removeInputFilter >>
-
-  $TL->removeInputFilter($priority)
-
-=item C<< sendError >>
-
-  $TL->sendError(-title => "タイトル", -error => "エラー")
-
-L<ini|Tripletail::Ini> で指定されたアドレスにエラーメールを送る。
-設定が無い場合は何もしない。
-
-=item C<< print >>
+=head4 C<< print >>
 
   $TL->print($str)
 
@@ -2389,120 +2461,64 @@ L<ini|Tripletail::Ini> で指定されたアドレスにエラーメールを送
 フィルタによってはバッファリングされる場合もあるが、
 基本的にはバッファリングされない。
 
-=item C<< location >>
+=head4 C<< location >>
 
   $TL->location('http://example.org/')
 
 CGIモードの時、指定されたURLへリダイレクトする。
 このメソッドはあらゆる出力の前に呼ばなくてはならない。 
 
-=item C<< parsePeriod >>
+=head3 変換処理
 
-  $TL->parsePeriod('10hour 30min')
+=head4 C<< escapeTag >>
 
-時間指定文字列を秒数に変換する。小数点が発生した場合は切り捨てる。
-L</"度量衡"> を参照。
+  $result = $TL->escapeTag($value)
 
-=item C<< parseQuantity >>
+&E<lt>E<gt>"' の文字をエスケープ処理した文字列を返す。
 
-  $TL->parseQuantity('100mi 50ki')
+=head4 C<< unescapeTag >>
 
-量指定文字列を元の数に変換する。
-L</"度量衡"> を参照。
+  $result = $TL->unescapeTag($value)
 
-=item C<< getCookie >>
+&E<lt>E<gt>"'&#??;&#x??; にエスケープ処理された文字を元に戻した文字列を返す。
 
-L<Tripletail::Cookie> オブジェクトを取得。
+=head4 C<< escapeJs >>
 
-=item C<< getCsv >>
+  $result = $TL->escapeJs($value)
 
-L<Tripletail::CSV> オブジェクトを取得。
+'"\ の文字を \ を付けてエスケープし，'\r' '\n' について '\\r' '\\n' に置き換える。
 
-=item C<< newDateTime >>
+=head4 C<< unescapeJs >>
 
-L<Tripletail::DateTime> オブジェクトを作成。
+  $result = $TL->unescapeJs($value)
 
-=item C<< getDB >>
+escapeJs した文字列を元に戻す。
 
-  $DB = $TL->getDB($group)
+=head4 C<< encodeURL >>
 
-L<Tripletail::DB> オブジェクトを取得。
+  $result = $TL->encodeURL($value)
 
-=item C<< newDB >>
+文字列をURLエンコードした結果を返す。
 
-  $DB = $TL->newDB($group)
+=head4 C<< decodeURL >>
 
-L<Tripletail::DB> オブジェクトを作成。
+  $result = decodeURL($value)
 
-=item C<< getFileSentinel >>
+URLエンコードを解除し元に戻した文字列を返す。
 
-L<Tripletail::FileSentinel> オブジェクトを取得。
+=head4 C<< escapeSqlLike >>
 
-=item C<< newForm >>
+  $result = $TL->escapeSqlLike($value)
 
-L<Tripletail::Form> オブジェクトを作成。
+% _ \ の文字を \ でエスケープ処理した文字列を返す。
 
-=item C<< newHtmlFilter >>
+=head4 C<< unescapeSqlLike >>
 
-L<Tripletail::HtmlFilter> オブジェクトを作成。
+  $result = $TL->unescapeSqlLike($value)
 
-=item C<< newHtmlMail >>
+\% \_ \\ にエスケープ処理された文字を元に戻した文字列を返す。
 
-L<Tripletail::HtmlMail> オブジェクトを作成。
-
-=item C<< newIni >>
-
-L<Tripletail::Ini> オブジェクトを作成。
-
-=item C<< newMail >>
-
-L<Tripletail::Mail> オブジェクトを作成。
-
-=item C<< getMemorySentinel >>
-
-L<Tripletail::MemorySentinel> オブジェクトを取得。
-
-=item C<< newPager >>
-
-L<Tripletail::Pager> オブジェクトを作成。
-
-=item C<< getRawCookie >>
-
-L<Tripletail::RawCookie> オブジェクトを取得。
-
-=item C<< newSendmail >>
-
-L<Tripletail::Sendmail> オブジェクトを作成。
-
-=item C<< newSMIME >>
-
-L<Tripletail::SMIME> オブジェクトを作成。
-
-=item C<< newTagCheck >>
-
-L<Tripletail::TagCheck> オブジェクトを作成。
-
-=item C<< newTemplate >>
-
-L<Tripletail::Template> オブジェクトを作成。
-
-=item C<< getSession >>
-
-L<Tripletail::Session> オブジェクトを取得。
-
-=item C<< newValue >>
-
-L<Tripletail::Value> オブジェクトを作成。
-
-=item C<< newValidator >>
-
-L<Tripletail::Validator> オブジェクトを生成。
-
-=item C<< newMemCached >>
-
-L<Tripletail::MemCached> オブジェクトを生成。
-
-=item C<< charconv >>
+=head4 C<< charconv >>
 
   $str = $TL->charconv($str, $from, $to, $prefer_encode);
   $str = $TL->charconv($str, [$from1, $from2, ...], $to, $prefer_encode);
@@ -2528,14 +2544,256 @@ C<$to> が省略された場合は C<'UTF-8'> になる。
 確実に指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP である。
 それ以外の場合は、L<Encode> と L<Unicode::Japanese> のどちらが使用されるかにより使用できるものが異なる。
 
-=item C<< readFile >>
+=head4 C<< parsePeriod >>
+
+  $TL->parsePeriod('10hour 30min')
+
+時間指定文字列を秒数に変換する。小数点が発生した場合は切り捨てる。
+L</"度量衡"> を参照。
+
+=head4 C<< parseQuantity >>
+
+  $TL->parseQuantity('100mi 50ki')
+
+量指定文字列を元の数に変換する。
+L</"度量衡"> を参照。
+
+=head3 インスタンス生成取得
+
+=head4 C<< getDB >>
+
+  $DB = $TL->getDB($group)
+
+L<Tripletail::DB> オブジェクトを取得。
+
+=head4 C<< newDB >>
+
+  $DB = $TL->newDB($group)
+
+L<Tripletail::DB> オブジェクトを作成。
+
+=head4 C<< newForm >>
+
+L<Tripletail::Form> オブジェクトを作成。
+
+=head4 C<< newTemplate >>
+
+L<Tripletail::Template> オブジェクトを作成。
+
+=head4 C<< getSession >>
+
+L<Tripletail::Session> オブジェクトを取得。
+
+=head4 C<< newValidator >>
+
+L<Tripletail::Validator> オブジェクトを生成。
+
+=head4 C<< newValue >>
+
+L<Tripletail::Value> オブジェクトを作成。
+
+=head4 C<< newDateTime >>
+
+L<Tripletail::DateTime> オブジェクトを作成。
+
+=head4 C<< newPager >>
+
+L<Tripletail::Pager> オブジェクトを作成。
+
+=head4 C<< getCsv >>
+
+L<Tripletail::CSV> オブジェクトを取得。
+
+=head4 C<< newTagCheck >>
+
+L<Tripletail::TagCheck> オブジェクトを作成。
+
+=head4 C<< newHtmlFilter >>
+
+L<Tripletail::HtmlFilter> オブジェクトを作成。
+
+=head4 C<< newHtmlMail >>
+
+L<Tripletail::HtmlMail> オブジェクトを作成。
+
+=head4 C<< newMail >>
+
+L<Tripletail::Mail> オブジェクトを作成。
+
+=head4 C<< newIni >>
+
+L<Tripletail::Ini> オブジェクトを作成。
+
+=head4 C<< getCookie >>
+
+L<Tripletail::Cookie> オブジェクトを取得。
+
+=head4 C<< getRawCookie >>
+
+L<Tripletail::RawCookie> オブジェクトを取得。
+
+=head4 C<< newSendmail >>
+
+L<Tripletail::Sendmail> オブジェクトを作成。
+
+=head4 C<< newSMIME >>
+
+L<Tripletail::SMIME> オブジェクトを作成。
+
+=head4 C<< getFileSentinel >>
+
+L<Tripletail::FileSentinel> オブジェクトを取得。
+
+=head4 C<< getMemorySentinel >>
+
+L<Tripletail::MemorySentinel> オブジェクトを取得。
+
+=head4 C<< newMemCached >>
+
+L<Tripletail::MemCached> オブジェクトを生成。
+
+=head3 その他
+
+=head4 C<< INI >>
+
+  $TL->INI
+
+C<< use Tripletail qw(filename.ini); >> で読み込まれた L<Tripletail::Ini> を返す。
+
+=head4 C<< trapError >>
+
+  $TL->trapError(
+    -main => \&Main, # メイン関数
+    -DB   => 'DB',   # DBを使う場合，iniのグループ名を指定
+  );
+
+環境を整え、 L</"Main関数"> を実行する。
+L</"Main関数"> がdieした場合は、エラー内容が標準エラーへ出力される。
+
+L</"startCgi"> と同様に、C<DB> には配列へのリファレンスを渡す事も出来る。
+
+=head4 C<< fork >>
+
+  if (my $pid = $TL->fork) {
+      # parent
+  }
+  else {
+      # child
+  }
+
+FastCGI 環境を考慮しながら fork を実行する。FastCGI 環境でない場合は通
+常通りに fork する。fork に失敗した場合は die する。
+
+通常は perl 組込み関数である fork を使用しても問題無いが、FastCGI 環境
+では正常に動作しない為、Tripletail アプリケーションは常に fork でなく
+C<< $TL->fork >> を使用する事が推奨される。
+
+=head4 C<< log >>
+
+  $TL->log($group => $log)
+
+ログを記録する。グループとログデータの２つを受け取る。
+
+第一引数のグループは省略可能。
+
+ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
+
+=head4 C<< setContentFilter >>
+
+  $TL->setContentFilter($classname, %option)
+  $TL->setContentFilter([$classname, $priority], %option)
+  $TL->setContentFilter('Tripletail::Filter::HTML', charset => 'Shift_JIS')
+  $TL->setContentFilter(
+      'Tripletail::Filter::CSV', charset => 'Shift_JIS', filename => 'テストデータ.csv')
+
+L</"出力フィルタ"> を設定する。
+全ての出力の前に実行する必要がある。
+２番目の書式では、プライオリティを指定して独自のコンテンツフィルタを
+追加できる。省略時は優先度は1000となる。小さい優先度のフィルタが先に、
+大きい優先度のフィルタが後に呼ばれる。同一優先度のフィルタが既に
+セットされているときは、以前のフィルタ設定は解除される。
+
+返される値は、指定された L<Tripletail::Filter> のサブクラスのインスタンスである。
+
+設定したフィルタは、L</"preRequest"> のタイミングで保存され、
+L</"postRequest"> のタイミングで元に戻される。従って、L</"Main関数">内
+で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
+されない。
+
+=head4 C<< getContentFilter >>
+
+  $TL->getContentFilter($priority)
+
+指定されたプライオリティのフィルタを取得する。省略時は1000となる。
+
+=head4 C<< removeContentFilter >>
+
+  $TL->removeContentFilter($priority)
+
+指定されたプライオリティのフィルタを削除する。省略時は1000となる。
+フィルタが１つもない場合は、致命的エラーとなり出力関数は使用できなくなる。
+
+=head4 C<< getLogHeader >>
+
+  my $logid = $TL->getLogHeader
+
+ログを記録するときのヘッダと同じ形式の文字列を生成する。
+「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現」の形の文字列が返される。
+
+=head4 C<< setHook >>
+
+  $TL->setHook($type, $priority, \&func)
+
+指定タイプの指定プライオリティのフックを設定する。
+既に同一タイプで同一プライオリティのフックが設定されていた場合、
+古いフックの設定は解除される。
+
+typeは、L</"init">, L</"term">, L</"preRequest">, L</"postRequest">
+の４種類が存在する。
+
+なお、1万の整数倍のプライオリティは Tripletail 内部で使用される。アプリ
+ケーション側で不用意に用いるとフックを上書きしてしまう可能性があるので
+注意する。
+
+=head4 C<< removeHook >>
+
+  $TL->removeHook($type, $priority)
+
+指定タイプの指定プライオリティのフックを削除する。
+
+=head4 C<< setInputFilter >>
+
+  $TL->setInputFilter($classname, %option)
+  $TL->setInputFilter([$classname, $priority], %option)
+
+L</"入力フィルタ"> を設定する。
+L</"startCgi"> の前に実行する必要がある。
+
+返される値は、指定された L<Tripletail::InputFilter> のサブクラスのインスタンスである。
+
+=head4 C<< getInputFilter >>
+
+  $TL->getInputFilter($priority)
+
+=head4 C<< removeInputFilter >>
+
+  $TL->removeInputFilter($priority)
+
+=head4 C<< sendError >>
+
+  $TL->sendError(-title => "タイトル", -error => "エラー")
+
+L<ini|Tripletail::Ini> で指定されたアドレスにエラーメールを送る。
+設定が無い場合は何もしない。
+
+=head4 C<< readFile >>
 
   $data = $TL->readFile($fpath);
 
 ファイルを読み込む。文字コード変換をしない。
 ファイルロック処理は行わないので、使用の際には注意が必要。
 
-=item C<< readTextFile >>
+=head4 C<< readTextFile >>
 
   $data = $TL->readTextFile($fpath, $coding, $prefer_encode);
 
@@ -2545,7 +2803,7 @@ C<$to> が省略された場合は C<'UTF-8'> になる。
 C<$coding> が省略された場合は C<'auto'> となる。C<$prefer_encode> を真
 にすると L<Encode> が利用可能な場合は L<Encode> で変換する。
 
-=item C<< writeFile >>
+=head4 C<< writeFile >>
 
   $TL->writeFile($fpath, $fdata, $fmode);
 
@@ -2557,7 +2815,7 @@ C<$fmode> が1ならば、追加モード。
 
 省略された場合は上書きモードとなる。
 
-=item C<< writeTextFile >>
+=head4 C<< writeTextFile >>
 
   $TL->writeTextFile($fpath, $fdata, $fmode, $coding, $prefer_encode);
 
@@ -2572,7 +2830,7 @@ C<$fmode> が1ならば、追加モード。
 C<$coding> が省略された場合、utf8として扱う。C<$prefer_encode> を真にする
 と L<Encode> が利用可能な場合は L<Encode> で変換する。
 
-=item C<< watch >>
+=head4 C<< watch >>
 
   $TL->watch(sdata => \$sdata, $reclevel);
   $TL->watch(adata => \@adata, $reclevel);
@@ -2588,7 +2846,7 @@ C<$coding> が省略された場合、utf8として扱う。C<$prefer_encode> �
 
 また、再帰的にウォッチする場合、変数名は親の変数名を利用して自動的に設定される。
 
-=item C<< dump >>
+=head4 C<< dump >>
 
   $TL->dump(\$data);
   $TL->dump(\$data, $level);
@@ -2603,7 +2861,7 @@ C<$coding> が省略された場合、utf8として扱う。C<$prefer_encode> �
 第3引数で、リファレンスをどのくらいの深さまで追うかを指定することが出来る。
 指定しなければ全て表示される。
 
-=item C<< printCacheUnlessModified >>
+=head4 C<< printCacheUnlessModified >>
 
   $bool = $TL->printCacheUnlessModified($key, $flag, $param, $charset)
 
@@ -2637,7 +2895,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 この関数からundefを返された場合、以後出力を行う操作を行ってはならない。
 
-=item C<< setCache >>
+=head4 C<< setCache >>
 
   $TL->setCache($key, $param, $charset, $priority)
 
@@ -2664,7 +2922,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるため、
 1500以上の優先度で設定するフィルタが他にある場合は手動で設定する必要がある。
 
-=item C<< deleteCache >>
+=head4 C<< deleteCache >>
 
   $TL->deleteCache($key)
 
@@ -2678,14 +2936,12 @@ Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるた
 該当するキャッシュを削除するように使用する。
 それにより、次回アクセス時に最新の情報が出力される。
 
-=item C<< getDebug >>
+=head4 C<< getDebug >>
 
-=item C<< newError >>
+=head4 C<< newError >>
 
 内部用メソッド。
 
-
-=back
 
 =head2 Ini パラメータ
 
@@ -2868,6 +3124,7 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 
 各種タイムアウト時間，セッションのexpiresなど、
 時間間隔は以下の指定が可能とする。
+数値化には L</parsePeriod> を使用する. 
 
 単位は大文字小文字を区別しない。
 
@@ -2907,6 +3164,8 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 
 メモリサイズ、文字列サイズ等、大きさを指定する場合には、
 以下の指定が可能とする。英字の大文字小文字は同一視する。
+
+数値化には L</parseQuantity> を使用する. 
 
 =head4 10進数系
 

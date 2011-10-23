@@ -39,6 +39,7 @@ WriteMakefile(
     VERSION_FROM        => 'lib/Tripletail.pm',
     ABSTRACT_FROM       => 'lib/Tripletail.pm',
     PL_FILES            => {},
+    EXE_FILES           => [qw(bin/tltail.pl)],
     PREREQ_PM => {
         %$build_requires,
         %$requires,

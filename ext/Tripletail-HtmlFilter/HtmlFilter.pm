@@ -126,7 +126,7 @@ sub _compile_matcher {
 		if (ref($reg) eq 'Regexp') {
 			# コンパイル済み正規表現だった。
 			push @$ret, sub {
-				return 1 if $_[0] =~ m/$reg/o;
+				return 1 if $_[0] =~ $reg;
 			};
 		}
 		else {
@@ -182,8 +182,8 @@ sub _next_pp {
 sub __next_elem_pp {
 	my $this = shift;
 	my $str = shift;
-	my ($interested,$parsed);
-	my $elem = $this->[CONTEXT]->newElement->parse($str);
+	my $elem = $this->[CONTEXT]->newElement;
+	$elem->parse($str);
 	my $elem_name = $elem->name;
 
 	my $is_matched = sub {
@@ -206,6 +206,7 @@ sub __next_elem_pp {
 		undef;
 	};
 
+	my ($interested,$parsed);
 	if (defined $elem_name) {
 		my ($close,$nameonly) = $elem_name =~ /^(\/?)(.*)/;
 		
@@ -237,6 +238,9 @@ sub _output {
 }
 
 
+# =============================================================================
+# Tripletail::HtmlFilter::Context.
+#
 package Tripletail::HtmlFilter::Context;
 use constant {
 	IN      => 0,
@@ -370,6 +374,9 @@ sub _flush {
     $this;
 }
 
+# =============================================================================
+# Tripletail::HtmlFilter::ElementBase.
+#
 package Tripletail::HtmlFilter::ElementBase;
 sub isElement {
     my $this = shift;
@@ -386,6 +393,9 @@ sub isComment {
     (ref $this) eq 'Tripletail::HtmlFilter::Comment';
 }
 
+# =============================================================================
+# Tripletail::HtmlFilter::Element.
+#
 package Tripletail::HtmlFilter::Element;
 use constant {
 	# 注意: ここを変更した時は XS 側も修正する事。
@@ -529,22 +539,22 @@ sub toStr {
     my $this = shift;
     my $str = '<' . $this->[NAME];
     
-    my $attrs = join(
-		' ',
-		map {
-			sprintf '%s="%s"', @$_;
-		} @{$this->[ATTRS]});
-    if (length $attrs) {
-		$str .= ' ' . $attrs;
-    }
-
-    if (defined $this->[TAIL] and length $this->[TAIL]) {
+	foreach my $attr (@{$this->[ATTRS]})
+	{
+	   $str .= qq{ $attr->[0]="$attr->[1]"};
+	}
+	
+    if( defined $this->[TAIL] and length $this->[TAIL] )
+	{
 		$str .= ' ' . $this->[TAIL];
     }
-
-    $str . '>';
+	
+    $str .= '>';
 }
 
+# =============================================================================
+# Tripletail::HtmlFilter::Text.
+#
 package Tripletail::HtmlFilter::Text;
 use constant {
 	STR => 0,
@@ -578,6 +588,9 @@ sub toStr {
     $this->[STR];
 }
 
+# =============================================================================
+# Tripletail::HtmlFilter::Comment.
+#
 package Tripletail::HtmlFilter::Comment;
 our @ISA = qw(Tripletail::HtmlFilter::Text);
 use constant {

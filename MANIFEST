@@ -3,6 +3,7 @@ MANIFEST
 Makefile.PL
 README
 SIGNATURE
+bin/tltail.pl
 data/jpholiday.pl
 doc/Makefile.PL
 doc/Tripletail.html
@@ -190,5 +191,6 @@ t/v018.t
 t/v019_validate_int.t
 t/v021_spaces.t
 t/validator.t
+t/validator_correct.t
 t/value.t
 META.yml                                 Module meta-data (added by MakeMaker)

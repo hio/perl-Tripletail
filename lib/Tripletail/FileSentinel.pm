@@ -80,9 +80,8 @@ sub __postRequest {
 		if($current != $lastmod) {
 			my $time = localtime($current);
 
-			die $TL->newError(
-				'file-update' => "file [$fpath] has been changed at [$time]",
-				"File Update: $fpath");
+			$TL->log("File Update: file [$fpath] has been changed at [$time]");
+			$TL->_fcgi_restart(1);
 		}
 	}
 }

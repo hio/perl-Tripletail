@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-mysql.t,v 1.2 2007/03/08 07:27:08 hio Exp $
+# $Id: db-mysql.t,v 1.3 2007/04/16 02:42:45 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -49,12 +49,12 @@ if( !$DBINFO{dbname} )
 # -----------------------------------------------------------------------------
 # test spec.
 # -----------------------------------------------------------------------------
-plan tests => 1+3+25+24+15+5;
+plan tests => 1+3+26+25+15+5;
 
 &test_setup; #1.
 &test_getdb; #3.
-&test_misc;  #25.
-&test_tx_transaction; #24.
+&test_misc;  #26.
+&test_tx_transaction; #25.
 &test_old_transaction;  #15.
 &test_locks;  #5.
 
@@ -147,6 +147,7 @@ sub test_misc
 				is($row2, undef, '[misc] no second record');
 				
 				is($DB->getLastInsertId(), 4, '[misc] getLastInsertId()');
+				is($DB->getLastInsertId(\'DBSET_test'), 4, '[misc] getLastInsertId() with dbname');
 				SKIP:{
 					#is($DB->getDbh()->func('last_insertid'), 4, '[misc] lastid via dbh func');
 					skip("[misc] no lastid dbh func", 1);
@@ -248,6 +249,7 @@ sub test_tx_transaction
 			# create test data (blue red yellow green aqua cyan)
 			_create_table_colors($DB);
 			is $DB->getLastInsertId(), 6, "[tx_tran] lastid";
+			is $DB->getLastInsertId(\'DBSET_test'), 6, "[tx_tran] lastid with dbname";
 			{
 				my $s = $DB->selectAllHash("SELECT * FROM test_colors");
 				is(@$s, 6, '[tx_tran] implicit commit, 6 records in tx');

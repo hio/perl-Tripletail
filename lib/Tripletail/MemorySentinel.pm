@@ -125,15 +125,19 @@ sub __postRequest {
 	my $initial = $this->{initial};
 	my $current = $this->getMemorySize;
 	my $allowed = $this->getTotalPermissibleSize;
-	my $remaining = $initial + $allowed - $current;
+	my $filecache = $TL->_filecacheMemorySize;
+	my $remaining = $initial + $filecache + $allowed - $current;
+	# [=initial=========][=filecache==][=allowed=======]
+	# [=current==============================][=remain=]
 
 	my $mem_usage = sprintf(
 		"Memory Usage: \n".
 		"  [current: %s KiB]\n".
 		"  [initial: %s KiB]\n".
+		"  [filecache: %s KiB]\n".
 		"  [allowed: %s KiB]\n".
 		"  [remaining: %s KiB]",
-		$current, $initial, $allowed, $remaining);
+		$current, $initial, $filecache, $allowed, $remaining);
 
 	my $switch = $TL->INI->get(TL => 'memorylog', 'leak');
 	if (($switch eq 'leak' and $remaining < 0) or $switch eq 'full') {
@@ -148,11 +152,8 @@ sub __postRequest {
 	}
 
 	if ($remaining < 0) {
-		die $TL->newError(
-			'memory-leak' =>
-			  "Tripletail::MemorySentinel detected a possible memory leak.\n\n".
-				$mem_usage,
-			"Memory Leak");
+		$TL->log("Tripletail::MemorySentinel detected a possible memory leak.\n\n$mem_usage");
+		$TL->_fcgi_restart(1);
 	}
 }
 

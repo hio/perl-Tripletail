@@ -84,6 +84,7 @@ sub __pairsFromUrlEncoded {
 			my $limit = $TL->parseQuantity(
 				$TL->INI->get(TL => 'maxrequestsize', '8Mi'));
 			if ($ENV{CONTENT_LENGTH} > $limit) { # ファイルは無い
+				$TL->log("Post Error: request size [$ENV{CONTENT_LENGTH}] was too big to accept [limit:$limit].");
 				die __PACKAGE__.", Post Error: request size was too big to accept.";
 			}
 

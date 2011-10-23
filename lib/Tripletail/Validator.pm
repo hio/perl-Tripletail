@@ -33,16 +33,16 @@ sub addFilter {
 				}
 			);
 		}
-		$TL->log(
-			'Tripletail::Validator' => qq/addFilter { $key } : / . join(
-				', ',
-				map {
-					    $_->{filter}
-					  . ( defined( $_->{args} )    ? qq{($_->{args})}    : '' )
-					  . ( defined( $_->{message} ) ? qq{[$_->{message}]} : '' )
-				  } @{ $this->{_filters}->{$key} }
-			)
-		);
+#		$TL->log(
+#			'Tripletail::Validator' => qq/addFilter { $key } : / . join(
+#				', ',
+#				map {
+#					    $_->{filter}
+#					  . ( defined( $_->{args} )    ? qq{($_->{args})}    : '' )
+#					  . ( defined( $_->{message} ) ? qq{[$_->{message}]} : '' )
+#				  } @{ $this->{_filters}->{$key} }
+#			)
+#		);
 	}
 
 	return $this;
@@ -51,34 +51,62 @@ sub addFilter {
 sub check {
 	my $this = shift;
 	my $form = shift;
+	# correctフィルタがある場合はエラーとする
+	foreach my $key ( keys %{ $this->{_filters} } ) {
+		foreach my $filter ( @{ $this->{_filters}->{$key} } ) {
+			if(Tripletail::Validator::FilterFactory::getFilter($filter->{filter})->isCorrectFilter) {
+				die "Tripletail::Validator#check, Can't use correct filter.\n";
+			}
+		}
+	}
+	$this->_execFilter($form, 0);
+}
+
+sub correct {
+	my $this = shift;
+	my $form = shift;
+	if($form->isConst) {
+		die "Tripletail::Validator#correct, Form instance is const object.\n";
+	}
+	$this->_execFilter($form, 1);
+}
+sub _execFilter {
+	my $this = shift;
+	my $form = shift;
+	my $allowmodify = shift;
 	my $onfail;
 	my $error;
 
 	foreach my $key ( keys %{ $this->{_filters} } ) {
+		my @values = $form->getValues($key);
 		foreach my $filter ( @{ $this->{_filters}->{$key} } ) {
-			my @values = $form->getValues($key);
-			my $diag = do
-			{
-				my $vals = join(', ', @values);
-				my $diag = "{ $key => [$vals] } : $filter->{filter}";
-				defined($filter->{args}) and $diag .= "($filter->{args})";
-				defined($filter->{message}) and $diag .= "[$filter->{message}]";
-				$diag;
-			};
+#			my $diag = do
+#			{
+#				my $vals = join(', ', @values);
+#				my $diag = "{ $key => [$vals] } : $filter->{filter}";
+#				defined($filter->{args}) and $diag .= "($filter->{args})";
+#				defined($filter->{message}) and $diag .= "[$filter->{message}]";
+#				$diag;
+#			};
 			
+			my @oldvalues = @values;
 			my $res = Tripletail::Validator::FilterFactory::getFilter( $filter->{filter} )->doFilter( \@values, $filter->{args} );
+			if( !$allowmodify )
+			{
+				@values = @oldvalues;
+			}
 			if( !$res )
 			{
-				$TL->log( 'Tripletail::Validator' => "ok $diag");
+#				$TL->log( 'Tripletail::Validator' => "ok $diag");
 				next;
 			}
 			
 			if( ref($res) )
 			{
-				$TL->log( 'Tripletail::Validator' => "ok and skip $diag");
+#				$TL->log( 'Tripletail::Validator' => "ok and skip $diag");
 			}else
 			{
-				$TL->log( 'Tripletail::Validator' => "error $diag");
+#				$TL->log( 'Tripletail::Validator' => "error $diag");
 				
 				$error->{$key} =
 				  defined( $filter->{message} )
@@ -87,6 +115,7 @@ sub check {
 			}
 			last;
 		}
+		$form->set($key => \@values) if $allowmodify;
 	}
 	if( $error && $onfail )
 	{
@@ -182,8 +211,30 @@ Tripletail::Validator オブジェクトを作成。
 
 ２番目の引数に関数リファレンスを渡すと, エラー時にそれが呼ばれる。
 エラーがなかった場合には呼ばれない。
-引数として、１つめに check メソッドが返すのと同じハッシュを,
-２つめに文字列でのエラーメッセージを渡す.
+引数として、１つめに check メソッドが返すのと同じハッシュを、
+２つめに文字列でのエラーメッセージを渡す。
+
+変更用フィルタを使用しようとした場合はエラーを返す。
+
+=item correct
+
+  $error = $validator->correct($form)
+  $error = $validator->correct($form, sub{...} )
+
+設定したフィルタを利用して、フォームの値を検証する。
+また、変更用フィルタを使った場合はフォームの値を修正する。
+
+それぞれのフォームのキーに対してエラーがあれば、「[message]」、
+もしくは指定がない場合はフィルタ名を値としたハッシュリファレンスを返す。
+エラーがなければ、そのキーは含まれない。
+
+２番目の引数に関数リファレンスを渡すと, エラー時にそれが呼ばれる。
+エラーがなかった場合には呼ばれない。
+引数として、１つめに check メソッドが返すのと同じハッシュを、
+２つめに文字列でのエラーメッセージを渡す。
+
+$form に const メソッドが呼ばれた Form オブジェクトが渡された場合、
+エラーを返す。
 
 =item getKeys
 
@@ -195,7 +246,7 @@ Tripletail::Validator オブジェクトを作成。
 
 =head2 フィルタ一覧
 
-=head3 組み込みフィルタ
+=head3 組み込みcheckフィルタ
 
 =over 4
 
@@ -358,6 +409,121 @@ $checkmaskは空白で区切って複数個指定する事が可能。
 =item RegExp($regexp)
 
 指定の正規表現に該当するかをチェックする。指定値がない場合には、エラー。
+
+=back
+
+=head3 組み込みcorrectフィルタ
+
+L</correct> で使用できる変更用フィルタ。
+L</correct> では check フィルタと correct フィルタの
+両方を利用できるが、L</check> で correct フィルタを使用した場合には
+エラーとなる。
+
+=over 4
+
+=item ConvHira
+
+ひらがなに変換する。
+L<Tripletail::Value/convHira>。
+
+=item ConvKata
+
+カタカナに変換する。
+L<Tripletail::Value/convKata>。
+
+=item ConvNumber
+
+半角数字に変換する。
+L<Tripletail::Value/convNumber>。
+
+=item ConvNarrow
+
+全角文字を半角に変換する。
+L<Tripletail::Value/convNarrow>。
+
+=item ConvWide
+
+半角文字を全角に変換する。
+L<Tripletail::Value/convWide>。
+
+=item ConvKanaNarrow
+
+全角カタカナを半角に変換する。
+L<Tripletail::Value/convKanaNarrow>。
+
+=item ConvKanaWide
+
+半角カタカナを全角に変換する。
+L<Tripletail::Value/convKanaWide>。
+
+=item ConvComma
+
+半角数字を3桁区切りのカンマ表記に変換する。
+L<Tripletail::Value/convComma>。
+
+=item ConvLF
+
+改行コードを LF (\n) に変換する。
+L<Tripletail::Value/convLF>。
+
+
+=item ConvBR
+
+改行コードを <BR>\n に変換する。
+L<Tripletail::Value/convBR>。
+
+=item ForceHira
+
+ひらがな以外の文字は削除。
+L<Tripletail::Value/forceHira>。
+
+=item ForceKata
+
+カタカナ以外の文字は削除。
+L<Tripletail::Value/forceKata>。
+
+=item ForceNumber
+
+半角数字以外の文字は削除。
+L<Tripletail::Value/forceNumber>。
+
+=item ForceMin($max,$val)
+
+半角数字以外の文字を削除し、min未満なら$valをセットする。$val省略時はundefをセットする。
+L<Tripletail::Value/forceMin($max,$val)>。
+
+=item ForceMax($max,$val)
+
+半角数字以外の文字を削除し、maxより大きければ$valをセットする。$val省略時はundefをセットする。
+L<Tripletail::Value/forceMax($max,$val)>。
+
+=item ForceMaxLen($max)
+
+最大バイト数を指定。超える場合はそのバイト数までカットする。
+L<Tripletail::Value/forceMaxLen($max)>。
+
+=item ForceMaxUtf8Len($max)
+
+UTF-8での最大バイト数を指定。
+超える場合はそのバイト数以下まで
+UTF-8の文字単位でカットする。
+L<Tripletail::Value/forceMaxUtf8Len($max)>。
+
+=item ForceMaxSjisLen($max)
+
+SJISでの最大バイト数を指定。超える場合はそのバイト数以下まで
+SJISの文字単位でカットする。
+L<Tripletail::Value/forceMaxSjisLen($max)>。
+
+=item ForceMaxCharLen($max)
+
+最大文字数を指定。超える場合はその文字数以下までカットする。
+L<Tripletail::Value/forceMaxCharLen($max)>。
+
+=item TrimWhitespace
+
+値の前後に付いている半角/全角スペース、タブを削除する。
+L<Tripletail::Value/trimWhitespace>。
 
 =back
 

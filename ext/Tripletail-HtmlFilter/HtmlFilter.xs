@@ -5,7 +5,7 @@
  *
  * Copyright 2005 YAMASHINA Hio
  * ----------------------------------------------------------------------------
- * $Id: HtmlFilter.xs,v 1.15 2006/12/04 09:33:59 hio Exp $
+ * $Id: HtmlFilter.xs,v 1.16 2007/04/16 02:23:54 hio Exp $
  * ------------------------------------------------------------------------- */
 
 #include "EXTERN.h"
@@ -104,11 +104,11 @@ static SV*
 _get_from_this_as_sv(AV* this_av, int key) {
 	SV** ret = av_fetch(this_av, key, 0);
 
-	if (ret == NULL) {
-		return &PL_sv_undef;
+	if (ret != NULL) {
+		return *ret;
 	}
 	else {
-		return *ret;
+		return &PL_sv_undef;
 	}
 }
 

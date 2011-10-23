@@ -165,7 +165,7 @@ sub begin {
 
 	my $sql = $this->__nameQuery('BEGIN', $dbh);
 
-	$TL->getDebug->_dbLog(
+	$TL->getDebug->_dbLog(sub{
 		group   => $this->{group},
 		set     => $dbh->getSetName,
 		db      => $dbh->getGroup,
@@ -173,7 +173,7 @@ sub begin {
 		query   => $sql,
 		params  => [],
 		elapsed => $elapsed,
-	);
+	});
 
 	$this->{trans_dbh} = $dbh;
 	$this;
@@ -200,7 +200,7 @@ sub rollback {
 
 	my $sql = $this->__nameQuery('ROLLBACK', $dbh);
 
-	$TL->getDebug->_dbLog(
+	$TL->getDebug->_dbLog(sub{
 		group   => $this->{group},
 		set     => $dbh->getSetName,
 		db      => $dbh->getGroup,
@@ -208,7 +208,7 @@ sub rollback {
 		query   => $sql,
 		params  => [],
 		elapsed => $elapsed,
-	);
+	});
 
 	$this->{trans_dbh} = undef;
 	$this;
@@ -235,7 +235,7 @@ sub commit {
 
 	my $sql = $this->__nameQuery('COMMIT', $dbh);
 
-	$TL->getDebug->_dbLog(
+	$TL->getDebug->_dbLog(sub{
 		group   => $this->{group},
 		set     => $dbh->getSetName,
 		db      => $dbh->getGroup,
@@ -243,7 +243,7 @@ sub commit {
 		query   => $sql,
 		params  => [],
 		elapsed => $elapsed,
-	);
+	});
 
 	$this->{trans_dbh} = undef;
 	$this;
@@ -409,7 +409,7 @@ sub execute {
 		};
 		if($@) {
 			my $elapsed = Time::HiRes::tv_interval($begintime);
-			$TL->getDebug->_dbLog(
+			$TL->getDebug->_dbLog(sub{
 				group   => $this->{group},
 				set     => $dbh->getSetName,
 				db      => $dbh->getGroup,
@@ -419,7 +419,7 @@ sub execute {
 				elapsed => $elapsed,
 				names   => $sth->nameArray,
 				error   => 1,
-			);
+			});
 
 			die $@;
 		} else {
@@ -429,7 +429,7 @@ sub execute {
 	}
 
 	my $elapsed = Time::HiRes::tv_interval($begintime);
-	$TL->getDebug->_dbLog(
+	$TL->getDebug->_dbLog(sub{
 		group   => $this->{group},
 		set     => $dbh->getSetName,
 		db      => $dbh->getGroup,
@@ -438,7 +438,7 @@ sub execute {
 		params  => \@_,
 		elapsed => $elapsed,
 		names   => $sth->nameArray,
-	);
+	});
 
 	$sth;
 }
@@ -556,7 +556,7 @@ sub lock {
 	$dbh->{locked} = 1;
 
 	my $elapsed = Time::HiRes::tv_interval($begintime);
-	$TL->getDebug->_dbLog(
+	$TL->getDebug->_dbLog(sub{
 		group   => $this->{group},
 		set     => $dbh->getSetName,
 		db      => $dbh->getGroup,
@@ -564,7 +564,7 @@ sub lock {
 		query   => $sql,
 		params  => [],
 		elapsed => $elapsed,
-	);
+	});
 
 	$this->{locked_dbh} = $dbh;
 	$this;
@@ -586,7 +586,7 @@ sub unlock {
 	$dbh->{locked} = undef;
 
 	my $elapsed = Time::HiRes::tv_interval($begintime);
-	$TL->getDebug->_dbLog(
+	$TL->getDebug->_dbLog(sub{
 		group   => $this->{group},
 		set     => $dbh->getSetName,
 		db      => $dbh->getGroup,
@@ -594,7 +594,7 @@ sub unlock {
 		query   => $sql,
 		params  => [],
 		elapsed => $elapsed,
-	);
+	});
 
 	$this->{locked_dbh} = undef;
 	$this;
@@ -615,10 +615,20 @@ sub setBufferSize {
 sub getLastInsertId
 {
 	my $this = shift;
-	my $dbh = $this->{trans_dbh};
-	$dbh ||= $this->{locked_dbh};
-	$dbh ||= $this->{dbh}{$this->_getDbSetName};
-	$dbh->getLastInsertId();
+	my $dbh;
+	if( @_ && ref($_[0]) )
+	{
+		my $dbset_ref = shift;
+		$dbh ||= $this->{dbh}{$$dbset_ref};
+		$dbh or warn Dumper([keys %{$this->{dbh}}]); use Data::Dumper;
+		$dbh or die "no such dbset: $$dbset_ref";
+	}else
+	{
+		$dbh ||= $this->{trans_dbh};
+		$dbh ||= $this->{locked_dbh};
+		$dbh ||= $this->{dbh}{$this->_getDbSetName};
+	}
+	$dbh->getLastInsertId(@_);
 }
 
 sub symquote {
@@ -1373,13 +1383,13 @@ sub fetchHash {
 	my $hash = $this->{sth}->fetchrow_hashref;
 
 	if($hash) {
-		$TL->getDebug->_dbLogData(
+		$TL->getDebug->_dbLogData(sub{
 			group   => $this->{group},
 			set     => $this->{set}{name},
 			db      => $this->{dbh}{inigroup},
 			id      => $this->{id},
 			data    => $hash,
-		);
+		});
 	}
 	if( $this->{dbh}{fetchconvert} )
 	{
@@ -1412,13 +1422,13 @@ sub fetchArray {
 		$this->{dbh}->$sub($this, fetchArray => $array);
 	}
 	if($array) {
-		$TL->getDebug->_dbLogData(
+		$TL->getDebug->_dbLogData(sub{
 			group   => $this->{group},
 			set     => $this->{set}{name},
 			db      => $this->{dbh}{inigroup},
 			id      => $this->{id},
 			data    => $array,
-		);
+		});
 	}
 
 	if(my $lim = $this->{db_center}{bufsize}) {

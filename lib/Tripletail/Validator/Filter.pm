@@ -9,6 +9,15 @@ use warnings;
 package Tripletail::Validator::Filter;
 use Tripletail;
 
+my @correctFilterNames = (
+	'ConvHira','ConvKata','ConvNumber','ConvNarrow','ConvWide',
+	'ConvKanaNarrow','ConvKanaWide','ConvComma','ConvLF','ConvBR',
+	'ForceHira','ForceKata','ForceNumber','ForceMin($max,$val)',
+	'ForceMax($max,$val)','ForceMaxLen($max)','ForceMaxUtf8Len($max)',
+	'ForceMaxSjisLen($max)','ForceMaxCharLen($max)','TrimWhitespace'
+	);
+
+
 #---------------------------------- 一般
 sub new {
 	my $class = shift;
@@ -17,6 +26,60 @@ sub new {
 
 sub doFilter {
 	die "call to abstract method";
+}
+
+sub isCorrectFilter {
+	my $this = shift;
+	return 0;
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::Conv*
+# Tripletail::Validator::Filter::Force*
+# Tripletail::Value conv系 force系 メソッドからフィルタを生成する
+# -----------------------------------------------------------------------------
+foreach my $filterName (@correctFilterNames) {
+	my ($className, $methodName, $argList, $argAssign);
+	if ($filterName =~ /(\w+) (\( \$\w+ (?: \,\$\w+ )* \))? /x) {
+		$methodName = $className = $1;
+		if ($2) {
+			$argList = $2;
+			$argAssign = "my $argList = defined(\$args) ? map { \$_ ne '' ? \$_ : undef } split( ',', \$args ) : ();"
+		}else{
+			$argList = '()';
+			$argAssign = '';
+		}
+		$methodName =~ s/^[A-Z]/lc($&)/e;
+	}else{
+		die "invalid filter name Tripletail::Validator::Filter::$filterName.";
+		next;
+	}
+
+	#ソースを eval してフィルタクラスを有効化する
+	eval <<END_OF_PACKAGE_SOURCE;
+		package Tripletail::Validator::Filter::$className;
+		use Tripletail;
+		
+		use base qw{Tripletail::Validator::Filter};
+		
+		sub doFilter {
+			my \$this   = shift;
+			my \$values = shift;
+			my \$args = shift;
+		
+			$argAssign
+			map { \$_ = \$TL->newValue(\$_)->$methodName$argList->get() } \@\$values;
+			return 0;
+		}
+		
+		sub isCorrectFilter {
+			my \$this = shift;
+			return 1;
+		}
+
+		1;
+END_OF_PACKAGE_SOURCE
+	die $@ if $@;
 }
 
 # -----------------------------------------------------------------------------
@@ -517,6 +580,8 @@ sub doFilter {
 	return grep { !$TL->newValue($_)->isZipCode() } @$values;
 }
 
+1;
+
 __END__
 
 =encoding utf-8
@@ -536,6 +601,11 @@ L<Tripletail::Validator> 参照
 =item doFilter
 
 内部メソッド
+
+=item isCorrectFilter
+
+内部メソッド。
+フィルタが値を変更するかどうかを返す。
 
 =item new
 

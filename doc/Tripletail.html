@@ -87,6 +87,351 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <span class="pod_lang">METHODS
 
 </span></a>
+<ul>
+<li><a href="#Xe3X82X88Xe3X81X8fXe4XbdXbfXe3X81X86Xe3X82X82Xe3X81Xae">
+<span class="pod_lang">よく使うもの
+
+</span></a>
+<ul>
+<li><a href="#startCgi">
+<span class="pod_lang"><code class="pod_iseq_C">startCgi</code>
+
+</span></a>
+</li>
+<li><a href="#CGI">
+<span class="pod_lang"><code class="pod_iseq_C">CGI</code>
+
+</span></a>
+</li>
+<li><a href="#dispatch">
+<span class="pod_lang"><code class="pod_iseq_C">dispatch</code>
+
+</span></a>
+</li>
+<li><a href="#print">
+<span class="pod_lang"><code class="pod_iseq_C">print</code>
+
+</span></a>
+</li>
+<li><a href="#location">
+<span class="pod_lang"><code class="pod_iseq_C">location</code>
+
+</span></a>
+</li>
+</ul>
+</li>
+<li><a href="#Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86">
+<span class="pod_lang">変換処理
+
+</span></a>
+<ul>
+<li><a href="#escapeTag">
+<span class="pod_lang"><code class="pod_iseq_C">escapeTag</code>
+
+</span></a>
+</li>
+<li><a href="#unescapeTag">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeTag</code>
+
+</span></a>
+</li>
+<li><a href="#escapeJs">
+<span class="pod_lang"><code class="pod_iseq_C">escapeJs</code>
+
+</span></a>
+</li>
+<li><a href="#unescapeJs">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeJs</code>
+
+</span></a>
+</li>
+<li><a href="#encodeURL">
+<span class="pod_lang"><code class="pod_iseq_C">encodeURL</code>
+
+</span></a>
+</li>
+<li><a href="#decodeURL">
+<span class="pod_lang"><code class="pod_iseq_C">decodeURL</code>
+
+</span></a>
+</li>
+<li><a href="#escapeSqlLike">
+<span class="pod_lang"><code class="pod_iseq_C">escapeSqlLike</code>
+
+</span></a>
+</li>
+<li><a href="#unescapeSqlLike">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeSqlLike</code>
+
+</span></a>
+</li>
+<li><a href="#charconv">
+<span class="pod_lang"><code class="pod_iseq_C">charconv</code>
+
+</span></a>
+</li>
+<li><a href="#parsePeriod">
+<span class="pod_lang"><code class="pod_iseq_C">parsePeriod</code>
+
+</span></a>
+</li>
+<li><a href="#parseQuantity">
+<span class="pod_lang"><code class="pod_iseq_C">parseQuantity</code>
+
+</span></a>
+</li>
+</ul>
+</li>
+<li><a href="#Xe3X82Xa4Xe3X83Xb3Xe3X82Xb9Xe3X82XbfXe3X83Xb3Xe3X82Xb9Xe7X94X9fXe6X88X90Xe5X8fX96Xe5XbeX97">
+<span class="pod_lang">インスタンス生成取得
+
+</span></a>
+<ul>
+<li><a href="#getDB">
+<span class="pod_lang"><code class="pod_iseq_C">getDB</code>
+
+</span></a>
+</li>
+<li><a href="#newDB">
+<span class="pod_lang"><code class="pod_iseq_C">newDB</code>
+
+</span></a>
+</li>
+<li><a href="#newForm">
+<span class="pod_lang"><code class="pod_iseq_C">newForm</code>
+
+</span></a>
+</li>
+<li><a href="#newTemplate">
+<span class="pod_lang"><code class="pod_iseq_C">newTemplate</code>
+
+</span></a>
+</li>
+<li><a href="#getSession">
+<span class="pod_lang"><code class="pod_iseq_C">getSession</code>
+
+</span></a>
+</li>
+<li><a href="#newValidator">
+<span class="pod_lang"><code class="pod_iseq_C">newValidator</code>
+
+</span></a>
+</li>
+<li><a href="#newValue">
+<span class="pod_lang"><code class="pod_iseq_C">newValue</code>
+
+</span></a>
+</li>
+<li><a href="#newDateTime">
+<span class="pod_lang"><code class="pod_iseq_C">newDateTime</code>
+
+</span></a>
+</li>
+<li><a href="#newPager">
+<span class="pod_lang"><code class="pod_iseq_C">newPager</code>
+
+</span></a>
+</li>
+<li><a href="#getCsv">
+<span class="pod_lang"><code class="pod_iseq_C">getCsv</code>
+
+</span></a>
+</li>
+<li><a href="#newTagCheck">
+<span class="pod_lang"><code class="pod_iseq_C">newTagCheck</code>
+
+</span></a>
+</li>
+<li><a href="#newHtmlFilter">
+<span class="pod_lang"><code class="pod_iseq_C">newHtmlFilter</code>
+
+</span></a>
+</li>
+<li><a href="#newHtmlMail">
+<span class="pod_lang"><code class="pod_iseq_C">newHtmlMail</code>
+
+</span></a>
+</li>
+<li><a href="#newMail">
+<span class="pod_lang"><code class="pod_iseq_C">newMail</code>
+
+</span></a>
+</li>
+<li><a href="#newIni">
+<span class="pod_lang"><code class="pod_iseq_C">newIni</code>
+
+</span></a>
+</li>
+<li><a href="#getCookie">
+<span class="pod_lang"><code class="pod_iseq_C">getCookie</code>
+
+</span></a>
+</li>
+<li><a href="#getRawCookie">
+<span class="pod_lang"><code class="pod_iseq_C">getRawCookie</code>
+
+</span></a>
+</li>
+<li><a href="#newSendmail">
+<span class="pod_lang"><code class="pod_iseq_C">newSendmail</code>
+
+</span></a>
+</li>
+<li><a href="#newSMIME">
+<span class="pod_lang"><code class="pod_iseq_C">newSMIME</code>
+
+</span></a>
+</li>
+<li><a href="#getFileSentinel">
+<span class="pod_lang"><code class="pod_iseq_C">getFileSentinel</code>
+
+</span></a>
+</li>
+<li><a href="#getMemorySentinel">
+<span class="pod_lang"><code class="pod_iseq_C">getMemorySentinel</code>
+
+</span></a>
+</li>
+<li><a href="#newMemCached">
+<span class="pod_lang"><code class="pod_iseq_C">newMemCached</code>
+
+</span></a>
+</li>
+</ul>
+</li>
+<li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">
+<span class="pod_lang">その他
+
+</span></a>
+<ul>
+<li><a href="#INI">
+<span class="pod_lang"><code class="pod_iseq_C">INI</code>
+
+</span></a>
+</li>
+<li><a href="#trapError">
+<span class="pod_lang"><code class="pod_iseq_C">trapError</code>
+
+</span></a>
+</li>
+<li><a href="#fork">
+<span class="pod_lang"><code class="pod_iseq_C">fork</code>
+
+</span></a>
+</li>
+<li><a href="#log">
+<span class="pod_lang"><code class="pod_iseq_C">log</code>
+
+</span></a>
+</li>
+<li><a href="#setContentFilter">
+<span class="pod_lang"><code class="pod_iseq_C">setContentFilter</code>
+
+</span></a>
+</li>
+<li><a href="#getContentFilter">
+<span class="pod_lang"><code class="pod_iseq_C">getContentFilter</code>
+
+</span></a>
+</li>
+<li><a href="#removeContentFilter">
+<span class="pod_lang"><code class="pod_iseq_C">removeContentFilter</code>
+
+</span></a>
+</li>
+<li><a href="#getLogHeader">
+<span class="pod_lang"><code class="pod_iseq_C">getLogHeader</code>
+
+</span></a>
+</li>
+<li><a href="#setHook">
+<span class="pod_lang"><code class="pod_iseq_C">setHook</code>
+
+</span></a>
+</li>
+<li><a href="#removeHook">
+<span class="pod_lang"><code class="pod_iseq_C">removeHook</code>
+
+</span></a>
+</li>
+<li><a href="#setInputFilter">
+<span class="pod_lang"><code class="pod_iseq_C">setInputFilter</code>
+
+</span></a>
+</li>
+<li><a href="#getInputFilter">
+<span class="pod_lang"><code class="pod_iseq_C">getInputFilter</code>
+
+</span></a>
+</li>
+<li><a href="#removeInputFilter">
+<span class="pod_lang"><code class="pod_iseq_C">removeInputFilter</code>
+
+</span></a>
+</li>
+<li><a href="#sendError">
+<span class="pod_lang"><code class="pod_iseq_C">sendError</code>
+
+</span></a>
+</li>
+<li><a href="#readFile">
+<span class="pod_lang"><code class="pod_iseq_C">readFile</code>
+
+</span></a>
+</li>
+<li><a href="#readTextFile">
+<span class="pod_lang"><code class="pod_iseq_C">readTextFile</code>
+
+</span></a>
+</li>
+<li><a href="#writeFile">
+<span class="pod_lang"><code class="pod_iseq_C">writeFile</code>
+
+</span></a>
+</li>
+<li><a href="#writeTextFile">
+<span class="pod_lang"><code class="pod_iseq_C">writeTextFile</code>
+
+</span></a>
+</li>
+<li><a href="#watch">
+<span class="pod_lang"><code class="pod_iseq_C">watch</code>
+
+</span></a>
+</li>
+<li><a href="#dump">
+<span class="pod_lang"><code class="pod_iseq_C">dump</code>
+
+</span></a>
+</li>
+<li><a href="#printCacheUnlessModified">
+<span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
+
+</span></a>
+</li>
+<li><a href="#setCache">
+<span class="pod_lang"><code class="pod_iseq_C">setCache</code>
+
+</span></a>
+</li>
+<li><a href="#deleteCache">
+<span class="pod_lang"><code class="pod_iseq_C">deleteCache</code>
+
+</span></a>
+</li>
+<li><a href="#getDebug">
+<span class="pod_lang"><code class="pod_iseq_C">getDebug</code>
+
+</span></a>
+</li>
+<li><a href="#newError">
+<span class="pod_lang"><code class="pod_iseq_C">newError</code>
+
+</span></a>
+</li>
+</ul>
+</li>
+</ul>
 </li>
 <li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">Ini パラメータ
@@ -520,6 +865,13 @@ servers = localhost:11211
 </span>
 </p>
 
+<p>
+<span class="pod_lang">このモードでは fork が正しく動作しない事に注意。代わりに
+<a href="#fork">$TL-&gt;fork</a> メソッドを使用する。
+
+</span>
+</p>
+
 </dd>
 <dt><a id="Xe4Xb8X80Xe8X88XacXe3X82Xb9Xe3X82XafXe3X83XaaXe3X83X97Xe3X83X88Xe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">一般スクリプトモード
 
@@ -644,150 +996,16 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 
 </span></a></h2>
 
-<dl>
-<dt><a id="INI"><span class="pod_lang"><code class="pod_iseq_C">INI</code>
+<h3><a id="Xe3X82X88Xe3X81X8fXe4XbdXbfXe3X81X86Xe3X82X82Xe3X81Xae">
+<span class="pod_lang">よく使うもの
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;INI</code></pre>
+</span></a></h3>
 
-<p>
-<span class="pod_lang"><code class="pod_iseq_C">use Tripletail qw(filename.ini);</code> で読み込まれた <a href="././Tripletail/Ini.html">Tripletail::Ini</a> を返す。
+<h4><a id="startCgi">
+<span class="pod_lang"><code class="pod_iseq_C">startCgi</code>
 
-</span>
-</p>
+</span></a></h4>
 
-</dd>
-<dt><a id="CGI"><span class="pod_lang"><code class="pod_iseq_C">CGI</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;CGI
-  $CGI</code></pre>
-
-<p>
-<span class="pod_lang">リクエストを受け取った <a href="././Tripletail/Form.html">Tripletail::Form</a> オブジェクトを返す。
-また、このオブジェクトは startCgi メソッドの呼び出し元パッケージに export される。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">このメソッドがundefでない値を返すのは、 <a href="#preRequest">&quot;preRequest&quot;</a> フックが呼ばれる
-直前から <a href="#postRequest">&quot;postRequest&quot;</a> フックが呼ばれた直後までである。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="escapeTag"><span class="pod_lang"><code class="pod_iseq_C">escapeTag</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeTag($value)</code></pre>
-
-<p>
-<span class="pod_lang">&amp;&lt;&gt;&quot;' の文字をエスケープ処理した文字列を返す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="unescapeTag"><span class="pod_lang"><code class="pod_iseq_C">unescapeTag</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeTag($value)</code></pre>
-
-<p>
-<span class="pod_lang">&amp;&lt;&gt;&quot;'&amp;#??;&amp;#x??; にエスケープ処理された文字を元に戻した文字列を返す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="escapeJs"><span class="pod_lang"><code class="pod_iseq_C">escapeJs</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeJs($value)</code></pre>
-
-<p>
-<span class="pod_lang">'&quot;\ の文字を \ を付けてエスケープし，'\r' '\n' について '\\r' '\\n' に置き換える。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="unescapeJs"><span class="pod_lang"><code class="pod_iseq_C">unescapeJs</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeJs($value)</code></pre>
-
-<p>
-<span class="pod_lang">escapeJs した文字列を元に戻す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="encodeURL"><span class="pod_lang"><code class="pod_iseq_C">encodeURL</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;encodeURL($value)</code></pre>
-
-<p>
-<span class="pod_lang">文字列をURLエンコードした結果を返す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="decodeURL"><span class="pod_lang"><code class="pod_iseq_C">decodeURL</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = decodeURL($value)</code></pre>
-
-<p>
-<span class="pod_lang">URLエンコードを解除し元に戻した文字列を返す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="escapeSqlLike"><span class="pod_lang"><code class="pod_iseq_C">escapeSqlLike</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeSqlLike($value)</code></pre>
-
-<p>
-<span class="pod_lang">% _ \ の文字を \ でエスケープ処理した文字列を返す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="unescapeSqlLike"><span class="pod_lang"><code class="pod_iseq_C">unescapeSqlLike</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeSqlLike($value)</code></pre>
-
-<p>
-<span class="pod_lang">\% \_ \\ にエスケープ処理された文字を元に戻した文字列を返す。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="startCgi"><span class="pod_lang"><code class="pod_iseq_C">startCgi</code>
-
-</span></a></dt>
-<dd>
 <pre class="pod_verbatim"><code>  $TL-&gt;startCgi(
     -main        =&gt; \&amp;Main,    # メイン関数
     -DB          =&gt; 'DB',      # DBを使う場合，iniのグループ名を指定
@@ -824,34 +1042,39 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
     -Session =&gt; ['Session1', 'Session2'],
   );</code></pre>
 
-</dd>
-<dt><a id="trapError"><span class="pod_lang"><code class="pod_iseq_C">trapError</code>
+<p>
+<span class="pod_lang">通常スクリプトでは <a href="#trapError">&quot;trapError&quot;</a> を参照.
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;trapError(
-    -main =&gt; \&amp;Main, # メイン関数
-    -DB   =&gt; 'DB',   # DBを使う場合，iniのグループ名を指定
-  );</code></pre>
+</span>
+</p>
+
+<h4><a id="CGI">
+<span class="pod_lang"><code class="pod_iseq_C">CGI</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;CGI
+  $CGI</code></pre>
 
 <p>
-<span class="pod_lang">環境を整え、 <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を実行する。
-<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> がdieした場合は、エラー内容が標準エラーへ出力される。
+<span class="pod_lang">リクエストを受け取った <a href="././Tripletail/Form.html">Tripletail::Form</a> オブジェクトを返す。
+また、このオブジェクトは startCgi メソッドの呼び出し元パッケージに export される。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> と同様に、<code class="pod_iseq_C">DB</code> には配列へのリファレンスを渡す事も出来る。
+<span class="pod_lang">このメソッドがundefでない値を返すのは、 <a href="#preRequest">&quot;preRequest&quot;</a> フックが呼ばれる
+直前から <a href="#postRequest">&quot;postRequest&quot;</a> フックが呼ばれた直後までである。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="dispatch"><span class="pod_lang"><code class="pod_iseq_C">dispatch</code>
+<h4><a id="dispatch">
+<span class="pod_lang"><code class="pod_iseq_C">dispatch</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $result = $TL-&gt;dispatch($value, default =&gt; $default, onerror =&gt; \&amp;Error)</code></pre>
 
 <p>
@@ -889,206 +1112,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
       ...
   }</code></pre>
 
-</dd>
-<dt><a id="log"><span class="pod_lang"><code class="pod_iseq_C">log</code>
+<h4><a id="print">
+<span class="pod_lang"><code class="pod_iseq_C">print</code>
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;log($group =&gt; $log)</code></pre>
+</span></a></h4>
 
-<p>
-<span class="pod_lang">ログを記録する。グループとログデータの２つを受け取る。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">第一引数のグループは省略可能。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="getLogHeader"><span class="pod_lang"><code class="pod_iseq_C">getLogHeader</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  my $logid = $TL-&gt;getLogHeader</code></pre>
-
-<p>
-<span class="pod_lang">ログを記録するときのヘッダと同じ形式の文字列を生成する。
-「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現」の形の文字列が返される。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="setHook"><span class="pod_lang"><code class="pod_iseq_C">setHook</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;setHook($type, $priority, \&amp;func)</code></pre>
-
-<p>
-<span class="pod_lang">指定タイプの指定プライオリティのフックを設定する。
-既に同一タイプで同一プライオリティのフックが設定されていた場合、
-古いフックの設定は解除される。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">typeは、<a href="#init">&quot;init&quot;</a>, <a href="#term">&quot;term&quot;</a>, <a href="#preRequest">&quot;preRequest&quot;</a>, <a href="#postRequest">&quot;postRequest&quot;</a>
-の４種類が存在する。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">なお、1万の整数倍のプライオリティは Tripletail 内部で使用される。アプリ
-ケーション側で不用意に用いるとフックを上書きしてしまう可能性があるので
-注意する。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="removeHook"><span class="pod_lang"><code class="pod_iseq_C">removeHook</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;removeHook($type, $priority)</code></pre>
-
-<p>
-<span class="pod_lang">指定タイプの指定プライオリティのフックを削除する。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="setContentFilter"><span class="pod_lang"><code class="pod_iseq_C">setContentFilter</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter($classname, %option)
-  $TL-&gt;setContentFilter([$classname, $priority], %option)
-  $TL-&gt;setContentFilter('Tripletail::Filter::HTML', charset =&gt; 'Shift_JIS')
-  $TL-&gt;setContentFilter(
-      'Tripletail::Filter::CSV', charset =&gt; 'Shift_JIS', filename =&gt; 'テストデータ.csv')</code></pre>
-
-<p>
-<span class="pod_lang"><a href="#Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">&quot;出力フィルタ&quot;</a> を設定する。
-全ての出力の前に実行する必要がある。
-２番目の書式では、プライオリティを指定して独自のコンテンツフィルタを
-追加できる。省略時は優先度は1000となる。小さい優先度のフィルタが先に、
-大きい優先度のフィルタが後に呼ばれる。同一優先度のフィルタが既に
-セットされているときは、以前のフィルタ設定は解除される。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">返される値は、指定された <a href="././Tripletail/Filter.html">Tripletail::Filter</a> のサブクラスのインスタンスである。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">設定したフィルタは、<a href="#preRequest">&quot;preRequest&quot;</a> のタイミングで保存され、
-<a href="#postRequest">&quot;postRequest&quot;</a> のタイミングで元に戻される。従って、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a>内
-で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
-されない。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="getContentFilter"><span class="pod_lang"><code class="pod_iseq_C">getContentFilter</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;getContentFilter($priority)</code></pre>
-
-<p>
-<span class="pod_lang">指定されたプライオリティのフィルタを取得する。省略時は1000となる。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="removeContentFilter"><span class="pod_lang"><code class="pod_iseq_C">removeContentFilter</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;removeContentFilter($priority)</code></pre>
-
-<p>
-<span class="pod_lang">指定されたプライオリティのフィルタを削除する。省略時は1000となる。
-フィルタが１つもない場合は、致命的エラーとなり出力関数は使用できなくなる。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="setInputFilter"><span class="pod_lang"><code class="pod_iseq_C">setInputFilter</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;setInputFilter($classname, %option)
-  $TL-&gt;setInputFilter([$classname, $priority], %option)</code></pre>
-
-<p>
-<span class="pod_lang"><a href="#Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">&quot;入力フィルタ&quot;</a> を設定する。
-<a href="#startCgi">&quot;startCgi&quot;</a> の前に実行する必要がある。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">返される値は、指定された <a href="././Tripletail/InputFilter.html">Tripletail::InputFilter</a> のサブクラスのインスタンスである。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="getInputFilter"><span class="pod_lang"><code class="pod_iseq_C">getInputFilter</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;getInputFilter($priority)</code></pre>
-
-</dd>
-<dt><a id="removeInputFilter"><span class="pod_lang"><code class="pod_iseq_C">removeInputFilter</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;removeInputFilter($priority)</code></pre>
-
-</dd>
-<dt><a id="sendError"><span class="pod_lang"><code class="pod_iseq_C">sendError</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;sendError(-title =&gt; &quot;タイトル&quot;, -error =&gt; &quot;エラー&quot;)</code></pre>
-
-<p>
-<span class="pod_lang"><a href="././Tripletail/Ini.html">ini</a> で指定されたアドレスにエラーメールを送る。
-設定が無い場合は何もしない。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="print"><span class="pod_lang"><code class="pod_iseq_C">print</code>
-
-</span></a></dt>
-<dd>
 <pre class="pod_verbatim"><code>  $TL-&gt;print($str)</code></pre>
 
 <p>
@@ -1105,11 +1133,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="location"><span class="pod_lang"><code class="pod_iseq_C">location</code>
+<h4><a id="location">
+<span class="pod_lang"><code class="pod_iseq_C">location</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;location('http://example.org/')</code></pre>
 
 <p>
@@ -1119,285 +1147,120 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="parsePeriod"><span class="pod_lang"><code class="pod_iseq_C">parsePeriod</code>
+<h3><a id="Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86">
+<span class="pod_lang">変換処理
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;parsePeriod('10hour 30min')</code></pre>
+</span></a></h3>
+
+<h4><a id="escapeTag">
+<span class="pod_lang"><code class="pod_iseq_C">escapeTag</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeTag($value)</code></pre>
 
 <p>
-<span class="pod_lang">時間指定文字列を秒数に変換する。小数点が発生した場合は切り捨てる。
-<a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">&quot;度量衡&quot;</a> を参照。
+<span class="pod_lang">&amp;&lt;&gt;&quot;' の文字をエスケープ処理した文字列を返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="parseQuantity"><span class="pod_lang"><code class="pod_iseq_C">parseQuantity</code>
+<h4><a id="unescapeTag">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeTag</code>
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;parseQuantity('100mi 50ki')</code></pre>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeTag($value)</code></pre>
 
 <p>
-<span class="pod_lang">量指定文字列を元の数に変換する。
-<a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">&quot;度量衡&quot;</a> を参照。
+<span class="pod_lang">&amp;&lt;&gt;&quot;'&amp;#??;&amp;#x??; にエスケープ処理された文字を元に戻した文字列を返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="getCookie"><span class="pod_lang"><code class="pod_iseq_C">getCookie</code>
+<h4><a id="escapeJs">
+<span class="pod_lang"><code class="pod_iseq_C">escapeJs</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeJs($value)</code></pre>
+
 <p>
-<span class="pod_lang"><a href="././Tripletail/Cookie.html">Tripletail::Cookie</a> オブジェクトを取得。
+<span class="pod_lang">'&quot;\ の文字を \ を付けてエスケープし，'\r' '\n' について '\\r' '\\n' に置き換える。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="getCsv"><span class="pod_lang"><code class="pod_iseq_C">getCsv</code>
+<h4><a id="unescapeJs">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeJs</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeJs($value)</code></pre>
+
 <p>
-<span class="pod_lang"><a href="././Tripletail/CSV.html">Tripletail::CSV</a> オブジェクトを取得。
+<span class="pod_lang">escapeJs した文字列を元に戻す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="newDateTime"><span class="pod_lang"><code class="pod_iseq_C">newDateTime</code>
+<h4><a id="encodeURL">
+<span class="pod_lang"><code class="pod_iseq_C">encodeURL</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;encodeURL($value)</code></pre>
+
 <p>
-<span class="pod_lang"><a href="././Tripletail/DateTime.html">Tripletail::DateTime</a> オブジェクトを作成。
+<span class="pod_lang">文字列をURLエンコードした結果を返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="getDB"><span class="pod_lang"><code class="pod_iseq_C">getDB</code>
+<h4><a id="decodeURL">
+<span class="pod_lang"><code class="pod_iseq_C">decodeURL</code>
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $DB = $TL-&gt;getDB($group)</code></pre>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = decodeURL($value)</code></pre>
 
 <p>
-<span class="pod_lang"><a href="././Tripletail/DB.html">Tripletail::DB</a> オブジェクトを取得。
+<span class="pod_lang">URLエンコードを解除し元に戻した文字列を返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="newDB"><span class="pod_lang"><code class="pod_iseq_C">newDB</code>
+<h4><a id="escapeSqlLike">
+<span class="pod_lang"><code class="pod_iseq_C">escapeSqlLike</code>
 
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $DB = $TL-&gt;newDB($group)</code></pre>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;escapeSqlLike($value)</code></pre>
 
 <p>
-<span class="pod_lang"><a href="././Tripletail/DB.html">Tripletail::DB</a> オブジェクトを作成。
+<span class="pod_lang">% _ \ の文字を \ でエスケープ処理した文字列を返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="getFileSentinel"><span class="pod_lang"><code class="pod_iseq_C">getFileSentinel</code>
+<h4><a id="unescapeSqlLike">
+<span class="pod_lang"><code class="pod_iseq_C">unescapeSqlLike</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $result = $TL-&gt;unescapeSqlLike($value)</code></pre>
+
 <p>
-<span class="pod_lang"><a href="././Tripletail/FileSentinel.html">Tripletail::FileSentinel</a> オブジェクトを取得。
+<span class="pod_lang">\% \_ \\ にエスケープ処理された文字を元に戻した文字列を返す。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="newForm"><span class="pod_lang"><code class="pod_iseq_C">newForm</code>
+<h4><a id="charconv">
+<span class="pod_lang"><code class="pod_iseq_C">charconv</code>
 
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Form.html">Tripletail::Form</a> オブジェクトを作成。
+</span></a></h4>
 
-</span>
-</p>
-
-</dd>
-<dt><a id="newHtmlFilter"><span class="pod_lang"><code class="pod_iseq_C">newHtmlFilter</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/HtmlFilter.html">Tripletail::HtmlFilter</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newHtmlMail"><span class="pod_lang"><code class="pod_iseq_C">newHtmlMail</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/HtmlMail.html">Tripletail::HtmlMail</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newIni"><span class="pod_lang"><code class="pod_iseq_C">newIni</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Ini.html">Tripletail::Ini</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newMail"><span class="pod_lang"><code class="pod_iseq_C">newMail</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Mail.html">Tripletail::Mail</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="getMemorySentinel"><span class="pod_lang"><code class="pod_iseq_C">getMemorySentinel</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/MemorySentinel.html">Tripletail::MemorySentinel</a> オブジェクトを取得。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newPager"><span class="pod_lang"><code class="pod_iseq_C">newPager</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Pager.html">Tripletail::Pager</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="getRawCookie"><span class="pod_lang"><code class="pod_iseq_C">getRawCookie</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/RawCookie.html">Tripletail::RawCookie</a> オブジェクトを取得。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newSendmail"><span class="pod_lang"><code class="pod_iseq_C">newSendmail</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Sendmail.html">Tripletail::Sendmail</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newSMIME"><span class="pod_lang"><code class="pod_iseq_C">newSMIME</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/SMIME.html">Tripletail::SMIME</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newTagCheck"><span class="pod_lang"><code class="pod_iseq_C">newTagCheck</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/TagCheck.html">Tripletail::TagCheck</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newTemplate"><span class="pod_lang"><code class="pod_iseq_C">newTemplate</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Template.html">Tripletail::Template</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="getSession"><span class="pod_lang"><code class="pod_iseq_C">getSession</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Session.html">Tripletail::Session</a> オブジェクトを取得。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newValue"><span class="pod_lang"><code class="pod_iseq_C">newValue</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Value.html">Tripletail::Value</a> オブジェクトを作成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newValidator"><span class="pod_lang"><code class="pod_iseq_C">newValidator</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/Validator.html">Tripletail::Validator</a> オブジェクトを生成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="newMemCached"><span class="pod_lang"><code class="pod_iseq_C">newMemCached</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang"><a href="././Tripletail/MemCached.html">Tripletail::MemCached</a> オブジェクトを生成。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="charconv"><span class="pod_lang"><code class="pod_iseq_C">charconv</code>
-
-</span></a></dt>
-<dd>
 <pre class="pod_verbatim"><code>  $str = $TL-&gt;charconv($str, $from, $to, $prefer_encode);
   $str = $TL-&gt;charconv($str, [$from1, $from2, ...], $to, $prefer_encode);
   
@@ -1442,11 +1305,553 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="readFile"><span class="pod_lang"><code class="pod_iseq_C">readFile</code>
+<h4><a id="parsePeriod">
+<span class="pod_lang"><code class="pod_iseq_C">parsePeriod</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;parsePeriod('10hour 30min')</code></pre>
+
+<p>
+<span class="pod_lang">時間指定文字列を秒数に変換する。小数点が発生した場合は切り捨てる。
+<a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">&quot;度量衡&quot;</a> を参照。
+
+</span>
+</p>
+
+<h4><a id="parseQuantity">
+<span class="pod_lang"><code class="pod_iseq_C">parseQuantity</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;parseQuantity('100mi 50ki')</code></pre>
+
+<p>
+<span class="pod_lang">量指定文字列を元の数に変換する。
+<a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">&quot;度量衡&quot;</a> を参照。
+
+</span>
+</p>
+
+<h3><a id="Xe3X82Xa4Xe3X83Xb3Xe3X82Xb9Xe3X82XbfXe3X83Xb3Xe3X82Xb9Xe7X94X9fXe6X88X90Xe5X8fX96Xe5XbeX97">
+<span class="pod_lang">インスタンス生成取得
+
+</span></a></h3>
+
+<h4><a id="getDB">
+<span class="pod_lang"><code class="pod_iseq_C">getDB</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $DB = $TL-&gt;getDB($group)</code></pre>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/DB.html">Tripletail::DB</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="newDB">
+<span class="pod_lang"><code class="pod_iseq_C">newDB</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $DB = $TL-&gt;newDB($group)</code></pre>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/DB.html">Tripletail::DB</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newForm">
+<span class="pod_lang"><code class="pod_iseq_C">newForm</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Form.html">Tripletail::Form</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newTemplate">
+<span class="pod_lang"><code class="pod_iseq_C">newTemplate</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Template.html">Tripletail::Template</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="getSession">
+<span class="pod_lang"><code class="pod_iseq_C">getSession</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Session.html">Tripletail::Session</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="newValidator">
+<span class="pod_lang"><code class="pod_iseq_C">newValidator</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Validator.html">Tripletail::Validator</a> オブジェクトを生成。
+
+</span>
+</p>
+
+<h4><a id="newValue">
+<span class="pod_lang"><code class="pod_iseq_C">newValue</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Value.html">Tripletail::Value</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newDateTime">
+<span class="pod_lang"><code class="pod_iseq_C">newDateTime</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/DateTime.html">Tripletail::DateTime</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newPager">
+<span class="pod_lang"><code class="pod_iseq_C">newPager</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Pager.html">Tripletail::Pager</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="getCsv">
+<span class="pod_lang"><code class="pod_iseq_C">getCsv</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/CSV.html">Tripletail::CSV</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="newTagCheck">
+<span class="pod_lang"><code class="pod_iseq_C">newTagCheck</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/TagCheck.html">Tripletail::TagCheck</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newHtmlFilter">
+<span class="pod_lang"><code class="pod_iseq_C">newHtmlFilter</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/HtmlFilter.html">Tripletail::HtmlFilter</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newHtmlMail">
+<span class="pod_lang"><code class="pod_iseq_C">newHtmlMail</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/HtmlMail.html">Tripletail::HtmlMail</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newMail">
+<span class="pod_lang"><code class="pod_iseq_C">newMail</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Mail.html">Tripletail::Mail</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newIni">
+<span class="pod_lang"><code class="pod_iseq_C">newIni</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Ini.html">Tripletail::Ini</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="getCookie">
+<span class="pod_lang"><code class="pod_iseq_C">getCookie</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Cookie.html">Tripletail::Cookie</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="getRawCookie">
+<span class="pod_lang"><code class="pod_iseq_C">getRawCookie</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/RawCookie.html">Tripletail::RawCookie</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="newSendmail">
+<span class="pod_lang"><code class="pod_iseq_C">newSendmail</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Sendmail.html">Tripletail::Sendmail</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="newSMIME">
+<span class="pod_lang"><code class="pod_iseq_C">newSMIME</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/SMIME.html">Tripletail::SMIME</a> オブジェクトを作成。
+
+</span>
+</p>
+
+<h4><a id="getFileSentinel">
+<span class="pod_lang"><code class="pod_iseq_C">getFileSentinel</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/FileSentinel.html">Tripletail::FileSentinel</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="getMemorySentinel">
+<span class="pod_lang"><code class="pod_iseq_C">getMemorySentinel</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/MemorySentinel.html">Tripletail::MemorySentinel</a> オブジェクトを取得。
+
+</span>
+</p>
+
+<h4><a id="newMemCached">
+<span class="pod_lang"><code class="pod_iseq_C">newMemCached</code>
+
+</span></a></h4>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/MemCached.html">Tripletail::MemCached</a> オブジェクトを生成。
+
+</span>
+</p>
+
+<h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96">
+<span class="pod_lang">その他
+
+</span></a></h3>
+
+<h4><a id="INI">
+<span class="pod_lang"><code class="pod_iseq_C">INI</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;INI</code></pre>
+
+<p>
+<span class="pod_lang"><code class="pod_iseq_C">use Tripletail qw(filename.ini);</code> で読み込まれた <a href="././Tripletail/Ini.html">Tripletail::Ini</a> を返す。
+
+</span>
+</p>
+
+<h4><a id="trapError">
+<span class="pod_lang"><code class="pod_iseq_C">trapError</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;trapError(
+    -main =&gt; \&amp;Main, # メイン関数
+    -DB   =&gt; 'DB',   # DBを使う場合，iniのグループ名を指定
+  );</code></pre>
+
+<p>
+<span class="pod_lang">環境を整え、 <a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> を実行する。
+<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> がdieした場合は、エラー内容が標準エラーへ出力される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> と同様に、<code class="pod_iseq_C">DB</code> には配列へのリファレンスを渡す事も出来る。
+
+</span>
+</p>
+
+<h4><a id="fork">
+<span class="pod_lang"><code class="pod_iseq_C">fork</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  if (my $pid = $TL-&gt;fork) {
+      # parent
+  }
+  else {
+      # child
+  }</code></pre>
+
+<p>
+<span class="pod_lang">FastCGI 環境を考慮しながら fork を実行する。FastCGI 環境でない場合は通
+常通りに fork する。fork に失敗した場合は die する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">通常は perl 組込み関数である fork を使用しても問題無いが、FastCGI 環境
+では正常に動作しない為、Tripletail アプリケーションは常に fork でなく
+<code class="pod_iseq_C">$TL-&gt;fork</code> を使用する事が推奨される。
+
+</span>
+</p>
+
+<h4><a id="log">
+<span class="pod_lang"><code class="pod_iseq_C">log</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;log($group =&gt; $log)</code></pre>
+
+<p>
+<span class="pod_lang">ログを記録する。グループとログデータの２つを受け取る。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">第一引数のグループは省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
+
+</span>
+</p>
+
+<h4><a id="setContentFilter">
+<span class="pod_lang"><code class="pod_iseq_C">setContentFilter</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter($classname, %option)
+  $TL-&gt;setContentFilter([$classname, $priority], %option)
+  $TL-&gt;setContentFilter('Tripletail::Filter::HTML', charset =&gt; 'Shift_JIS')
+  $TL-&gt;setContentFilter(
+      'Tripletail::Filter::CSV', charset =&gt; 'Shift_JIS', filename =&gt; 'テストデータ.csv')</code></pre>
+
+<p>
+<span class="pod_lang"><a href="#Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">&quot;出力フィルタ&quot;</a> を設定する。
+全ての出力の前に実行する必要がある。
+２番目の書式では、プライオリティを指定して独自のコンテンツフィルタを
+追加できる。省略時は優先度は1000となる。小さい優先度のフィルタが先に、
+大きい優先度のフィルタが後に呼ばれる。同一優先度のフィルタが既に
+セットされているときは、以前のフィルタ設定は解除される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">返される値は、指定された <a href="././Tripletail/Filter.html">Tripletail::Filter</a> のサブクラスのインスタンスである。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">設定したフィルタは、<a href="#preRequest">&quot;preRequest&quot;</a> のタイミングで保存され、
+<a href="#postRequest">&quot;postRequest&quot;</a> のタイミングで元に戻される。従って、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a>内
+で setContentFilter を実行した場合、その変更は次回リクエスト時に持ち越
+されない。
+
+</span>
+</p>
+
+<h4><a id="getContentFilter">
+<span class="pod_lang"><code class="pod_iseq_C">getContentFilter</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;getContentFilter($priority)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたプライオリティのフィルタを取得する。省略時は1000となる。
+
+</span>
+</p>
+
+<h4><a id="removeContentFilter">
+<span class="pod_lang"><code class="pod_iseq_C">removeContentFilter</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;removeContentFilter($priority)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたプライオリティのフィルタを削除する。省略時は1000となる。
+フィルタが１つもない場合は、致命的エラーとなり出力関数は使用できなくなる。
+
+</span>
+</p>
+
+<h4><a id="getLogHeader">
+<span class="pod_lang"><code class="pod_iseq_C">getLogHeader</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  my $logid = $TL-&gt;getLogHeader</code></pre>
+
+<p>
+<span class="pod_lang">ログを記録するときのヘッダと同じ形式の文字列を生成する。
+「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現」の形の文字列が返される。
+
+</span>
+</p>
+
+<h4><a id="setHook">
+<span class="pod_lang"><code class="pod_iseq_C">setHook</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;setHook($type, $priority, \&amp;func)</code></pre>
+
+<p>
+<span class="pod_lang">指定タイプの指定プライオリティのフックを設定する。
+既に同一タイプで同一プライオリティのフックが設定されていた場合、
+古いフックの設定は解除される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">typeは、<a href="#init">&quot;init&quot;</a>, <a href="#term">&quot;term&quot;</a>, <a href="#preRequest">&quot;preRequest&quot;</a>, <a href="#postRequest">&quot;postRequest&quot;</a>
+の４種類が存在する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">なお、1万の整数倍のプライオリティは Tripletail 内部で使用される。アプリ
+ケーション側で不用意に用いるとフックを上書きしてしまう可能性があるので
+注意する。
+
+</span>
+</p>
+
+<h4><a id="removeHook">
+<span class="pod_lang"><code class="pod_iseq_C">removeHook</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;removeHook($type, $priority)</code></pre>
+
+<p>
+<span class="pod_lang">指定タイプの指定プライオリティのフックを削除する。
+
+</span>
+</p>
+
+<h4><a id="setInputFilter">
+<span class="pod_lang"><code class="pod_iseq_C">setInputFilter</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;setInputFilter($classname, %option)
+  $TL-&gt;setInputFilter([$classname, $priority], %option)</code></pre>
+
+<p>
+<span class="pod_lang"><a href="#Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">&quot;入力フィルタ&quot;</a> を設定する。
+<a href="#startCgi">&quot;startCgi&quot;</a> の前に実行する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">返される値は、指定された <a href="././Tripletail/InputFilter.html">Tripletail::InputFilter</a> のサブクラスのインスタンスである。
+
+</span>
+</p>
+
+<h4><a id="getInputFilter">
+<span class="pod_lang"><code class="pod_iseq_C">getInputFilter</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;getInputFilter($priority)</code></pre>
+
+<h4><a id="removeInputFilter">
+<span class="pod_lang"><code class="pod_iseq_C">removeInputFilter</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;removeInputFilter($priority)</code></pre>
+
+<h4><a id="sendError">
+<span class="pod_lang"><code class="pod_iseq_C">sendError</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;sendError(-title =&gt; &quot;タイトル&quot;, -error =&gt; &quot;エラー&quot;)</code></pre>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Ini.html">ini</a> で指定されたアドレスにエラーメールを送る。
+設定が無い場合は何もしない。
+
+</span>
+</p>
+
+<h4><a id="readFile">
+<span class="pod_lang"><code class="pod_iseq_C">readFile</code>
+
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $data = $TL-&gt;readFile($fpath);</code></pre>
 
 <p>
@@ -1456,11 +1861,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="readTextFile"><span class="pod_lang"><code class="pod_iseq_C">readTextFile</code>
+<h4><a id="readTextFile">
+<span class="pod_lang"><code class="pod_iseq_C">readTextFile</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $data = $TL-&gt;readTextFile($fpath, $coding, $prefer_encode);</code></pre>
 
 <p>
@@ -1477,11 +1882,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="writeFile"><span class="pod_lang"><code class="pod_iseq_C">writeFile</code>
+<h4><a id="writeFile">
+<span class="pod_lang"><code class="pod_iseq_C">writeFile</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;writeFile($fpath, $fdata, $fmode);</code></pre>
 
 <p>
@@ -1504,11 +1909,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="writeTextFile"><span class="pod_lang"><code class="pod_iseq_C">writeTextFile</code>
+<h4><a id="writeTextFile">
+<span class="pod_lang"><code class="pod_iseq_C">writeTextFile</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;writeTextFile($fpath, $fdata, $fmode, $coding, $prefer_encode);</code></pre>
 
 <p>
@@ -1538,11 +1943,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="watch"><span class="pod_lang"><code class="pod_iseq_C">watch</code>
+<h4><a id="watch">
+<span class="pod_lang"><code class="pod_iseq_C">watch</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;watch(sdata =&gt; \$sdata, $reclevel);
   $TL-&gt;watch(adata =&gt; \@adata, $reclevel);
   $TL-&gt;watch(hdata =&gt; \%hdata, $reclevel);</code></pre>
@@ -1573,11 +1978,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="dump"><span class="pod_lang"><code class="pod_iseq_C">dump</code>
+<h4><a id="dump">
+<span class="pod_lang"><code class="pod_iseq_C">dump</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;dump(\$data);
   $TL-&gt;dump(\$data, $level);
   $TL-&gt;dump(DATA =&gt; \$data);
@@ -1603,11 +2008,11 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 </span>
 </p>
 
-</dd>
-<dt><a id="printCacheUnlessModified"><span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
+<h4><a id="printCacheUnlessModified">
+<span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $bool = $TL-&gt;printCacheUnlessModified($key, $flag, $param, $charset)</code></pre>
 
 <p>
@@ -1688,11 +2093,11 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </span>
 </p>
 
-</dd>
-<dt><a id="setCache"><span class="pod_lang"><code class="pod_iseq_C">setCache</code>
+<h4><a id="setCache">
+<span class="pod_lang"><code class="pod_iseq_C">setCache</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;setCache($key, $param, $charset, $priority)</code></pre>
 
 <p>
@@ -1745,11 +2150,11 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </span>
 </p>
 
-</dd>
-<dt><a id="deleteCache"><span class="pod_lang"><code class="pod_iseq_C">deleteCache</code>
+<h4><a id="deleteCache">
+<span class="pod_lang"><code class="pod_iseq_C">deleteCache</code>
 
-</span></a></dt>
-<dd>
+</span></a></h4>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;deleteCache($key)</code></pre>
 
 <p>
@@ -1774,24 +2179,21 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </span>
 </p>
 
-</dd>
-<dt><a id="getDebug"><span class="pod_lang"><code class="pod_iseq_C">getDebug</code>
+<h4><a id="getDebug">
+<span class="pod_lang"><code class="pod_iseq_C">getDebug</code>
 
-</span></a></dt>
-<dd>
-</dd>
-<dt><a id="newError"><span class="pod_lang"><code class="pod_iseq_C">newError</code>
+</span></a></h4>
 
-</span></a></dt>
-<dd>
+<h4><a id="newError">
+<span class="pod_lang"><code class="pod_iseq_C">newError</code>
+
+</span></a></h4>
+
 <p>
 <span class="pod_lang">内部用メソッド。
 
 </span>
 </p>
-
-</dd>
-</dl>
 
 <h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">Ini パラメータ
@@ -2145,6 +2547,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 <p>
 <span class="pod_lang">各種タイムアウト時間，セッションのexpiresなど、
 時間間隔は以下の指定が可能とする。
+数値化には <a href="#parsePeriod">&quot;parsePeriod&quot;</a> を使用する. 
 
 </span>
 </p>
@@ -2243,6 +2646,12 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 <p>
 <span class="pod_lang">メモリサイズ、文字列サイズ等、大きさを指定する場合には、
 以下の指定が可能とする。英字の大文字小文字は同一視する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">数値化には <a href="#parseQuantity">&quot;parseQuantity&quot;</a> を使用する. 
 
 </span>
 </p>
@@ -2750,6 +3159,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#escapeSqlLike">escapeSqlLike</a></li>
 <li><a href="#escapeTag">escapeTag</a></li>
 <li><a href="#file-update">file-update</a></li>
+<li><a href="#fork">fork</a></li>
 <li><a href="#getContentFilter">getContentFilter</a></li>
 <li><a href="#getCookie">getCookie</a></li>
 <li><a href="#getCsv">getCsv</a></li>
@@ -2818,11 +3228,15 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#watch">watch</a></li>
 <li><a href="#writeFile">writeFile</a></li>
 <li><a href="#writeTextFile">writeTextFile</a></li>
+<li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">その他</a></li>
+<li><a href="#Xe3X82X88Xe3X81X8fXe4XbdXbfXe3X81X86Xe3X82X82Xe3X81Xae">よく使うもの</a></li>
+<li><a href="#Xe3X82Xa4Xe3X83Xb3Xe3X82Xb9Xe3X82XbfXe3X83Xb3Xe3X82Xb9Xe7X94X9fXe6X88X90Xe5X8fX96Xe5XbeX97">インスタンス生成取得</a></li>
 <li><a href="#Xe3X82XadXe3X83Xa3Xe3X83X83Xe3X82Xb7Xe3X83Xa5Xe3X81XaeXe5X88Xa9Xe7X94Xa8">キャッシュの利用</a></li>
 <li><a href="#Xe3X83X95Xe3X83X83Xe3X82Xaf">フック</a></li>
 <li><a href="#Xe4Xb8X80Xe8X88XacXe3X82Xb9Xe3X82XafXe3X83XaaXe3X83X97Xe3X83X88Xe3X83Xa2Xe3X83XbcXe3X83X89">一般スクリプトモード</a></li>
 <li><a href="#Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">入力フィルタ</a></li>
 <li><a href="#Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">出力フィルタ</a></li>
+<li><a href="#Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86">変換処理</a></li>
 <li><a href="#Xe5XaeX9fXe8Xa1X8cXe3X83Xa2Xe3X83XbcXe3X83X89">実行モード</a></li>
 <li><a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">度量衡</a></li>
 <li><a href="#Xe6X95Xb0Xe5X80Xa4Xe3X81XaeXe3X81Xbf_00">数値のみ</a></li>

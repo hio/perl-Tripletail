@@ -6,9 +6,18 @@ use Tripletail;
 use strict;
 use warnings;
 require Tripletail::Template::Node;
-require File::Spec;
+require File::Spec::Functions;
+
+our %_REL2ABS_CACHE;
 
 1;
+
+sub __rel2abs
+{
+	my $path = shift;
+	my $base = shift;
+	$_REL2ABS_CACHE{"$path\0$base"} ||= File::Spec::Functions::rel2abs($path, $base);
+}
 
 sub _new {
 	my $class = shift;
@@ -17,6 +26,11 @@ sub _new {
 	$this->{root} = Tripletail::Template::Node->_new;
 
 	$this->{basepath} = $TL->INI->get('Template' => 'basepath', '.');
+	if( !File::Spec::Functions::file_name_is_absolute($this->{basepath}) )
+	{
+		my $cwd = $TL::CWD || $TL->_cwd;
+		$this->{basepath} = __rel2abs($this->{basepath}, $cwd);
+	}
 	$this->{rootpath} = $TL->INI->get('Template' => 'rootpath', '/');
 
 	$TL->getDebug->_templateLog(
@@ -41,14 +55,14 @@ sub _checkPathIsAcceptable {
 	}
 
 	# rootpathチェック
-	my @rootpath = File::Spec->splitdir(
-		File::Spec->canonpath($this->{rootpath})
+	my @rootpath = File::Spec::Functions::splitdir(
+		File::Spec::Functions::canonpath($this->{rootpath})
 	);
 	length $rootpath[-1] or pop @rootpath;
 	@rootpath && length $rootpath[-1] or pop @rootpath;
 
-	$path = File::Spec->canonpath($path);
-	my @path = File::Spec->splitdir($path);
+	$path = File::Spec::Functions::canonpath($path);
+	my @path = File::Spec::Functions::splitdir($path);
 
 	my @abspath;
 	foreach my $dir (@path) {
@@ -91,7 +105,7 @@ sub _expandInclude {
 	# <!include>を処理
 	$str =~ s{<!include:(.+?)>}{
 		my $filepath = $1;
-		$filepath = File::Spec->rel2abs($filepath, $basedir);
+		$filepath = __rel2abs($filepath, $basedir);
 		$this->_checkPathIsAcceptable($filepath);
 		$this->{loadfile}{$filepath} = 1;
 		my $includestr = $TL->readTextFile($filepath);
@@ -137,7 +151,7 @@ sub loadTemplate {
 		die __PACKAGE__."#loadTemplate, ARG[1] was Ref.\n";
 	}
 
-	$filepath = File::Spec->rel2abs($filepath, $this->{basepath});
+	$filepath = __rel2abs($filepath, $this->{basepath});
 
 	$this->_checkPathIsAcceptable($filepath);
 

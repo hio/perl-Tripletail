@@ -50,6 +50,11 @@ sub const {
 	$this;
 }
 
+sub isConst {
+	my $this = shift;
+	exists($this->{const});
+}
+
 sub clone {
 	# deep copyはせずに、キー単位でのcopy-on-writeを行う。
 	my $this = shift;
@@ -906,6 +911,12 @@ Tripletail::Form オブジェクトを作成。
   $form->const
 
 このメソッドを呼び出すと、以後フォームデータの変更は不可能となる。
+
+=item isConst
+
+  $form->isConst
+
+フォームオブジェクトに対して const メソッドが呼ばれたかどうかを返す。
 
 =item clone
 
