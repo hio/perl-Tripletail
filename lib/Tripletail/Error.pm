@@ -372,7 +372,7 @@ sub toHtml {
 	}
 	# ソース
 	foreach my $fpath (keys %{$this->{source}}) {
-		$this->foreach_source_line(
+		$this->_foreach_source_line(
 			$fpath, sub {
 				my ($linenum, $src) = @_;
 
@@ -456,7 +456,7 @@ sub toHtml {
 			REASON => 'ソースファイル "%s" を読み込む事が出来ません。');
 	}
 	else {
-		$this->foreach_source_line(
+		$this->_foreach_source_line(
 			$frame, sub {
 				my ($linenum, $src) = @_;
 
@@ -552,7 +552,7 @@ sub _stringify {
 	$ret;
 }
 
-sub foreach_source_line {
+sub _foreach_source_line {
 	my ($this, $fpath, $f) = @_;
 	ref $fpath and
 	  $fpath = $fpath->fpath; # Tripletail::Error::Frame を許す
@@ -1379,33 +1379,51 @@ Tripletail::Error - 内部クラス
 
 =head1 DESCRIPTION
 
-L<Tripletail> によって内部的に使用される。
+L<Tripletail> によって内部的及び L<fault_handler|Tripletail/fault_handler>
+で使用される。
 
 =head2 METHODS
 
 =over 4
 
-=item C<< foreach_source_line >>
-
-内部メソッド
-
-=item C<< is_trace_allowed >>
-
-内部メソッド
-
 =item C<< message >>
 
-内部メソッド
+エラーメッセージ。(C<$@>)
 
 =item C<< title >>
 
-内部メソッド
+短い説明。
+省略時は "C<Error: $message>";
+
+=item C<< type >>
+
+エラー情報の種別。
+
+=over
+
+=item 'C<error>'
+
+実行時エラーに関する情報。
+
+=item 'C<warn>'
+
+警告に関する情報。
+
+=item 'C<file-update>'
+
+スクリプト等の更新検出。
+
+=item 'C<memory-leak>'
+
+メモリ制限。
+
+=back
 
 =item C<< toHtml >>
 
-内部メソッド
+HTML化。
 
-=item C<< type >>
+=item C<< is_trace_allowed >>
 
 内部メソッド
 

@@ -1080,6 +1080,7 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 <p>
 <span class="pod_lang">'Do' と $value を繋げた関数名の関数を呼び出す。
 $valueがundefの場合、defaultを指定していた場合、defaultに設定される。
+$value は大文字で始まらなければならない。
 
 </span>
 </p>
@@ -1667,6 +1668,7 @@ $valueがundefの場合、defaultを指定していた場合、defaultに設定�
 
 <p>
 <span class="pod_lang">第一引数のグループは省略可能。
+ログデータがリファレンスだったときは Data::Dumper によってダンプされる。
 
 </span>
 </p>
@@ -2243,6 +2245,35 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 </span>
 </p>
+
+</dd>
+<dt><a id="fault_handler"><span class="pod_lang">fault_handler
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  fault_handler = Name::Of::Handler</code></pre>
+
+<p>
+<span class="pod_lang">startCgi での最大リクエストサイズ若しくは
+アップロード可能なファイルサイズを超えたときに
+例外ハンドラとする関数名。
+モジュールは必要なら自動でロードされる。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> # [TL]
+ # fault_handler = MyApp::FaultHandler
+ package MyApp;
+ sub FaultHandler
+ {
+   my $err = shift;
+   
+   print &quot;Status: 413 Request Entity Too Large\r\n&quot;;
+   print &quot;Cotent-Type: text/plain; charset=utf-8\r\n&quot;;
+   print &quot;\r\n&quot;;
+   print &quot;error: $err\n&quot;;
+ }</code></pre>
 
 </dd>
 <dt><a id="logdir"><span class="pod_lang">logdir
@@ -3158,6 +3189,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#escapeJs">escapeJs</a></li>
 <li><a href="#escapeSqlLike">escapeSqlLike</a></li>
 <li><a href="#escapeTag">escapeTag</a></li>
+<li><a href="#fault_handler">fault_handler</a></li>
 <li><a href="#file-update">file-update</a></li>
 <li><a href="#fork">fork</a></li>
 <li><a href="#getContentFilter">getContentFilter</a></li>

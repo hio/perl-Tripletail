@@ -294,20 +294,8 @@ sub toStr {
 		node => $this,
 		type => 'toStr'
 	);
-
-	# 値の定義されていない挿入タグが残っていたらエラー。(expandAll や
-	# flushなどがある為、これが起こり得る。)
-	my $valmap = $this->{valmap};
-	foreach my $seg (@{$this->{tmpltags}}) {
-			if( $seg->[0] eq 'tag' )
-			{
-				if( !defined($valmap->{${$seg->[2]}}) )
-				{
-					die __PACKAGE__."#toStr, tag [$seg->[1]] was left unexpanded.\n";
-				}
-			}
-	}
-
+	
+	$this->_dieIfUnexpandTag('toStr');
 	$this->_compose;
 }
 
@@ -448,10 +436,14 @@ sub __popform
 	# 指定されたkeyの先頭の値を取り出し、それを消す。
 	my $form = shift;
 	my $key  = shift;
-
+	
 	my @array = $form->getValues($key);
+	if( !@array )
+	{
+		return '';
+	}
+	
 	my $val = shift @array;
-
 	$form->remove($key => $val);
 	$val;
 }
@@ -928,6 +920,25 @@ sub _dieIfDirty {
 	$this;
 }
 
+sub _dieIfUnexpandTag {
+	my $this = shift;
+	my $method = shift;
+
+	# 値の定義されていない挿入タグが残っていたらエラー。(expandAll や
+	# flushなどがある為、これが起こり得る。)
+	my $valmap = $this->{valmap};
+	foreach my $seg (@{$this->{tmpltags}}) {
+			if( $seg->[0] eq 'tag' )
+			{
+				if( !defined($valmap->{${$seg->[2]}}) )
+				{
+					die __PACKAGE__."#$method, tag [$seg->[1]] was left unexpanded.\n";
+				}
+			}
+	}
+
+}
+
 sub _flush {
 	my $this = shift;
 	my $mark = shift; # <!mark>名。undefの場合がある。(後述)
@@ -994,6 +1005,7 @@ sub _flush {
 			#    全ての祖先に対しての再帰を終えた後。
 			#    -- この場合は何も消さず何も出力せずに終了。
 			unless(defined($this->{parent})) {
+				$this->_dieIfUnexpandTag('flush');
 				my $composed = $this->_compose;
 				$this->{tmplvec} = [];
 				

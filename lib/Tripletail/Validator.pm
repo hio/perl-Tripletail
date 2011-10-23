@@ -79,6 +79,7 @@ sub _execFilter {
 
 	foreach my $key ( keys %{ $this->{_filters} } ) {
 		my @values = $form->getValues($key);
+		my $empty_exists = !@values && $form->exists($key);
 		foreach my $filter ( @{ $this->{_filters}->{$key} } ) {
 #			my $diag = do
 #			{
@@ -115,7 +116,11 @@ sub _execFilter {
 			}
 			last;
 		}
-		$form->set($key => \@values) if $allowmodify;
+		if( $allowmodify )
+		{
+			# @values が空の時は削除される.
+			$form->set($key => \@values);
+		}
 	}
 	if( $error && $onfail )
 	{

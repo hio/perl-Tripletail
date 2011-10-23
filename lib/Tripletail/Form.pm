@@ -2,7 +2,8 @@
 # Tripletail::Form - フォーム情報
 # -----------------------------------------------------------------------------
 package Tripletail::Form;
-
+use strict;
+our $TL;
 
 1;
 
@@ -91,9 +92,10 @@ sub addForm {
 		);
 	}
 
-	@{$this->{form}}{keys %{$form->{form}}} = values %{$form->{form}};
-	@{$this->{form_shared}}{keys %{$form->{form}}} = (1) x keys %{$form->{form}};
-	@{$f->{form_shared}}{keys %{$form->{form}}} = (1) x keys %{$form->{form}};
+	my @addkeys = keys %{$form->{form}};
+	@{$this->{form}}{@addkeys} = values %{$form->{form}};
+	@{$this->{form_shared}}{@addkeys} = (1) x @addkeys;
+	@{$form->{form_shared}}{@addkeys} = (1) x keys %{$form->{form}};
 
 	@{$this->{filename}}{keys %{$form->{filename}}} = values %{$form->{filename}};
 	@{$this->{filehandle}}{keys %{$form->{filehandle}}} = values %{$form->{filehandle}};
@@ -251,15 +253,40 @@ sub set {
 		);
 	}
 
-	foreach my $key (keys %$data) {
-		delete $this->{form}{$key};
-		if(ref($data->{$key}) eq 'ARRAY') {
-			$this->{form}{$key} = $data->{$key};
-		} elsif(!ref($data->{$key})) {
-			$this->{form}{$key}[0] = $data->{$key};
-		} else {
+	foreach my $key (keys %$data)
+	{
+		my $val = $data->{$key};
+		if( !defined($val) )
+		{
+			delete $this->{form}{$key};
+			delete $this->{form_shared}{$key};
+			next;
+		}
+		
+		if( !ref($val) )
+		{
+			$val = [$val];
+		}
+		if( ref($val) ne 'ARRAY' )
+		{
+			my $ref = ref($val);
 			die "Tripletail::Form#set, ARG[]: Data include Wrong-Ref. [$key/$ref]\n";
 		}
+		
+		if( !@$val )
+		{
+			# empty list.
+			delete $this->{form}{$key};
+			delete $this->{form_shared}{$key};
+			next;
+		}
+		
+		if( my ($ref) = grep{$_} map{ref($_)} @$val )
+		{
+			die "Tripletail::Form#set, ARG[]: Data include Wrong-Ref. [$key/$ref]\n";
+		}
+		$this->{form}{$key} = [@$val]; # sharrow copy.
+		delete $this->{form_shared}{$key};
 	}
 
 	$this;

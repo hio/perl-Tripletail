@@ -17,6 +17,7 @@ our $INSTANCES = {}; # グループ名 => インスタンス
 sub _TX_STATE_NONE()      { 0 }
 sub _TX_STATE_ACTIVE()    { 1 }
 sub _TX_STATE_CLOSEWAIT() { 2 }
+our @TX_STATE_NAME = qw(NONE ACTIVE CLOSEWAIT);
 
 1;
 
@@ -34,9 +35,32 @@ sub _getInstance {
 	if(!$obj) {
 		die "TL#getDB, DB [$group] was not specified in the startCgi() / trapError().\n";
 	}
-	$obj->{tx_state}!=_TX_STATE_NONE and die "tx state : $obj->{tx_state}";
 
 	$obj;
+}
+
+sub _reconnectSilentlyAll {
+    # fork された後、子プロセス側で呼ばれる。現在 $INSTANCES に保存されている
+    # DBI-dbh は全て親と共有されているので、それら全ての InactiveDestroy フラグを
+    # 立ててから接続し直さなければならない。
+    foreach my $db (values %$INSTANCES) {
+        $db->_reconnectSilently;
+    }
+
+    return;
+}
+
+sub _reconnectSilently {
+    my $this = shift;
+
+    # 全ての DB コネクションの InactiveDestroy フラグを立ててから再接続する。
+    foreach my $dbh (values %{$this->{dbname}}) {
+        $dbh->getDbh->{InactiveDestroy} = 1;
+        $dbh->connect($this->{type});
+    }
+    $this->{tx_state} = _TX_STATE_NONE;
+
+    $this;
 }
 
 sub connect {
@@ -70,12 +94,11 @@ sub tx
 	my $setname = !ref($_[0]) && shift;
 	my $sub  = shift;
 	
-	require Sub::ScopeFinalizer;
 	my @ret;
 	
 	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
 	my $succ = 0;
-	my $anchor = Sub::ScopeFinalizer->new(sub{
+	my $anchor = Tripletail::DB::_scope->new(sub{
 		$succ and return;
 		# on exception.
 		if( $this->{tx_state}==_TX_STATE_ACTIVE )
@@ -1494,6 +1517,70 @@ sub _fetchconvert
 	}
 }
 
+package Tripletail::DB::_scope;
+
+# -----------------------------------------------------------------------------
+# Tripletail::DB::_scope->new(sub{ ... });
+# Tripletail::DB::_scope->new(sub{ ... }, { args=>[...] });
+#  create colosing object. it is similar to destructor or finally clause.
+#
+sub new
+{
+	my $pkg  = shift;
+	my $code = shift;
+	my $opts = shift;
+	
+	my $this = bless {}, $pkg;
+	$this->{code}     = $code;
+	$this->{args}     = $opts->{args} || undef;
+	$this->{disabled} = $opts->{disabled};
+	$this;
+}
+
+# -----------------------------------------------------------------------------
+# $obj->raise();
+# $obj->raise({ args => [...] });
+#  invoke scope_finalizer code before it run automatically.
+#
+sub raise
+{
+	my $this = shift;
+	my $opts = shift || {};
+	if( !$this->{disabled} )
+	{
+		my $args = $opts->{args} || $this->{args} || [];
+		$this->{code}->(@$args);
+		$this->{disabled} = 1;
+	}else
+	{
+		return;
+	}
+}
+
+# -----------------------------------------------------------------------------
+# $obj->disable();
+#  disable auto raise.
+#
+sub disable
+{
+	my $this = shift;
+	$this->{disabled} = @_ ? shift : 1;
+	$this;
+}
+
+# -----------------------------------------------------------------------------
+# DESTRUCTOR.
+#  invoke scope_finalizer code.
+#
+sub DESTROY
+{
+	my $this = shift;
+	$this->raise();
+}
+
+# -----------------------------------------------------------------------------
+# End of Module.
+# -----------------------------------------------------------------------------
 __END__
 
 =encoding utf-8

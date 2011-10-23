@@ -1,22 +1,21 @@
 # http://module-build.sourceforge.net/META-spec.html
 name:         Tripletail
-version:      0.29
+version:      0.30
 version_from: lib/Tripletail.pm
 installdirs:  site
 author:       Ymirlink <tl@tripletail.jp>
 abstract: Tripletail, Framework for Japanese Web Application
 license: perl
 requires:
-  Data::Dumper:            0
-  DBI:                     0
-  Digest::HMAC_SHA1:       0
-  File::Path:              0
-  IO::Scalar:              0
-  MIME::Tools:         5.411
-  PadWalker:             1.0
-  Sub::ScopeFinalizer:     0
-  Text::CSV_XS:            0
-  Unicode::Japanese:       0
+  Data::Dumper:          0
+  DBI:                   0
+  Digest::HMAC_SHA1:     0
+  File::Path:            0
+  IO::Scalar:            0
+  MIME::Tools:       5.411
+  PadWalker:           1.0
+  Text::CSV_XS:          0
+  Unicode::Japanese:     0
 build_requires:
   Crypt::CBC:          0
   Crypt::Rijndael:     0
@@ -27,9 +26,10 @@ no_index:
   directory:
     - sample
     - t
+    - doc
 
 distribution_type: module
-generated_by: ExtUtils::MY_Metafile version 0.07, EUMM-6.30.
+generated_by: ExtUtils::MY_Metafile version 0.07, EUMM-6.17.
 meta-spec:
   version: 1.2
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

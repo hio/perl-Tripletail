@@ -1,4 +1,4 @@
-use Test::More tests => 103;
+use Test::More tests => 122;
 use Test::Exception;
 use strict;
 use warnings;
@@ -148,3 +148,40 @@ ok($f1->remove(aaa => 111), 'remove');
 is($f1->get('aaa'), 111 , 'remove check');
 ok($f1->remove(aaa => 111), 'remove');
 is($f1->get('aaa'), undef , 'remove check');
+
+# setting undef or [] is equivalent with delete.
+{
+	# 5 tests.
+	my $form = $TL->newForm();
+	$form->set(a=>1);
+	ok($form->exists("a"),               "set-undef: 1 of 7");
+	is($form->get("a"), "1",             "set-undef: 2 of 7");
+	is_deeply([$form->getKeys()], ['a'], "set-undef: 3 of 7");
+	ok($form->set(a=>undef),             "set-undef: 4 of 7");
+	ok(!$form->exists("a"),              "set-undef: 5 of 7");
+	is($form->get("a"), undef,           "set-undef: 6 of 7");
+	is_deeply([$form->getKeys()], [],    "set-undef: 7 of 7");
+}
+{
+	# 5 tests.
+	my $form = $TL->newForm();
+	$form->set(b=>[2,3]);
+	ok($form->exists("b"),               "set-empty-list: 1 of 7");
+	is($form->get("b"), "2,3",           "set-empty-list: 2 of 7");
+	is_deeply([$form->getKeys()], ['b'], "set-empty-list: 3 of 7");
+	ok($form->set(b=>[]),                "set-empty-list: 4 of 7");
+	ok(!$form->exists("b"),              "set-empty-list: 5 of 7");
+	is($form->get("b"), undef,           "set-empty-list: 6 of 7");
+	is_deeply([$form->getKeys()], [],    "set-empty-list: 7 of 7");
+}
+
+# setting references raise an error.
+{
+	# 5 tests.
+	my $form = $TL->newForm();
+	dies_ok {$form->set(a=>\1)} 'set-error: scalar-ref';
+	dies_ok {$form->set(a=>{})} 'set-error: hash-ref';
+	dies_ok {$form->set(a=>[\1])} 'set-error: array-ref of scalar-ref';
+	dies_ok {$form->set(a=>[{}])} 'set-error: array-ref of hash-ref';
+	dies_ok {$form->set(a=>[[]])} 'set-error: array-ref of array-ref';
+}

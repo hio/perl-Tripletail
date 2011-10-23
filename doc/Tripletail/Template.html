@@ -296,6 +296,20 @@ loadTemplate が呼ばれていない場合は、カレントディレクトリ�
 </p>
 
 <p>
+<span class="pod_lang">デフォルトは文字コード自動判別となるが、テンプレートファイルに
+日本語がごく少量しか含まれない場合は、正しく判定できないことがある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">自動判別はUTF-8よりShift_JISを優先するので、テンプレートファイルは
+Shift_JISコードで作成することを推奨する。
+
+</span>
+</p>
+
+<p>
 <span class="pod_lang">$prefer_encode を真にすると Encode が利用可能な場合は Encode で変換する。
 
 </span>

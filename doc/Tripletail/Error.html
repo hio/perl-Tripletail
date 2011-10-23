@@ -76,7 +76,8 @@ Tripletail::Error - 内部クラス
 </span></a></h1>
 
 <p>
-<span class="pod_lang"><a href=".././Tripletail.html">Tripletail</a> によって内部的に使用される。
+<span class="pod_lang"><a href=".././Tripletail.html">Tripletail</a> によって内部的及び <a href=".././Tripletail.html#fault_handler">fault_handler</a>
+で使用される。
 
 </span>
 </p>
@@ -87,34 +88,12 @@ Tripletail::Error - 内部クラス
 </span></a></h2>
 
 <dl>
-<dt><a id="foreach_source_line"><span class="pod_lang"><code class="pod_iseq_C">foreach_source_line</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang">内部メソッド
-
-</span>
-</p>
-
-</dd>
-<dt><a id="is_trace_allowed"><span class="pod_lang"><code class="pod_iseq_C">is_trace_allowed</code>
-
-</span></a></dt>
-<dd>
-<p>
-<span class="pod_lang">内部メソッド
-
-</span>
-</p>
-
-</dd>
 <dt><a id="message"><span class="pod_lang"><code class="pod_iseq_C">message</code>
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">内部メソッド
+<span class="pod_lang">エラーメッセージ。(<code class="pod_iseq_C">$@</code>)
 
 </span>
 </p>
@@ -125,10 +104,69 @@ Tripletail::Error - 内部クラス
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">内部メソッド
+<span class="pod_lang">短い説明。
+省略時は &quot;<code class="pod_iseq_C">Error: $message</code>&quot;;
 
 </span>
 </p>
+
+</dd>
+<dt><a id="type"><span class="pod_lang"><code class="pod_iseq_C">type</code>
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">エラー情報の種別。
+
+</span>
+</p>
+
+<dl>
+<dt><a id="X'error'"><span class="pod_lang">'<code class="pod_iseq_C">error</code>'
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">実行時エラーに関する情報。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="X'warn'"><span class="pod_lang">'<code class="pod_iseq_C">warn</code>'
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">警告に関する情報。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="X'file-update'"><span class="pod_lang">'<code class="pod_iseq_C">file-update</code>'
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">スクリプト等の更新検出。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="X'memory-leak'"><span class="pod_lang">'<code class="pod_iseq_C">memory-leak</code>'
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">メモリ制限。
+
+</span>
+</p>
+
+</dd>
+</dl>
 
 </dd>
 <dt><a id="toHtml"><span class="pod_lang"><code class="pod_iseq_C">toHtml</code>
@@ -136,13 +174,13 @@ Tripletail::Error - 内部クラス
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">内部メソッド
+<span class="pod_lang">HTML化。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="type"><span class="pod_lang"><code class="pod_iseq_C">type</code>
+<dt><a id="is_trace_allowed"><span class="pod_lang"><code class="pod_iseq_C">is_trace_allowed</code>
 
 </span></a></dt>
 <dd>
@@ -221,12 +259,15 @@ Tripletail::Error - 内部クラス
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
+<li><a href="#X'error'">'error'</a></li>
+<li><a href="#X'file-update'">'file-update'</a></li>
+<li><a href="#X'memory-leak'">'memory-leak'</a></li>
+<li><a href="#X'warn'">'warn'</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#NAME">NAME</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
-<li><a href="#foreach_source_line">foreach_source_line</a></li>
 <li><a href="#is_trace_allowed">is_trace_allowed</a></li>
 <li><a href="#message">message</a></li>
 <li><a href="#title">title</a></li>

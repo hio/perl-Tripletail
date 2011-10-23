@@ -408,6 +408,12 @@ Tripletail::Template オブジェクトを作成。
 $icode が省略された場合は 'auto' 文字コード自動判別となる。
 指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP。
 
+デフォルトは文字コード自動判別となるが、テンプレートファイルに
+日本語がごく少量しか含まれない場合は、正しく判定できないことがある。
+
+自動判別はUTF-8よりShift_JISを優先するので、テンプレートファイルは
+Shift_JISコードで作成することを推奨する。
+
 $prefer_encode を真にすると Encode が利用可能な場合は Encode で変換する。
 
 =item setTemplate

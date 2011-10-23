@@ -1,4 +1,4 @@
-use Test::More tests => 93;
+use Test::More tests => 99;
 use Test::Exception;
 use strict;
 use warnings;
@@ -51,8 +51,24 @@ is($TL->unescapeSqlLike('\\%\\_\\\\'), '%_\\', 'unescapeSqlLike');
 
 ok($TL->trapError(-main => sub {}), 'trapError');
 
-sub DoTEST {}
-ok($TL->dispatch('TEST'), 'dispatch');
+{
+	my $test;
+	sub DoTest { $test = 1; }
+	sub Dotest { $test = 2; } # could not dispatch.
+	
+	ok($TL->dispatch('Test'), 'dispatch: Test');
+	is($test, 1,  'dispatch: Test, executed');
+	
+	eval{$TL->dispatch('test');};
+	like($@, qr/must start with upper case character/, 'dispatch: test, refused');
+	
+	is($TL->dispatch('NotExists'), undef, 'dispatch: NotExists');
+	$TL->dispatch('NotExists',onerror=>sub{$test=3;});
+	pass('dispatch: NotExists');
+	is($test, 3,  'dispatch: NotExists, onerror');
+	eval{ $TL->dispatch('NotExists',onerror=>sub{$test=5;die "yyy";})};
+	ok($@, 'die: NotExists, die in onerror');
+}
 
 dies_ok {$TL->log} 'log die (1)';
 lives_ok {$TL->log(__PACKAGE__)} 'log (2)';

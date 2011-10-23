@@ -13,7 +13,6 @@ my $requires = {
     'PadWalker'           => '1.0',
     'Unicode::Japanese'   => 0,
     'Text::CSV_XS'        => 0, # optional
-    'Sub::ScopeFinalizer' => 0,
 };
 
 my $build_requires = {
@@ -26,7 +25,7 @@ my $build_requires = {
 
 my_metafile Tripletail => {
   no_index => {
-    directory => [qw(sample t)],
+    directory => [qw(sample t doc)],
   },
   requires => $requires,
   build_requires => $build_requires,

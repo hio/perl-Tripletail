@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v 1.194 2007/06/15 03:39:52 hio Exp $
+# $Id: Tripletail.pm,v 1.204 2007/08/24 09:12:56 hio Exp $
 package Tripletail;
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use File::Spec;
 use Data::Dumper;
 use Cwd ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -222,6 +222,17 @@ sub fork {
     }
     elsif ($pid == 0) {
         # child
+        
+        if ($this->{fcgi_request}) {
+            # 何故か FCGI::DESTROY を殺して置かないと、子プロセスの方が早く死んだ
+            # 時に Internal Server Error になってしまう。
+            # http://wiki.dreamhost.com/Perl_FastCGI
+            *FCGI::DESTROY = sub {};
+        }
+        
+        require Tripletail::DB;
+
+        Tripletail::DB::_reconnectSilentlyAll();
     }
     else {
         # parent
@@ -567,7 +578,7 @@ sub startCgi {
 
 		# また、FCGIモードでなければエラーをstdoutにprintする意味がある。
 		if ($this->_getRunMode ne 'FCGI') {
-			$this->__dispError($err);
+			$this->_call_fault_handler($err);
 		}
 	}
 	!$@ && $main_err and $@ = $main_err;
@@ -579,6 +590,71 @@ sub startCgi {
 	{
 		$this;
 	}
+}
+
+sub _call_fault_handler
+{
+	my $this = shift;
+	my $err  = shift;
+	
+	my $printed;
+	FAULT_HANDLER:
+	{
+		my $handler_name = $this->INI->get(TL => 'fault_handler');
+		$handler_name or last FAULT_HANDLER;
+		
+		my ($modname, $subname) = $handler_name =~ /^(?:::)?(?:(\w+(?:::\w+)*)::)?(\w+)$/;
+		if( !defined($subname) )
+		{
+			$TL->log("fault_handler, invalid name [$handler_name]");
+			last FAULT_HANDLER;
+		}
+		$modname ||= 'main';
+		my $sub = $modname->can($subname);
+		if( !$sub )
+		{
+			# load module.
+			(my $pmname = $modname.'.pm') =~ s{::}{/}g;
+			if( !$INC{$pmname} )
+			{
+				local($@);
+				eval "require $modname; 1;";
+				if( $@ )
+				{
+					$TL->log("fault_handler, load module [$modname] failed: $@");
+					last FAULT_HANDLER;
+				}
+			}
+			$sub = $modname->can($subname);
+			if( !$sub )
+			{
+				$TL->log("fault_handler, no such sub [$subname] in [$modname]");
+				last FAULT_HANDLER;
+			}
+		}
+		if( !defined(&$sub) )
+		{
+			$TL->log("fault_handler, sub [$subname] in [$modname] is undefined");
+			last FAULT_HANDLER;
+		}
+		
+		local($@);
+		eval{
+			$modname->$sub($err);
+		};
+		if( $@ )
+		{
+			$TL->log("fault_handler, sub [$subname] in [$modname] is failed: $@");
+			last FAULT_HANDLER;
+		}
+		$printed = 1;
+	}
+	
+	if( !$printed )
+	{
+		$this->__dispError($err);
+	}
+	return;
 }
 
 sub _fcgi_restart
@@ -673,6 +749,9 @@ sub dispatch {
 		}
 	} elsif(ref($name)) {
 		die __PACKAGE__."#dispatch, ARG[1] was a Ref. [$name]\n";
+	} elsif( $name !~ /^[A-Z]/ )
+	{
+		die __PACKAGE__."#dispatch, ARG[1] must start with upper case character";
 	}
 
 	# 呼ばれる関数のあるパッケージはcallerから得る。
@@ -2007,16 +2086,19 @@ sub __executeHook {
 
 sub __dispError {
 	my $this = shift;
-	my $err = shift;
+	my $err  = shift;
 
 	isa($err, 'Tripletail::Error') or
 	  $err = $TL->newError('error' => $err);
 
-	my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
-	my $html = $err->toHtml;
-	$html =~ s|</html>$|$popup</html>|;
+	my $html;
+	{
+		my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
+		$html = $err->toHtml;
+		$html =~ s|</html>$|$popup</html>|;
+		$html = "Content-Type: text/html; charset=UTF-8\n\n" . $html;
+	}
 
-	print "Content-Type: text/html; charset=UTF-8\n\n";
 	print $html;
 
 	$this->_sendErrorIfNeeded($err);
@@ -2430,6 +2512,7 @@ C<Session> は、次のように配列へのリファレンスを渡す事で、
 
 'Do' と $value を繋げた関数名の関数を呼び出す。
 $valueがundefの場合、defaultを指定していた場合、defaultに設定される。
+$value は大文字で始まらなければならない。
 
 onerrorが未設定で関数が存在しなければ undef、存在すれば1を返す。
 
@@ -2695,6 +2778,7 @@ C<< $TL->fork >> を使用する事が推奨される。
 ログを記録する。グループとログデータの２つを受け取る。
 
 第一引数のグループは省略可能。
+ログデータがリファレンスだったときは Data::Dumper によってダンプされる。
 
 ログにはヘッダが付けられ、ヘッダは「時刻(epoch値の16進数8桁表現) プロセスIDの16進数4桁表現 FastCGIのリクエスト回数の16進数4桁表現 [グループ]」の形で付けられる。
 
@@ -2968,6 +3052,28 @@ Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるた
 一回のPOSTでアップロード可能なファイルサイズの合計。デフォルトは8M。ファ
 イルのサイズは maxrequestsize とは別にカウントされ、ファイルでないもの
 については maxrequestsize の値が使われる。
+
+=item fault_handler
+
+  fault_handler = Name::Of::Handler
+
+startCgi での最大リクエストサイズ若しくは
+アップロード可能なファイルサイズを超えたときに
+例外ハンドラとする関数名。
+モジュールは必要なら自動でロードされる。
+
+ # [TL]
+ # fault_handler = MyApp::FaultHandler
+ package MyApp;
+ sub FaultHandler
+ {
+   my $err = shift;
+   
+   print "Status: 413 Request Entity Too Large\r\n";
+   print "Cotent-Type: text/plain; charset=utf-8\r\n";
+   print "\r\n";
+   print "error: $err\n";
+ }
 
 =item logdir
 

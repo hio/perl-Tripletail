@@ -43,6 +43,18 @@ Tripletail::Session - セッション
 
 </span></a>
 </li>
+<li><a href="#Xe5X8fXa4Xe3X81X84Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X87Xe3X83XbcXe3X82XbfXe3X81XaeXe5X89X8aXe9X99Xa4">
+<span class="pod_lang">古いセッションデータの削除
+
+</span></a>
+<ul>
+<li><a href="#TripletaiL_0.29_Xe4XbbXa5Xe5X89X8dXe3X81XaeXe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X81XaeXe6Xb3Xa8Xe6X84X8f">
+<span class="pod_lang">TripletaiL 0.29 以前のセッションテーブルの注意
+
+</span></a>
+</li>
+</ul>
+</li>
 <li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">Ini パラメータ
 
@@ -149,18 +161,24 @@ Tripletail::Session - セッション
 </span>
 </p>
 
-<dl>
-<dt><a id="Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X81XaeXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82"><span class="pod_lang">セッションの操作は、トランザクション中及びテーブルロック中には行わない。
+<ul>
+<li>
+<p>
+<span class="pod_lang">セッションの操作は、トランザクション中及びテーブルロック中には行わない。
 
-</span></a></dt>
-<dd>
-</dd>
-<dt><a id="Xe3X82Xb3Xe3X83Xb3Xe3X83X86Xe3X83Xb3Xe3X83X84Xe3X81XaeXe5X87XbaXe5X8aX9bXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82"><span class="pod_lang">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
+</span>
+</p>
 
-</span></a></dt>
-<dd>
-</dd>
-</dl>
+</li>
+<li>
+<p>
+<span class="pod_lang">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
+
+</span>
+</p>
+
+</li>
+</ul>
 
 <h2><a id="METHODS">
 <span class="pod_lang">METHODS
@@ -384,6 +402,86 @@ httpsモードで非SSL側から書き換えようとした場合は <code class
 </dd>
 </dl>
 
+<h2><a id="Xe5X8fXa4Xe3X81X84Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X87Xe3X83XbcXe3X82XbfXe3X81XaeXe5X89X8aXe9X99Xa4">
+<span class="pod_lang">古いセッションデータの削除
+
+</span></a></h2>
+
+<p>
+<span class="pod_lang">TripletaiL は、古いセッションデータを削除することはしません。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">パフォーマンスを維持するため、古いセッションデータを定期的に削除するバッチを作成し、定期的に
+実行するようにして下さい。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">削除は以下のようなクエリで行えます。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> DELETE FROM tablename WHERE updatetime &lt; now() - INTERVAL 7 DAY LIMIT 10000</code></pre>
+
+<p>
+<span class="pod_lang">セッションの保存期間にあわせて、WHERE条件を変更して下さい。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">また、セッションテーブルがMyISAM形式の場合は、LIMIT句を付けて一度に削除する
+レコード件数を制限し、長時間ロックがかからないようにすることを推奨します。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">DELETE結果の件数が0件になるまで、ループして処理して下さい。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションテーブルがInnoDB形式の場合も、トランザクションが大きくなりすぎないよう、
+LIMIT句を利用することを推奨します。
+
+</span>
+</p>
+
+<h3><a id="TripletaiL_0.29_Xe4XbbXa5Xe5X89X8dXe3X81XaeXe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X81XaeXe6Xb3Xa8Xe6X84X8f">
+<span class="pod_lang">TripletaiL 0.29 以前のセッションテーブルの注意
+
+</span></a></h3>
+
+<p>
+<span class="pod_lang">TripletaiL 0.29 以前では、セッションテーブルを作成する際に、
+updatetime カラムにインデックスを張っていませんでした。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">レコードの件数が多い場合、古いデータの削除に時間がかかることがあります。
+その場合は、updatetime カラムにインデックスを張るようにして下さい。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">0.30以降では、セッションテーブル作成時にインデックスを張るように動作が変更されています。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> ALTER TABLE tablename ADD INDEX (updatetime);
+ CREATE INDEX tablename_updtime_idx ON tablename (updatetime);</code></pre>
+
 <h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">Ini パラメータ
 
@@ -451,8 +549,8 @@ http側からはhttps側からセットされたセッション情報の参照�
 
 <pre class="pod_verbatim"><code>                http領域読込    http領域書込    https領域読込   http領域書込
   httpモード    ○              ○              ○              ○
-  httpsモード   C&lt;die&gt;             C&lt;die&gt;             ○              ○
-  doubleモード  ○              C&lt;die&gt;             ○              ○</code></pre>
+  httpsモード   die             die             ○              ○
+  doubleモード  ○              die             ○              ○</code></pre>
 
 </dd>
 </dl>
@@ -621,6 +719,20 @@ secureフラグが付いていなければエラーとなる。
 </p>
 
 </dd>
+<dt><a id="mysqlsessiontabletype"><span class="pod_lang">mysqlsessiontabletype
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  mysqlsessiontabletype = InnoDB</code></pre>
+
+<p>
+<span class="pod_lang">MySQLの場合、セッションで使用するテーブルの種類を何にするかを指定する。
+デフォルトは指定無し。
+
+</span>
+</p>
+
+</dd>
 <dt><a id="csrfkey"><span class="pod_lang">csrfkey
 
 </span></a></dt>
@@ -743,6 +855,7 @@ Tripletail::Session - セッション
 <li><a href="#NAME">NAME</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#TripletaiL_0.29_Xe4XbbXa5Xe5X89X8dXe3X81XaeXe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X81XaeXe6Xb3Xa8Xe6X84X8f">TripletaiL 0.29 以前のセッションテーブルの注意</a></li>
 <li><a href="#X_">Tripletail</a></li>
 <li><a href="#X__00">Tripletail::Cookie</a></li>
 <li><a href="#X__01">Tripletail::DB</a></li>
@@ -763,6 +876,7 @@ Tripletail::Session - セッション
 <li><a href="#httpXe3X83Xa2Xe3X83XbcXe3X83X89">httpモード</a></li>
 <li><a href="#isHttps">isHttps</a></li>
 <li><a href="#mode">mode</a></li>
+<li><a href="#mysqlsessiontabletype">mysqlsessiontabletype</a></li>
 <li><a href="#readdbset">readdbset</a></li>
 <li><a href="#renew">renew</a></li>
 <li><a href="#securecookie">securecookie</a></li>
@@ -771,8 +885,7 @@ Tripletail::Session - セッション
 <li><a href="#setvaluewithrenew">setvaluewithrenew</a></li>
 <li><a href="#timeout">timeout</a></li>
 <li><a href="#updateinterval">updateinterval</a></li>
-<li><a href="#Xe3X82Xb3Xe3X83Xb3Xe3X83X86Xe3X83Xb3Xe3X83X84Xe3X81XaeXe5X87XbaXe5X8aX9bXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。</a></li>
-<li><a href="#Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X81XaeXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82">セッションの操作は、トランザクション中及びテーブルロック中には行わない。</a></li>
+<li><a href="#Xe5X8fXa4Xe3X81X84Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X87Xe3X83XbcXe3X82XbfXe3X81XaeXe5X89X8aXe9X99Xa4">古いセッションデータの削除</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

@@ -12,13 +12,13 @@ basic/            基本的なサンプル
   csvdownload       CSVダウンロード
 
 
-db/               DB機能のサンプル
+db/               DB機能のサンプル(未制作)
   dbselect          DBアクセス(未制作)
   dbdebug           DBデバッグ(未制作)
 
-value/            Valueクラスのサンプル
+value/            Valueクラスのサンプル(未制作)
 
-pager/            ページャのサンプル
+pager/            ページャのサンプル(未制作)
 
 seo/              SEO対策を行ったサンプル
   seoform           フォーム + SEO対策
@@ -28,10 +28,10 @@ session/          TinySessionクラスを使用したサンプル
   logindouble       ID記録(HTTP,HTTPSの同時使用)
 
 
-mobile/           携帯向けのサンプル
+mobile/           携帯向けのサンプル(未制作)
 
 
-application/      サンプルアプリケーション
+application/      サンプルアプリケーション(未制作)
 
 
 advanced/         高度な利用方法

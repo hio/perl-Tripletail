@@ -58,7 +58,10 @@ doc/Tripletail/Value.html
 doc/frame.html
 doc/menu.css
 doc/menu.html
+doc/policy.pod
+doc/security.pod
 doc/style.css
+doc/tips.pod
 ext/Makefile.PL
 ext/Tripletail-HtmlFilter/HtmlFilter.pm
 ext/Tripletail-HtmlFilter/HtmlFilter.xs
@@ -153,6 +156,7 @@ sample/session/logindouble.cgi
 sample/session/logindouble.html
 sample/session/logindouble.ini
 t/00.load.t
+t/FaultHandler.pm
 t/charconv.t
 t/cookie.t
 t/csv.t
@@ -183,8 +187,9 @@ t/server_memcache.t
 t/server_session.t
 t/tagcheck.t
 t/template.t
-t/tl.t
 t/test_server.pm
+t/tl-faulthandler.t
+t/tl.t
 t/v002_select.t
 t/v018.reqnon.pl
 t/v018.t

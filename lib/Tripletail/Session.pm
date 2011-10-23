@@ -213,6 +213,8 @@ sub __prepareSessionTable {
 		# テーブルが無いので作る。
 		my $type = $DB->getType;
 		if($type eq 'mysql') {
+			my $typeoption = $TL->INI->get($this->{group} => 'mysqlsessiontabletype', '');
+			$typeoption = " TYPE = " . $typeoption if($typeoption);
 			eval {
 				$DB->execute(\$this->{dbset} => qq{
 					CREATE TABLE $this->{sessiontable} (
@@ -221,10 +223,12 @@ sub __prepareSessionTable {
 						checkvalssl   BIGINT UNSIGNED NOT NULL,
 						data          BIGINT UNSIGNED,
 						updatetime    TIMESTAMP NOT NULL,
-						PRIMARY KEY (sid)
+						PRIMARY KEY (sid),
+						INDEX (updatetime)
 					) AUTO_INCREMENT = 4294967296
 					AVG_ROW_LENGTH = 20
 					MAX_ROWS = 300000000
+					$typeoption
 				});
 			};
 			$@ and die "CREATE TABLE failed: $@";
@@ -238,7 +242,8 @@ sub __prepareSessionTable {
 						checkvalssl   BLOB NOT NULL,
 						data          BLOB,
 						updatetime    TIMESTAMP NOT NULL,
-						PRIMARY KEY (sid)
+						PRIMARY KEY (sid),
+						INDEX (updatetime)
 					)
 				});
 			};
@@ -673,9 +678,13 @@ Sessionは L<DB|Tripletail::DB> を使用してセッションの管理を行う
 
 =over 4
 
-=item セッションの操作は、トランザクション中及びテーブルロック中には行わない。
+=item *
 
-=item コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
+セッションの操作は、トランザクション中及びテーブルロック中には行わない。
+
+=item *
+
+コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
 
 =back
 
@@ -780,6 +789,41 @@ httpsモードで非SSL側から書き換えようとした場合は C<die> す�
 =back
 
 
+=head2 古いセッションデータの削除
+
+TripletaiL は、古いセッションデータを削除することはしません。
+
+パフォーマンスを維持するため、古いセッションデータを定期的に削除するバッチを作成し、定期的に
+実行するようにして下さい。
+
+削除は以下のようなクエリで行えます。
+
+ DELETE FROM tablename WHERE updatetime < now() - INTERVAL 7 DAY LIMIT 10000
+
+セッションの保存期間にあわせて、WHERE条件を変更して下さい。
+
+また、セッションテーブルがMyISAM形式の場合は、LIMIT句を付けて一度に削除する
+レコード件数を制限し、長時間ロックがかからないようにすることを推奨します。
+
+DELETE結果の件数が0件になるまで、ループして処理して下さい。
+
+セッションテーブルがInnoDB形式の場合も、トランザクションが大きくなりすぎないよう、
+LIMIT句を利用することを推奨します。
+
+=head3 TripletaiL 0.29 以前のセッションテーブルの注意
+
+TripletaiL 0.29 以前では、セッションテーブルを作成する際に、
+updatetime カラムにインデックスを張っていませんでした。
+
+レコードの件数が多い場合、古いデータの削除に時間がかかることがあります。
+その場合は、updatetime カラムにインデックスを張るようにして下さい。
+
+0.30以降では、セッションテーブル作成時にインデックスを張るように動作が変更されています。
+
+ ALTER TABLE tablename ADD INDEX (updatetime);
+ CREATE INDEX tablename_updtime_idx ON tablename (updatetime);
+
+
 =head2 Ini パラメータ
 
 =over 4
@@ -812,8 +856,8 @@ http側はセッションキー漏洩の危険性があり、十分な安全性�
 
                 http領域読込    http領域書込    https領域読込   http領域書込
   httpモード    ○              ○              ○              ○
-  httpsモード   C<die>             C<die>             ○              ○
-  doubleモード  ○              C<die>             ○              ○
+  httpsモード   die             die             ○              ○
+  doubleモード  ○              die             ○              ○
 
 =back
 
@@ -892,6 +936,13 @@ L<ini|Tripletail::Ini> で設定したグループ名を渡す。
 
 セッションで使用するテーブル名。
 デフォルトは tl_session_グループ名 が使用される。
+
+=item mysqlsessiontabletype
+
+  mysqlsessiontabletype = InnoDB
+
+MySQLの場合、セッションで使用するテーブルの種類を何にするかを指定する。
+デフォルトは指定無し。
 
 =item csrfkey
 

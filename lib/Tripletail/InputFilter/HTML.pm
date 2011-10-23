@@ -167,8 +167,17 @@ sub __pairsFromMultipart {
 	my $file_limit = $TL->parseQuantity(
 		$TL->INI->get(TL => 'maxfilesize', '8Mi'));
 
-	my $max = sub { $_[0] < $_[1] ? $_[1] : $_[0] };
-	my $chunksize = $max->(16 * 1024, length("\x0d\x0a$boundary") * 2 - 1);
+	my $chunksize = 16 * 1024;
+	if( $req_limit < $chunksize )
+	{
+		$chunksize = $req_limit;
+		
+		my $boundary = ( length($boundary)+2 )*2; # +2="\r\n";
+		if( $req_limit < $boundary )
+		{
+			$chunksize = $boundary;
+		}
+	}
 
 	my $buffer = '';
 	my $eof = undef;
@@ -193,8 +202,7 @@ sub __pairsFromMultipart {
 		}
 
 		# バッファのサイズが maxrequestsize を越えないようにする。
-		my $size = (length($buffer) + $chunksize <= $req_limit
-					  ? $chunksize : $req_limit - length($buffer));
+		my $size = $chunksize - length($buffer);
 		if ($size == 0) {
 			die __PACKAGE__.", read buffer has been full.\n";
 		}
