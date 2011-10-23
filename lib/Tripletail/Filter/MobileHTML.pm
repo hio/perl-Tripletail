@@ -77,13 +77,21 @@ HTMLに対して以下の処理を行う。
 
 =over 4
 
-=item 漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）
+=item *
 
-=item ヘッダの管理
+漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）
 
-=item E<lt>form action=""E<gt> が空欄の場合、自分自身のCGI名を埋める
+=item *
 
-=item 特定フォームデータを指定された種別のリンクに付与する
+HTTPヘッダの管理
+
+=item *
+
+E<lt>form action=""E<gt> が空欄の場合、自分自身のCGI名を埋める
+
+=item *
+
+特定フォームデータを指定された種別のリンクに付与する
 
 =back
 
@@ -91,11 +99,67 @@ L<Tripletail::Filter::HTML> との違いは以下の通り。
 
 =over 4
 
-=item 文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。
+=item *
 
-=item セッション用のデータを全てのリンクに追記し、クッキーでの出力はしない。
+文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。
+
+=item *
+
+セッション用のデータを全てのリンクに追記し、クッキーでの出力はしない。
 
 =back
+
+=head2 セッション
+
+携帯端末ではクッキーが利用できない場合があるため、セッション情報を
+クッキーではなくフォームデータとして引き渡す必要がある。
+
+TripletaiL では、L<Tripletail::Filter::MobileHTML> フィルタを使うことで
+この作業を半自動化することができる。
+
+L<Tripletail::Filter::MobileHTML> フィルタは、出力時にリンクやフォームを
+チェックし、セッション情報を付与すべきリンク・フォームであれば、
+自動的にパラメータを追加する。
+
+セッション情報を付与すべきかどうかは、以下のように判断する。
+
+=over 4
+
+=item *
+
+リンクの場合は、リンクの中に INT というキーが存在すれば、セッション情報を
+付与し、INT キーを削除する。
+INT キーがなければ、セッション情報は付与されない。
+
+ <a href="tl.cgi?INT=1">セッション情報が付与されるリンク</a>
+ <a href="tl.cgi">セッション情報が付与されないリンク</a>
+
+INT キーは、Form クラスの toLink メソッドを利用すると自動的に付与される。
+toExtLink メソッドを利用すると、INT キーは付与されない。
+
+ <a href="<&LINKINT>">セッション情報が付与されるリンク</a>
+ <a href="<&LINKEXT>">セッション情報が付与されないリンク</a>
+ 
+ $template->expand({
+   LINKINT => $TL->newForm({ KEY => 'data' })->toLink,
+   LINKEXT => $TL->newForm({ KEY => 'data' })->toExtLink,
+ });
+
+=item *
+
+フォームの場合は、基本的にセッション情報を付与する。
+
+セッション情報を付与したくない場合は、フォームタグを以下のように記述する。
+
+ <form action="" EXT="1">
+
+C<EXT="1"> が付与されているフォームに関しては、セッション情報の付与を行わない。
+また、C<EXT="1"> は出力時には削除される。
+
+=back
+
+セッション情報は、http領域用のセッション情報は C<"SID + セッショングループ名">、
+https領域用のセッション情報は C<"SIDS + セッショングループ名"> という名称で保存する。
 
 =head2 フィルタパラメータ
 

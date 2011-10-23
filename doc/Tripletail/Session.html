@@ -32,6 +32,18 @@ Tripletail::Session - セッション
 <span class="pod_lang">SYNOPSIS
 
 </span></a>
+<ul>
+<li><a href="#PCXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">
+<span class="pod_lang">PCブラウザ向け
+
+</span></a>
+</li>
+<li><a href="#Xe6X90XbaXe5Xb8XafXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">
+<span class="pod_lang">携帯ブラウザ向け
+
+</span></a>
+</li>
+</ul>
 </li>
 <li><a href="#DESCRIPTION">
 <span class="pod_lang">DESCRIPTION
@@ -97,13 +109,44 @@ Tripletail::Session - セッション
 
 </span></a></h1>
 
+<h2><a id="PCXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">
+<span class="pod_lang">PCブラウザ向け
+
+</span></a></h2>
+
 <pre class="pod_verbatim"><code>  $TL-&gt;startCgi(
       -DB      =&gt; 'DB',
       -Session =&gt; 'Session',
-      -main        =&gt; \&amp;main,
+      -main    =&gt; \&amp;main,
   );
 
   sub main {
+      my $session = $TL-&gt;getSession('Session');
+
+      my $oldValue = $session-&gt;getValue;
+      
+      $session-&gt;setValue(12345);
+
+      ...
+  }</code></pre>
+
+<h2><a id="Xe6X90XbaXe5Xb8XafXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">
+<span class="pod_lang">携帯ブラウザ向け
+
+</span></a></h2>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;setInputFilter('Tripletail::InputFilter::MobileHTML');
+  $TL-&gt;startCgi(
+      -DB      =&gt; 'DB',
+      -Session =&gt; 'Session',
+      -main    =&gt; \&amp;main,
+  );
+  
+  sub main {
+      $TL-&gt;setContentFilter(
+          'Tripletail::Filter::MobileHTML',
+          charset =&gt; 'Shift_JIS',
+      );
       my $session = $TL-&gt;getSession('Session');
 
       my $oldValue = $session-&gt;getValue;
@@ -143,8 +186,31 @@ Tripletail::Session - セッション
 
 <p>
 <span class="pod_lang">また、 <a href=".././Tripletail.html#Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">入力フィルタ</a> に <a href=".././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a>
-を使用している場合は <a href=".././Tripletail/Cookie.html">クッキー</a> から、<a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a>
+を使用している場合は <a href=".././Tripletail/Cookie.html">クッキー</a> から、<a href=".././Tripletail/InputFilter/MobileHTML.html">Tripletail::InputFilter::MobileHTML</a>
 の場合は <a href=".././Tripletail/Form.html">クエリ</a> から、それぞれ読み取られる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">出力フィルタに <a href=".././Tripletail/Filter/HTML.html">Tripletail::Filter::HTML</a> を利用した場合は、
+入力フィルタに <a href=".././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a> を使用する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">同様に、出力フィルタに <a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> を利用した場合は、
+入力フィルタに <a href=".././Tripletail/InputFilter/MobileHTML.html">Tripletail::InputFilter::MobileHTML</a> を使用する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">出力フィルタに <a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> を利用する場合は
+フォームの利用の仕方に注意が必要であるため、
+<a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> ドキュメントに書かれている
+利用方法を別途確認すること。
 
 </span>
 </p>
@@ -732,6 +798,22 @@ secureフラグが付いていなければエラーとなる。
 </span>
 </p>
 
+<p>
+<span class="pod_lang">セッションの管理情報が重要である場合、例えばアフィリエイトの追跡に
+利用していて、セッションが意図せず途切れるとユーザに金銭的被害が
+生じるような場合は、InnoDB を利用することを推奨します。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">それ以外の場合は、MyISAM を利用することを推奨します。
+TripletaiL のセッションテーブルは Fixed 型となるため、
+非常に高速にアクセスできます。
+
+</span>
+</p>
+
 </dd>
 <dt><a id="csrfkey"><span class="pod_lang">csrfkey
 
@@ -853,6 +935,7 @@ Tripletail::Session - セッション
 <li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">Ini パラメータ</a></li>
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#NAME">NAME</a></li>
+<li><a href="#PCXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">PCブラウザ向け</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
 <li><a href="#TripletaiL_0.29_Xe4XbbXa5Xe5X89X8dXe3X81XaeXe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X81XaeXe6Xb3Xa8Xe6X84X8f">TripletaiL 0.29 以前のセッションテーブルの注意</a></li>
@@ -886,6 +969,7 @@ Tripletail::Session - セッション
 <li><a href="#timeout">timeout</a></li>
 <li><a href="#updateinterval">updateinterval</a></li>
 <li><a href="#Xe5X8fXa4Xe3X81X84Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X87Xe3X83XbcXe3X82XbfXe3X81XaeXe5X89X8aXe9X99Xa4">古いセッションデータの削除</a></li>
+<li><a href="#Xe6X90XbaXe5Xb8XafXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">携帯ブラウザ向け</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

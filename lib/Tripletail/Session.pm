@@ -519,12 +519,11 @@ sub __setSession {
 	my %opts = @_;
 
 	my $DB = $TL->getDB($this->{dbgroup});
+	my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
 
 	my $type = $DB->getType;
 	if($type eq 'mysql') {
 		eval {
-			my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
-
 			my $sessiondata = $DB->selectAllArray(\$this->{readdbset} => qq{
 				SELECT data, UNIX_TIMESTAMP(updatetime), checkval, checkvalssl
 					FROM $this->{sessiontable}
@@ -547,8 +546,6 @@ sub __setSession {
 		};
 	}elsif($type eq 'sqlite') {
 		eval {
-			my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
-
 			my $sessiondata = $DB->selectAllArray(\$this->{readdbset} => qq{
 				SELECT data, datetime(updatetime, 'localtime'), checkval, checkvalssl
 					FROM $this->{sessiontable}
@@ -577,7 +574,7 @@ sub __setSession {
 		my $datalog = (defined($this->{data}) ? $this->{data} : '(undef)');
 		$TL->log(__PACKAGE__, "Valid session data read. secure [$opts{secure}] sid [$this->{sid}] checkval [$this->{checkval}] checkvalssl [$this->{checkvalssl}] data [$datalog] updatetime [$this->{updatetime}] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 	} else {
-		$TL->log(__PACKAGE__, "Valid session data didn't read. secure [$opts{secure}] sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		$TL->log(__PACKAGE__, "Valid session data didn't read. secure [$opts{secure}] sid [$sid] $colname [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
 	}
 
 	$this;
@@ -600,8 +597,6 @@ sub __updateSession {
 	my $type = $DB->getType;
 	if($type eq 'mysql') {
 		eval {
-			my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
-
 			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
 				UPDATE $this->{sessiontable}
 					SET updatetime = now(), data = ?
@@ -610,8 +605,6 @@ sub __updateSession {
 		};
 	}elsif($type eq 'sqlite') {
 		eval {
-			my $colname = ($opts{secure} ? 'checkvalssl' : 'checkval');
-
 			my $sessiondata = $DB->execute(\$this->{readdbset} => qq{
 				UPDATE $this->{sessiontable}
 					SET updatetime = CURRENT_TIMESTAMP, data = ?
@@ -641,13 +634,38 @@ Tripletail::Session - セッション
 
 =head1 SYNOPSIS
 
+=head2 PCブラウザ向け
+
   $TL->startCgi(
       -DB      => 'DB',
       -Session => 'Session',
-      -main        => \&main,
+      -main    => \&main,
   );
 
   sub main {
+      my $session = $TL->getSession('Session');
+
+      my $oldValue = $session->getValue;
+      
+      $session->setValue(12345);
+
+      ...
+  }
+
+=head2 携帯ブラウザ向け
+
+  $TL->setInputFilter('Tripletail::InputFilter::MobileHTML');
+  $TL->startCgi(
+      -DB      => 'DB',
+      -Session => 'Session',
+      -main    => \&main,
+  );
+  
+  sub main {
+      $TL->setContentFilter(
+          'Tripletail::Filter::MobileHTML',
+          charset => 'Shift_JIS',
+      );
       my $session = $TL->getSession('Session');
 
       my $oldValue = $session->getValue;
@@ -669,8 +687,19 @@ Tripletail::Session - セッション
 の場合は L<クエリ|Tripletail::Form> に、それぞれ挿入される。
 
 また、 L<入力フィルタ|Tripletail/"入力フィルタ"> に L<Tripletail::InputFilter::HTML>
-を使用している場合は L<クッキー|Tripletail::Cookie> から、L<Tripletail::Filter::MobileHTML>
+を使用している場合は L<クッキー|Tripletail::Cookie> から、L<Tripletail::InputFilter::MobileHTML>
 の場合は L<クエリ|Tripletail::Form> から、それぞれ読み取られる。
+
+出力フィルタに L<Tripletail::Filter::HTML> を利用した場合は、
+入力フィルタに L<Tripletail::InputFilter::HTML> を使用する必要がある。
+
+同様に、出力フィルタに L<Tripletail::Filter::MobileHTML> を利用した場合は、
+入力フィルタに L<Tripletail::InputFilter::MobileHTML> を使用する必要がある。
+
+出力フィルタに L<Tripletail::Filter::MobileHTML> を利用する場合は
+フォームの利用の仕方に注意が必要であるため、
+L<Tripletail::Filter::MobileHTML> ドキュメントに書かれている
+利用方法を別途確認すること。
 
 Sessionは L<DB|Tripletail::DB> を使用してセッションの管理を行う。
 
@@ -943,6 +972,14 @@ L<ini|Tripletail::Ini> で設定したグループ名を渡す。
 
 MySQLの場合、セッションで使用するテーブルの種類を何にするかを指定する。
 デフォルトは指定無し。
+
+セッションの管理情報が重要である場合、例えばアフィリエイトの追跡に
+利用していて、セッションが意図せず途切れるとユーザに金銭的被害が
+生じるような場合は、InnoDB を利用することを推奨します。
+
+それ以外の場合は、MyISAM を利用することを推奨します。
+TripletaiL のセッションテーブルは Fixed 型となるため、
+非常に高速にアクセスできます。
 
 =item csrfkey
 

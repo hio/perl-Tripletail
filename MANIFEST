@@ -58,9 +58,12 @@ doc/Tripletail/Value.html
 doc/frame.html
 doc/menu.css
 doc/menu.html
+doc/policy.html
 doc/policy.pod
+doc/security.html
 doc/security.pod
 doc/style.css
+doc/tips.html
 doc/tips.pod
 ext/Makefile.PL
 ext/Tripletail-HtmlFilter/HtmlFilter.pm

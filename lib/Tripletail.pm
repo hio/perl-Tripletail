@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v 1.204 2007/08/24 09:12:56 hio Exp $
+# $Id: Tripletail.pm,v 1.205 2007/08/28 07:36:47 hio Exp $
 package Tripletail;
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use File::Spec;
 use Data::Dumper;
 use Cwd ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

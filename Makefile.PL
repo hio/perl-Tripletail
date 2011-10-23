@@ -25,7 +25,7 @@ my $build_requires = {
 
 my_metafile Tripletail => {
   no_index => {
-    directory => [qw(sample t doc)],
+    directory => [qw(sample t)],
   },
   requires => $requires,
   build_requires => $build_requires,

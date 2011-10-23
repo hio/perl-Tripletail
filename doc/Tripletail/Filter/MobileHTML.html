@@ -38,6 +38,11 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 
 </span></a>
 <ul>
+<li><a href="#Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3">
+<span class="pod_lang">セッション
+
+</span></a>
+</li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">フィルタパラメータ
 
@@ -102,28 +107,40 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </span>
 </p>
 
-<dl>
-<dt><a id="Xe6XbcXa2Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5Xa4X89Xe6X8fX9bXefXbcX88Xe3X83X87Xe3X83X95Xe3X82Xa9Xe3X83XabXe3X83X88Shift_JISXe3X80X81Xe5Xb8Xb8Xe3X81XabUnicode::JapaneseXe3X82X92Xe4XbdXbfXe3X81X86XefXbcX89"><span class="pod_lang">漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）
+<ul>
+<li>
+<p>
+<span class="pod_lang">漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）
 
-</span></a></dt>
-<dd>
-</dd>
-<dt><a id="Xe3X83X98Xe3X83X83Xe3X83X80Xe3X81XaeXe7XaeXa1Xe7X90X86"><span class="pod_lang">ヘッダの管理
+</span>
+</p>
 
-</span></a></dt>
-<dd>
-</dd>
-<dt><a id="X&lt;form_action=""&gt;_Xe3X81X8cXe7Xa9XbaXe6XacX84Xe3X81XaeXe5Xa0Xb4Xe5X90X88Xe3X80X81Xe8X87XaaXe5X88X86Xe8X87XaaXe8XbaXabXe3X81XaeCGIXe5X90X8dXe3X82X92Xe5X9fX8bXe3X82X81Xe3X82X8b"><span class="pod_lang">&lt;form action=&quot;&quot;&gt; が空欄の場合、自分自身のCGI名を埋める
+</li>
+<li>
+<p>
+<span class="pod_lang">HTTPヘッダの管理
 
-</span></a></dt>
-<dd>
-</dd>
-<dt><a id="Xe7X89Xb9Xe5XaeX9aXe3X83X95Xe3X82Xa9Xe3X83XbcXe3X83Xa0Xe3X83X87Xe3X83XbcXe3X82XbfXe3X82X92Xe6X8cX87Xe5XaeX9aXe3X81X95Xe3X82X8cXe3X81X9fXe7Xa8XaeXe5X88Xa5Xe3X81XaeXe3X83XaaXe3X83Xb3Xe3X82XafXe3X81XabXe4XbbX98Xe4Xb8X8eXe3X81X99Xe3X82X8b"><span class="pod_lang">特定フォームデータを指定された種別のリンクに付与する
+</span>
+</p>
 
-</span></a></dt>
-<dd>
-</dd>
-</dl>
+</li>
+<li>
+<p>
+<span class="pod_lang">&lt;form action=&quot;&quot;&gt; が空欄の場合、自分自身のCGI名を埋める
+
+</span>
+</p>
+
+</li>
+<li>
+<p>
+<span class="pod_lang">特定フォームデータを指定された種別のリンクに付与する
+
+</span>
+</p>
+
+</li>
+</ul>
 
 <p>
 <span class="pod_lang"><a href="../.././Tripletail/Filter/HTML.html">Tripletail::Filter::HTML</a> との違いは以下の通り。
@@ -131,18 +148,118 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </span>
 </p>
 
-<dl>
-<dt><a id="Xe6X96X87Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5Xa4X89Xe6X8fX9bXe3X81XabEncodeXe3X82X92Xe4XbdXbfXe3X82X8fXe3X81X9aXe3X80X81Xe5Xb8Xb8Xe3X81XabUnicode::JapaneseXe3X82X92Xe4XbdXbfXe7X94Xa8Xe3X80X82"><span class="pod_lang">文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。
+<ul>
+<li>
+<p>
+<span class="pod_lang">文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。
 
-</span></a></dt>
-<dd>
-</dd>
-<dt><a id="Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe7X94Xa8Xe3X81XaeXe3X83X87Xe3X83XbcXe3X82XbfXe3X82X92Xe5X85Xa8Xe3X81Xa6Xe3X81XaeXe3X83XaaXe3X83Xb3Xe3X82XafXe3X81XabXe8XbfXbdXe8Xa8X98Xe3X81X97Xe3X80X81Xe3X82XafXe3X83X83Xe3X82XadXe3X83XbcXe3X81Xa7Xe3X81XaeXe5X87XbaXe5X8aX9bXe3X81XafXe3X81X97Xe3X81XaaXe3X81X84Xe3X80X82"><span class="pod_lang">セッション用のデータを全てのリンクに追記し、クッキーでの出力はしない。
+</span>
+</p>
 
-</span></a></dt>
-<dd>
-</dd>
-</dl>
+</li>
+<li>
+<p>
+<span class="pod_lang">セッション用のデータを全てのリンクに追記し、クッキーでの出力はしない。
+
+</span>
+</p>
+
+</li>
+</ul>
+
+<h2><a id="Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3">
+<span class="pod_lang">セッション
+
+</span></a></h2>
+
+<p>
+<span class="pod_lang">携帯端末ではクッキーが利用できない場合があるため、セッション情報を
+クッキーではなくフォームデータとして引き渡す必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">TripletaiL では、<a href="../.././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> フィルタを使うことで
+この作業を半自動化することができる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href="../.././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> フィルタは、出力時にリンクやフォームを
+チェックし、セッション情報を付与すべきリンク・フォームであれば、
+自動的にパラメータを追加する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッション情報を付与すべきかどうかは、以下のように判断する。
+
+</span>
+</p>
+
+<ul>
+<li>
+<p>
+<span class="pod_lang">リンクの場合は、リンクの中に INT というキーが存在すれば、セッション情報を
+付与し、INT キーを削除する。
+INT キーがなければ、セッション情報は付与されない。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> &lt;a href=&quot;tl.cgi?INT=1&quot;&gt;セッション情報が付与されるリンク&lt;/a&gt;
+ &lt;a href=&quot;tl.cgi&quot;&gt;セッション情報が付与されないリンク&lt;/a&gt;</code></pre>
+
+<p>
+<span class="pod_lang">INT キーは、Form クラスの toLink メソッドを利用すると自動的に付与される。
+toExtLink メソッドを利用すると、INT キーは付与されない。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> &lt;a href=&quot;&lt;&amp;LINKINT&gt;&quot;&gt;セッション情報が付与されるリンク&lt;/a&gt;
+ &lt;a href=&quot;&lt;&amp;LINKEXT&gt;&quot;&gt;セッション情報が付与されないリンク&lt;/a&gt;
+ 
+ $template-&gt;expand({
+   LINKINT =&gt; $TL-&gt;newForm({ KEY =&gt; 'data' })-&gt;toLink,
+   LINKEXT =&gt; $TL-&gt;newForm({ KEY =&gt; 'data' })-&gt;toExtLink,
+ });</code></pre>
+
+</li>
+<li>
+<p>
+<span class="pod_lang">フォームの場合は、基本的にセッション情報を付与する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッション情報を付与したくない場合は、フォームタグを以下のように記述する。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> &lt;form action=&quot;&quot; EXT=&quot;1&quot;&gt;</code></pre>
+
+<p>
+<span class="pod_lang"><code class="pod_iseq_C">EXT=&quot;1&quot;</code> が付与されているフォームに関しては、セッション情報の付与を行わない。
+また、<code class="pod_iseq_C">EXT=&quot;1&quot;</code> は出力時には削除される。
+
+</span>
+</p>
+
+</li>
+</ul>
+
+<p>
+<span class="pod_lang">セッション情報は、http領域用のセッション情報は <code class="pod_iseq_C">&quot;SID + セッショングループ名&quot;</code>、
+https領域用のセッション情報は <code class="pod_iseq_C">&quot;SIDS + セッショングループ名&quot;</code> という名称で保存する。
+
+</span>
+</p>
 
 <h2><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">フィルタパラメータ
@@ -425,7 +542,6 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#X&lt;form_action=""&gt;_Xe3X81X8cXe7Xa9XbaXe6XacX84Xe3X81XaeXe5Xa0Xb4Xe5X90X88Xe3X80X81Xe8X87XaaXe5X88X86Xe8X87XaaXe8XbaXabXe3X81XaeCGIXe5X90X8dXe3X82X92Xe5X9fX8bXe3X82X81Xe3X82X8b">&lt;form action=&quot;&quot;&gt; が空欄の場合、自分自身のCGI名を埋める</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#METHODS">METHODS</a></li>
@@ -444,12 +560,8 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <li><a href="#setDecideLink">setDecideLink</a></li>
 <li><a href="#setHeader">setHeader</a></li>
 <li><a href="#type">type</a></li>
-<li><a href="#Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe7X94Xa8Xe3X81XaeXe3X83X87Xe3X83XbcXe3X82XbfXe3X82X92Xe5X85Xa8Xe3X81Xa6Xe3X81XaeXe3X83XaaXe3X83Xb3Xe3X82XafXe3X81XabXe8XbfXbdXe8Xa8X98Xe3X81X97Xe3X80X81Xe3X82XafXe3X83X83Xe3X82XadXe3X83XbcXe3X81Xa7Xe3X81XaeXe5X87XbaXe5X8aX9bXe3X81XafXe3X81X97Xe3X81XaaXe3X81X84Xe3X80X82">セッション用のデータを全てのリンクに追記し、クッキーでの出力はしない。</a></li>
+<li><a href="#Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3">セッション</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">フィルタパラメータ</a></li>
-<li><a href="#Xe3X83X98Xe3X83X83Xe3X83X80Xe3X81XaeXe7XaeXa1Xe7X90X86">ヘッダの管理</a></li>
-<li><a href="#Xe6X96X87Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5Xa4X89Xe6X8fX9bXe3X81XabEncodeXe3X82X92Xe4XbdXbfXe3X82X8fXe3X81X9aXe3X80X81Xe5Xb8Xb8Xe3X81XabUnicode::JapaneseXe3X82X92Xe4XbdXbfXe7X94Xa8Xe3X80X82">文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。</a></li>
-<li><a href="#Xe6XbcXa2Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5Xa4X89Xe6X8fX9bXefXbcX88Xe3X83X87Xe3X83X95Xe3X82Xa9Xe3X83XabXe3X83X88Shift_JISXe3X80X81Xe5Xb8Xb8Xe3X81XabUnicode::JapaneseXe3X82X92Xe4XbdXbfXe3X81X86XefXbcX89">漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）</a></li>
-<li><a href="#Xe7X89Xb9Xe5XaeX9aXe3X83X95Xe3X82Xa9Xe3X83XbcXe3X83Xa0Xe3X83X87Xe3X83XbcXe3X82XbfXe3X82X92Xe6X8cX87Xe5XaeX9aXe3X81X95Xe3X82X8cXe3X81X9fXe7Xa8XaeXe5X88Xa5Xe3X81XaeXe3X83XaaXe3X83Xb3Xe3X82XafXe3X81XabXe4XbbX98Xe4Xb8X8eXe3X81X99Xe3X82X8b">特定フォームデータを指定された種別のリンクに付与する</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

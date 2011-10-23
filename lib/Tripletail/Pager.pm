@@ -444,6 +444,8 @@ Pagerオブジェクトを作成。
 L<DBセット|Tripletail::DB/"DBセット"> が使われる。デフォルトが設定されていなければ
 paging開始の時点でエラーとなる。
 
+DB は MySQL のみをサポートしている。
+
 =item setDbGroup
 
   $pager->setDbGroup($db_group)
@@ -566,9 +568,8 @@ paging開始の時点でエラーとなる。
 1であれば最終ページのデータ件数、それ以外の場合はデータ件数を返す。
 
 $maxrows で件数のカウントを別途指定できる。
-指定を省略した場合、SQL 文の先頭部分を SELECT COUNT(*) FROM ～ に書き換えたもの
-を使用して、自動的に件数をカウントする。
-その際、GROUP BY を使用した場合は、結果ではなく結果の件数をカウントとして扱う。
+指定を省略した場合、SQL 文の先頭部分を SELECT SQL_CALC_FOUND_ROWS ～ に書き換えたもの
+を使用して、自動的に SELECT FOUND_ROWS() を実行し件数をカウントする。
 UNION を使用した場合は正常に動作しない。
 
 =item pagingArray

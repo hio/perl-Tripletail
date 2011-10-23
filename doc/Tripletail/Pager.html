@@ -183,6 +183,12 @@ paging開始の時点でエラーとなる。
 </span>
 </p>
 
+<p>
+<span class="pod_lang">DB は MySQL のみをサポートしている。
+
+</span>
+</p>
+
 </dd>
 <dt><a id="setDbGroup"><span class="pod_lang">setDbGroup
 
@@ -471,9 +477,8 @@ paging開始の時点でエラーとなる。
 
 <p>
 <span class="pod_lang">$maxrows で件数のカウントを別途指定できる。
-指定を省略した場合、SQL 文の先頭部分を SELECT COUNT(*) FROM ～ に書き換えたもの
-を使用して、自動的に件数をカウントする。
-その際、GROUP BY を使用した場合は、結果ではなく結果の件数をカウントとして扱う。
+指定を省略した場合、SQL 文の先頭部分を SELECT SQL_CALC_FOUND_ROWS ～ に書き換えたもの
+を使用して、自動的に SELECT FOUND_ROWS() を実行し件数をカウントする。
 UNION を使用した場合は正常に動作しない。
 
 </span>

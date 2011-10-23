@@ -221,6 +221,65 @@ Point::spend や Goods::get メソッドの実行に、トランザクション�
  }
 
 
+=head2 セッション管理
+
+TripletaiL では、セッションの機能を大幅に制限しています。
+以下のような会員テーブルを用意し、会員のログイン認証に使うことを主目的に設計しています。
+
+ CREATE TABLE user_info (
+   userid     INT      NOT NULL AUTO_INCREMENT,
+   email      TINYBLOB NOT NULL,
+   password   TINYBLOB NOT NULL,
+   username   TINYBLOB NOT NULL,
+   deletedate DATETIME NOT NULL DEFAULT 0,
+   PRIMARY KEY (userid),
+   UNIQUE KEY (email(255), deletedate)
+ ) TYPE = InnoDB;
+
+※deletedateは会員削除時にnow()にUPDATE。
+有効な会員なら0とする。
+
+会員IDはINTもしくはBIGINT型とすることを推奨しています。
+
+会員IDに関連した情報を他にも多数保存することになるかと思いますが、
+その際に主キーが文字列型などであると、JOINの速度が低下したり、
+インデックスのサイズが大きくなり、パフォーマンスが落ちるためです。
+
+
+また、セッションの機能では userid に相当する内容のみしか
+格納することが出来ないようになっています。
+
+これは、セッションの中にデータを安易に保存すると、以下のような
+問題が発生する可能性があるためです。
+
+=over 4
+
+=item *
+
+セッション情報はアクセスのたびに参照されるため、
+セッションのサイズが大きくなると、パフォーマンスが
+大きく低下します。
+
+=item *
+
+入力画面→確認画面→完了画面、のような画面遷移をする際に、
+入力内容をセッションに保存するような利用をされてしまいます。
+
+このような使い方をすると、複数のブラウザウィンドウ・タブで
+利用したときに、正しく遷移できないことがあります。
+
+=item *
+
+セッション情報を制限することで、セッションテーブルが
+固定長になります。
+
+これにより、MySQL の MyISAM エンジンを利用する場合、
+フォーマットが Fixed になり、高速なアクセスが可能になります。
+
+=back
+
+
+
 =head2 CGI変数
 
 TripletaiL では、CGIが受け取ったフォームの内容が $CGI で常に参照できます。

@@ -1,5 +1,9 @@
 Revision history for Tripletail
 
+0.31	Tue Aug 28 16:36:03 JST 2007
+	- セッション関係のドキュメントが古かったため、修正．
+	- PagerクラスのSQLに関する記述が古かったため、修正．
+
 0.30	Fri Aug 24 17:38:15 JST 2007
 	- [[重要:非互換な仕様変更]]
 	  - Formにundef若しくは空のリストをsetしたときはキーの削除扱いに変更.
