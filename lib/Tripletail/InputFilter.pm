@@ -151,12 +151,12 @@ L<Tripletail::Form> を生成する為のフィルタ。
 =item L<Tripletail::InputFilter::HTML>
 
 QUERY_STRING / stdinからリクエストを読む。
-L<セッション|Tripletail::TinySession> は L<クッキー|Tripletail::Cookie> から読む。(デフォルト)
+L<セッション|Tripletail::Session> は L<クッキー|Tripletail::Cookie> から読む。(デフォルト)
 
 =item L<Tripletail::InputFilter::MobileHTML>
 
 QUERY_STRING / stdinからリクエストを読む。
-L<セッション|Tripletail::TinySession> はFormから読む。文字コード変換には常にUniJPを使う。
+L<セッション|Tripletail::Session> はFormから読む。文字コード変換には常にUniJPを使う。
 
 =item L<Tripletail::InputFilter::SEO>
 

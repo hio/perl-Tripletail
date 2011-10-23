@@ -53,7 +53,10 @@ sub getMemorySize {
 			$uname = $^O;
 		} else {
 			$uname =~ s/^\s*|\s*$//g;
-			$TL->log(__PACKAGE__, "Uname is [$uname]");
+            
+            if ($TL->INI->get(TL => memorylog => 'leak') eq 'full') {
+                $TL->log(__PACKAGE__, "Uname is [$uname]");
+            }
 		}
 
 		if($uname =~ m/^Linux 2\./) {

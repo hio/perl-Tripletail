@@ -1928,6 +1928,20 @@ User-Agent 文字列から携帯電話の文字コード名を判別して返す
 'sjis-au' のような Unicode::Japanese の文字コード名になる。判別できなかった場合は
 undef を返す。
 
+判別に使われる規則は次の通り。
+
+ UserAgent が
+   DoCoMo     で始まる  → sjis-imode
+   ASTEL      で始まる  → sjis-doti
+   Vodafone   で始まる  → utf8-jsky
+   Vemulator  で始まる  → utf8-jsky
+   SoftBank   で始まる  → utf8-jsky
+   Semulator  で始まる  → utf8-jsky
+   MOT-       で始まる  → utf8-jsky
+   J-PHONE    で始まる  → sjis-jsky
+   J-EMULATOR で始まる  → sjis-jsky
+   UP.Browser で始まる  → sjis-au
+
 =back
 
 =head1 SEE ALSO

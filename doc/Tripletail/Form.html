@@ -60,6 +60,7 @@ Tripletail::Form - フォーム情報
 <!-- End TABLE_OF_CONTENTS -->
 
 <!-- Begin CONTENT -->
+<!-- =encoding utf-8 -->
 
 <hr />
 <h1><a id="NAME">
@@ -369,12 +370,20 @@ $keyが存在しなくてもエラーとはならない。
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $iohandle = $form-&gt;getFile($key);</code></pre>
+<pre class="pod_verbatim"><code>  $iohandle = $form-&gt;getFile($key, [$from, [$to]]);</code></pre>
 
 <p>
 <span class="pod_lang">キーに対応するIOハンドルを取り出す。ファイルアップロード時のみ取得でき
 る。ファイルアップロードではなかった場合や、キーが存在しない場合は
 undef を返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">第二引数が指定されている場合は、それを変換元の文字コードと見做して文字コード変換
+を行う。第三引数が指定されている場合は、それを変換先の文字コードと見做す。第三引
+数が省略された場合は UTF-8 が指定されたものと見做す。
 
 </span>
 </p>

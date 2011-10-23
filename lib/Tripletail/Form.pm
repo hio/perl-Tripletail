@@ -4,6 +4,7 @@
 package Tripletail::Form;
 use strict;
 use warnings;
+use IO::File;
 our $TL;
 
 1;
@@ -47,10 +48,7 @@ sub _trace {
 sub const {
 	my $this = shift;
 
-    if (not $TL->INI->get(TL => 'allow_modifying_const_form')) {
-        $this->{const} = 1;
-    }
-
+    $this->{const} = 1;
 	$this;
 }
 
@@ -440,14 +438,33 @@ sub delete {
 }
 
 sub getFile {
-	my $this = shift;
-	my $key = shift;
+	my $this         = shift;
+	my $key          = shift;
+    my $charset_from = shift;
+    my $charset_to   = shift;
 
 	if (ref $key) {
 		die __PACKAGE__."#getFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
 	}
 
-	$this->{filehandle}{$key};
+    if (defined $charset_from) {
+        $charset_to ||= 'UTF-8';
+
+        my $fh_in  = $this->{filehandle}{$key};
+        my $fh_out = IO::File->new_tmpfile;
+
+        seek $fh_in, 0, 0;
+        local $/ = "\n";
+        while (defined(my $line = <$fh_in>)) {
+            print {$fh_out} $TL->charconv($line, $charset_from, $charset_to);
+        }
+
+        seek $fh_out, 0, 0;
+        return $fh_out;
+    }
+    else {
+        return $this->{filehandle}{$key};
+    }
 }
 
 sub existsFile {
@@ -1060,11 +1077,15 @@ $keyが存在しなくてもエラーとはならない。
 
 =item getFile
 
-  $iohandle = $form->getFile($key);
+  $iohandle = $form->getFile($key, [$from, [$to]]);
 
 キーに対応するIOハンドルを取り出す。ファイルアップロード時のみ取得でき
 る。ファイルアップロードではなかった場合や、キーが存在しない場合は
 undef を返す。
+
+第二引数が指定されている場合は、それを変換元の文字コードと見做して文字コード変換
+を行う。第三引数が指定されている場合は、それを変換先の文字コードと見做す。第三引
+数が省略された場合は UTF-8 が指定されたものと見做す。
 
 =item setFile
 

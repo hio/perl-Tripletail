@@ -25,10 +25,10 @@ sub _POST_REQUEST_HOOK_PRIORITY() { -2_000_000 } # 順序は問わない
 # [入力時]
 #   [1: クッキーを使う場合]
 #     Tripletail::InputFilterがdecodeCgi中に$TL->getCookieし、その中にセッションデータがあり、
-#     且つTripletail::TinySessionが有効になっていれば、$TL->getTinySession->_setSessionDataする。
+#     且つTripletail::Sessionが有効になっていれば、$TL->getSession->_setSessionDataする。
 #   [2: クエリを使う場合]
 #     Tripletail::InputFilterがdecodeCgi中にクエリ内にセッションデータを見付けた場合、
-#     Tripletail::TinySessionが有効になっているなら、$TL->getTinySession->_setSessionDataする。
+#     Tripletail::Sessionが有効になっているなら、$TL->getSession->_setSessionDataする。
 
 our %_instance;
 

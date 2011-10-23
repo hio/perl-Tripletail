@@ -38,14 +38,16 @@ sub watch {
 		die __PACKAGE__."#watch: failed to stat [$fpath]: $! (ファイルをstatできませんでした)\n";
 	}
 
-	$TL->log(
-		__PACKAGE__,
-		sprintf(
-			'Watching file [%s]: last modified time: [%s]',
-			$fpath,
-			scalar(localtime($lastmod))
-		)
-	);
+    if ($TL->INI->get(TL => filelog => 'update') eq 'full') {
+        $TL->log(
+            __PACKAGE__,
+            sprintf(
+                'Watching file [%s]: last modified time: [%s]',
+                $fpath,
+                scalar(localtime($lastmod))
+               )
+           );
+    }
 
 	$this->{lastmod}{$fpath} = $lastmod;
 	$this;

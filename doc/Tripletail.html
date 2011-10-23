@@ -499,6 +499,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <!-- End TABLE_OF_CONTENTS -->
 
 <!-- Begin CONTENT -->
+<!-- =encoding utf-8 -->
 
 <hr />
 <h1><a id="NAME">
@@ -1399,8 +1400,8 @@ $value は大文字で始まらなければならない。
 
 <p>
 <span class="pod_lang">文字コード変換を行う。
-基本的に <a href="././Unicode/Japanese.html">Unicode::Japanese</a> を利用するが、サポートしていない
-文字コードの場合は <a href="././Encode.html">Encode</a> を使用する。
+基本的に <a href="http://search.cpan.org/perldoc/Unicode::Japanese">Unicode::Japanese</a> を利用するが、サポートしていない
+文字コードの場合は <a href="http://search.cpan.org/perldoc/Encode">Encode</a> を使用する。
 
 </span>
 </p>
@@ -1414,7 +1415,7 @@ $value は大文字で始まらなければならない。
 
 <p>
 <span class="pod_lang">指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
-<a href="././Unicode/Japanese.html">Unicode::Japanese</a>、<a href="././Encode.html">Encode</a> がサポートしているものが使用できる。
+<a href="http://search.cpan.org/perldoc/Unicode::Japanese">Unicode::Japanese</a>、<a href="http://search.cpan.org/perldoc/Encode">Encode</a> がサポートしているものが使用できる。
 
 </span>
 </p>
@@ -1660,7 +1661,7 @@ $value は大文字で始まらなければならない。
 </span></a></h4>
 
 <p>
-<span class="pod_lang"><a href="././Crypt/SMIME.html">Crypt::SMIME</a> オブジェクトを作成。
+<span class="pod_lang"><a href="http://search.cpan.org/perldoc/Crypt::SMIME">Crypt::SMIME</a> オブジェクトを作成。
 
 </span>
 </p>
@@ -2500,6 +2501,22 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
+<dt><a id="fcgilog"><span class="pod_lang">fcgilog
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  fcgilog = 1</code></pre>
+
+<p>
+<span class="pod_lang">FCGI 関連の動作をログに記録するかどうかを指定する。
+1 が指定されれば記録する。
+0 であれば記録しない。
+デフォルトは 0。
+
+</span>
+</p>
+
+</dd>
 <dt><a id="memorylog"><span class="pod_lang">memorylog
 
 </span></a></dt>
@@ -2512,6 +2529,23 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 'leak' の場合は、メモリリークが検出された場合のみログに残す。
 'full' の場合は、メモリリークの検出とは無関係に、リクエスト毎にログに残す。
 デフォルトは 'leak'。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="filelog"><span class="pod_lang">filelog
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  filelog = full</code></pre>
+
+<p>
+<span class="pod_lang">ファイルの更新の監視状況をログに残すかどうかを指定する。
+'update', 'full' のどちらかから選ぶ。
+'update' の場合は、ファイルが更新された場合のみログに残す。
+'full' の場合は、ファイルの監視を開始した際にもログに残す。
+デフォルトは 'update'。
 
 </span>
 </p>
@@ -2583,7 +2617,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 <p>
-<span class="pod_lang">但しローカル変数一覧を表示するには <a href="././PadWalker.html">PadWalker</a> がインストールされてい
+<span class="pod_lang">但しローカル変数一覧を表示するには <a href="http://search.cpan.org/perldoc/PadWalker">PadWalker</a> がインストールされてい
 なければならない。
 
 </span>
@@ -2694,14 +2728,21 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
-<dt><a id="allow_modifying_const_form"><span class="pod_lang">allow_modifying_const_form
+<dt><a id="allow_mutable_input_cgi_object"><span class="pod_lang">allow_mutable_input_cgi_object
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  allow_modifying_const_form = 1</code></pre>
+<pre class="pod_verbatim"><code>  allow_mutable_input_cgi_object = 1</code></pre>
 
 <p>
-<span class="pod_lang"><a href="././Tripletail/Form.html#const">Tripletail::Form#const</a> が呼び出されたフォームオブジェクトの書換を許す。デフォルトは0。
+<span class="pod_lang">非推奨. 互換のためのパラメータ. 
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">$TL-&gt;CGI で返される CGI 入力値を保持しているオブジェクトの
+const 化を行わないようにする.
 
 </span>
 </p>
@@ -3195,7 +3236,7 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </span></a></dt>
 <dd>
 </dd>
-<dt><a id="X__14"><span class="pod_lang"><a href="././Tripletail/SMIME.html">Tripletail::SMIME</a>
+<dt><a id="X__14"><span class="pod_lang"><a href="http://search.cpan.org/perldoc/Crypt::SMIME">Crypt::SMIME</a>
 
 </span></a></dt>
 <dd>
@@ -3285,6 +3326,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#CGI">CGI</a></li>
 <li><a href="#CGIXe3X83Xa2Xe3X83XbcXe3X83X89">CGIモード</a></li>
+<li><a href="#X__14">Crypt::SMIME</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#FastCGIXe3X83Xa2Xe3X83XbcXe3X83X89">FastCGIモード</a></li>
 <li><a href="#INI">INI</a></li>
@@ -3310,14 +3352,13 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#X__10">Tripletail::MemorySentinel</a></li>
 <li><a href="#X__11">Tripletail::Pager</a></li>
 <li><a href="#X__12">Tripletail::RawCookie</a></li>
-<li><a href="#X__14">Tripletail::SMIME</a></li>
 <li><a href="#X__13">Tripletail::Sendmail</a></li>
 <li><a href="#X__17">Tripletail::Session</a></li>
 <li><a href="#X__15">Tripletail::TagCheck</a></li>
 <li><a href="#X__16">Tripletail::Template</a></li>
 <li><a href="#X__19">Tripletail::Validator</a></li>
 <li><a href="#X__18">Tripletail::Value</a></li>
-<li><a href="#allow_modifying_const_form">allow_modifying_const_form</a></li>
+<li><a href="#allow_mutable_input_cgi_object">allow_mutable_input_cgi_object</a></li>
 <li><a href="#charconv">charconv</a></li>
 <li><a href="#decodeURL">decodeURL</a></li>
 <li><a href="#deleteCache">deleteCache</a></li>
@@ -3336,7 +3377,9 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#escapeSqlLike">escapeSqlLike</a></li>
 <li><a href="#escapeTag">escapeTag</a></li>
 <li><a href="#fault_handler">fault_handler</a></li>
+<li><a href="#fcgilog">fcgilog</a></li>
 <li><a href="#file-update">file-update</a></li>
+<li><a href="#filelog">filelog</a></li>
 <li><a href="#fork">fork</a></li>
 <li><a href="#getContentFilter">getContentFilter</a></li>
 <li><a href="#getCookie">getCookie</a></li>

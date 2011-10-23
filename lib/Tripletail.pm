@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 4970 2007-11-29 05:04:02Z hio $
+# $Id: Tripletail.pm 5328 2008-01-25 01:59:50Z hio $
 package Tripletail;
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -457,7 +457,9 @@ sub startCgi {
 			# FCGIモード
 
 			my $maxrequestcount = $this->INI->get(TL => 'maxrequestcount', 0);
-			$this->log(FCGI => 'Starting FCGI Loop... maxrequestcount: ' . $maxrequestcount);
+            if ($this->INI->get(TL => 'fcgilog')) {
+                $this->log(FCGI => 'Starting FCGI Loop... maxrequestcount: ' . $maxrequestcount);
+            }
 			my $requestcount = 0;
 
 			do {
@@ -472,7 +474,9 @@ sub startCgi {
 			my $exit_requested;
 			my $handling_request;
 			local $SIG{USR1} = sub {
-				$this->log("SIGUSR1 received");
+                if ($this->INI->get(TL => 'fcgilog')) {
+                    $this->log("SIGUSR1 received");
+                }
 				$exit_requested = 1;
 			} if( exists($SIG{USR1}) );
 			local $SIG{TERM} = sub {
@@ -481,7 +485,9 @@ sub startCgi {
 				#     状況に応じて挙動を変更する(以下を参照)
 				# http://d.tir.jp/pw?mod_fastcgi の一番下
 				# https://192.168.0.17/mantis/view.php?id=1037
-				$this->log("SIGTERM received");
+                if ($this->INI->get(TL => 'fcgilog')) {
+                    $this->log("SIGTERM received");
+                }
 				$exit_requested = 1;
 			};
 			local $SIG{PIPE} = 'IGNORE';
@@ -509,8 +515,9 @@ sub startCgi {
 				};
 				if($@) {
 					if($exit_requested) {
-						$this->log(FCGI => "FCGI_request->Accept() got interrupted : $@");
-						#no warnings;
+                        if ($this->INI->get(TL => 'fcgilog')) {
+                            $this->log(FCGI => "FCGI_request->Accept() got interrupted : $@");
+                        }
 						$this->{fcgi_request}->Finish();
 						last;
 					}else {
@@ -555,10 +562,14 @@ sub startCgi {
 			}
             $this->{fcgi_request} = undef;
 
-			$this->log(FCGI => "FCGI Loop is terminated ($requestcount reqs processed).");
+            if ($this->INI->get(TL => 'fcgilog')) {
+                $this->log(FCGI => "FCGI Loop is terminated ($requestcount reqs processed).");
+            }
 		} else {
 			# CGIモード
-			$this->log(TL => 'CGI mode');
+            if ($this->INI->get(TL => 'fcgilog')) {
+                $this->log(TL => 'CGI mode');
+            }
 			
 			# プロセスの初期化.
 			if(defined(my $groups = $param->{-Session})) {
@@ -2221,7 +2232,12 @@ sub __executeCgi {
 		print "Content-Type: text/plain\r\n\r\nI/O Error\r\n$@";
 	}
 	else {
-		$this->{CGI} = $this->{CGIORIG}->clone->const->_trace;
+		$this->{CGI} = $this->{CGIORIG}->clone;
+		if( !$TL->INI->get(TL => 'allow_mutable_input_cgi_object') )
+		{
+			$this->{CGI}->const();
+		}
+		$this->{CGI}->_trace();
 		our $CGI = $this->{CGI};
 		$this->{outputbuff} = '';
 
@@ -3343,6 +3359,15 @@ L<Tripletail::MemorySentinel> がメモリリークの可能性を検出した�
 0 であれば情報を残さない。
 デフォルトは 1。
 
+=item fcgilog
+
+  fcgilog = 1
+
+FCGI 関連の動作をログに記録するかどうかを指定する。
+1 が指定されれば記録する。
+0 であれば記録しない。
+デフォルトは 0。
+
 =item memorylog
 
   memorylog = full
@@ -3352,6 +3377,16 @@ L<Tripletail::MemorySentinel> がメモリリークの可能性を検出した�
 'leak' の場合は、メモリリークが検出された場合のみログに残す。
 'full' の場合は、メモリリークの検出とは無関係に、リクエスト毎にログに残す。
 デフォルトは 'leak'。
+
+=item filelog
+
+  filelog = full
+
+ファイルの更新の監視状況をログに残すかどうかを指定する。
+'update', 'full' のどちらかから選ぶ。
+'update' の場合は、ファイルが更新された場合のみログに残す。
+'full' の場合は、ファイルの監視を開始した際にもログに残す。
+デフォルトは 'update'。
 
 =item trap
 
@@ -3437,11 +3472,14 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 
 L<Tripletail::Filter::MobileHTML> を利用した場合、outputbuffering は1にセットされる。
 
-=item allow_modifying_const_form
+=item allow_mutable_input_cgi_object
 
-  allow_modifying_const_form = 1
+  allow_mutable_input_cgi_object = 1
 
-L<Tripletail::Form#const|Tripletail::Form/const> が呼び出されたフォームオブジェクトの書換を許す。デフォルトは0。
+非推奨. 互換のためのパラメータ. 
+
+$TL->CGI で返される CGI 入力値を保持しているオブジェクトの
+const 化を行わないようにする.
 
 =back
 
@@ -3702,7 +3740,7 @@ CGI向けデバッグ機能。
 
 =item L<Tripletail::Sendmail>
 
-=item L<Tripletail::SMIME>
+=item L<Crypt::SMIME>
 
 =item L<Tripletail::TagCheck>
 

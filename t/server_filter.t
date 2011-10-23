@@ -8,12 +8,12 @@ use lib '.';
 use t::test_server;
 
 &setup;
-plan tests => 4 + 4 + 2 + 1 + 6 + 1 + 2 + 10;
+plan tests => 4 + 4 + 2 + 1 + 7 + 1 + 2 + 10;
 &test_01_html;              #4.
 &test_02_mobile_html;       #4.
 &test_03_csv;               #2.
 &test_04_binary;            #1.
-&test_05_input_filter;      #6.
+&test_05_input_filter;      #7.
 &test_06_seo_filter;        #1.
 &test_07_seo_input_filter;  #2.
 &test_08_xhtml;             #10.
@@ -386,6 +386,28 @@ sub test_05_input_filter
 			 qq{Ged a sheo'l mi fada bhuaip\r\n}.
 			 qq{Air long nan crannaibh caola}, '[input] multipart/form-data [2]';
 	}
+
+    {
+		my $res = raw_request(
+			method => 'POST',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				sub main {
+					local $/ = undef;
+					my $fh = $CGI->getFile('File', 'UTF-8', 'UTF-16');
+					$TL->print(<$fh>);
+				}
+			},
+			params => [
+				'Content-Type' => 'multipart/form-data; boundary="BOUNDARY"',
+			],
+		);
+		is $res->content,
+			 qq{\0G\0e\0d\0 \0a\0 \0s\0h\0e\0o\0'\0l\0 \0m\0i\0 \0f\0a\0d\0a\0 \0b\0h\0u\0a\0i\0p\0\r\0\n}.
+			 qq{\0A\0i\0r\0 \0l\0o\0n\0g\0 \0n\0a\0n\0 \0c\0r\0a\0n\0n\0a\0i\0b\0h\0 \0c\0a\0o\0l\0a}, '[input] multipart/form-data [2.5]';
+	}
 	
 	{
 		my $res = raw_request(
@@ -396,6 +418,16 @@ sub test_05_input_filter
 					'stacktrace' => 'none',
 					'tempdir' => '.',
 				},
+			},
+            script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				sub main {
+					local $/ = undef;
+					my $fh = $CGI->getFile('File');
+					$TL->print(<$fh>);
+				}
 			},
 			params => [
 				'Content-Type' => 'multipart/form-data; boundary="BOUNDARY"',

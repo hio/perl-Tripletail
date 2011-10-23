@@ -1,7 +1,13 @@
 Revision history for Tripletail
 
+0.40 Fri Jan 25 10:59:21 JST 2008
+	- allow_mutable_input_cgi_object パラメータを追加.
+	- 新しい INI パラメータ [TL]fcgilog
+	- 新しい INI パラメータ [TL]filelog
+
 0.39 Thu Nov 29 14:03:48 JST 2007
 	- gmake 変数を使っていた箇所を除去.
+	- 環境によってhtml生成に失敗する不具合を修正.
 
 0.38 Fri Nov 23 12:15:01 JST 2007
 	- [[重要:非互換な仕様変更]]

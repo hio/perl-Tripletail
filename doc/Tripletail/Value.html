@@ -97,6 +97,7 @@ Tripletail::Value - 値の検証や変換
 <!-- End TABLE_OF_CONTENTS -->
 
 <!-- Begin CONTENT -->
+<!-- =encoding utf-8 -->
 
 <hr />
 <h1><a id="NAME">
@@ -1254,6 +1255,24 @@ undef を返す。
 
 </span>
 </p>
+
+<p>
+<span class="pod_lang">判別に使われる規則は次の通り。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> UserAgent が
+   DoCoMo     で始まる  → sjis-imode
+   ASTEL      で始まる  → sjis-doti
+   Vodafone   で始まる  → utf8-jsky
+   Vemulator  で始まる  → utf8-jsky
+   SoftBank   で始まる  → utf8-jsky
+   Semulator  で始まる  → utf8-jsky
+   MOT-       で始まる  → utf8-jsky
+   J-PHONE    で始まる  → sjis-jsky
+   J-EMULATOR で始まる  → sjis-jsky
+   UP.Browser で始まる  → sjis-au</code></pre>
 
 </dd>
 </dl>
