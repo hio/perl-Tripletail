@@ -102,7 +102,8 @@ Tripletail::Validator - 値の検証の一括処理
 <!-- =encoding utf-8 -->
 
 <hr />
-<h1><a id="NAME"><span class="pod_lang">NAME
+<h1><a id="NAME">
+<span class="pod_lang">NAME
 
 </span></a></h1>
 
@@ -114,7 +115,8 @@ Tripletail::Validator - 値の検証の一括処理
 
 
 <hr />
-<h1><a id="SYNOPSIS"><span class="pod_lang">SYNOPSIS
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
 
 </span></a></h1>
 
@@ -131,7 +133,8 @@ Tripletail::Validator - 値の検証の一括処理
 
 
 <hr />
-<h1><a id="DESCRIPTION"><span class="pod_lang">DESCRIPTION
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
 
 </span></a></h1>
 
@@ -143,12 +146,13 @@ Tripletail::Validator - 値の検証の一括処理
 
 
 <hr />
-<h1><a id="METHODS"><span class="pod_lang">METHODS
+<h1><a id="METHODS">
+<span class="pod_lang">METHODS
 
 </span></a></h1>
 
 <dl>
-<dt><a id="X24TL-X3enewValidator"><span class="pod_lang">$TL-&gt;newValidator
+<dt><a id="X$TL->newValidator"><span class="pod_lang">$TL-&gt;newValidator
 
 </span></a></dt>
 <dd>
@@ -290,11 +294,13 @@ Tripletail::Validator - 値の検証の一括処理
 </dd>
 </dl>
 
-<h2><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe4Xb8X80Xe8Xa6Xa7"><span class="pod_lang">フィルタ一覧
+<h2><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe4Xb8X80Xe8Xa6Xa7">
+<span class="pod_lang">フィルタ一覧
 
 </span></a></h2>
 
-<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcheckXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf"><span class="pod_lang">組み込みcheckフィルタ
+<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcheckXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
+<span class="pod_lang">組み込みcheckフィルタ
 
 </span></a></h3>
 
@@ -403,13 +409,32 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="Password"><span class="pod_lang">Password
+<dt><a id="Password($spec)"><span class="pod_lang">Password($spec)
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">文字列が半角の数字、アルファベット大文字、小文字、記号を 全て最低1ずつ含んでいるかチェックする。
-値が空（存在しないか0文字）なら検証NGとなる。
+<span class="pod_lang">文字列が$specに指定した要素をすべて最低1つずつ含んでいるかチェックする。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">$specに指定できるのは<code class="pod_iseq_C">alpha</code>, <code class="pod_iseq_C">ALPHA</code>, <code class="pod_iseq_C">digit</code>, <code class="pod_iseq_C">symbol</code>をカンマ区切りで指定した文字列で、
+指定がない場合はすべて指定した場合と同様となる。
+また、指定された文字以外が入っていることに関しては考慮しない。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">値が空（存在しないか0文字）なら検証NGとなる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang"><a href=".././Tripletail/Value.html#isPassword">&quot;isPassword&quot; in Tripletail::Value</a>
 
 </span>
 </p>
@@ -483,7 +508,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="IntegerX28X24minX2cX24maxX29"><span class="pod_lang">Integer($min,$max)
+<dt><a id="Integer($min,$max)"><span class="pod_lang">Integer($min,$max)
 
 </span></a></dt>
 <dd>
@@ -506,7 +531,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="RealX28X24minX2cX24maxX29"><span class="pod_lang">Real($min,$max)
+<dt><a id="Real($min,$max)"><span class="pod_lang">Real($min,$max)
 
 </span></a></dt>
 <dd>
@@ -601,7 +626,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="HttpUrlX28X24modeX29"><span class="pod_lang">HttpUrl($mode)
+<dt><a id="HttpUrl($mode)"><span class="pod_lang">HttpUrl($mode)
 
 </span></a></dt>
 <dd>
@@ -629,7 +654,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="LenX28X24minX2cX24maxX29"><span class="pod_lang">Len($min,$max)
+<dt><a id="Len($min,$max)"><span class="pod_lang">Len($min,$max)
 
 </span></a></dt>
 <dd>
@@ -640,7 +665,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="SjisLenX28X24minX2cX24maxX29"><span class="pod_lang">SjisLen($min,$max)
+<dt><a id="SjisLen($min,$max)"><span class="pod_lang">SjisLen($min,$max)
 
 </span></a></dt>
 <dd>
@@ -651,7 +676,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="CharLenX28X24minX2cX24maxX29"><span class="pod_lang">CharLen($min,$max)
+<dt><a id="CharLen($min,$max)"><span class="pod_lang">CharLen($min,$max)
 
 </span></a></dt>
 <dd>
@@ -732,7 +757,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="EnumX28X24aX2cX24bX2cX24cX29"><span class="pod_lang">Enum($a,$b,$c)
+<dt><a id="Enum($a,$b,$c)"><span class="pod_lang">Enum($a,$b,$c)
 
 </span></a></dt>
 <dd>
@@ -743,7 +768,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="OrX28X24filter1X7cX24filter2X7cX24filter3X29"><span class="pod_lang">Or($filter1|$filter2|$filter3)
+<dt><a id="Or($filter1X7c$filter2X7c$filter3)"><span class="pod_lang">Or($filter1|$filter2|$filter3)
 
 </span></a></dt>
 <dd>
@@ -754,7 +779,7 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="RegExpX28X24regexpX29"><span class="pod_lang">RegExp($regexp)
+<dt><a id="RegExp($regexp)"><span class="pod_lang">RegExp($regexp)
 
 </span></a></dt>
 <dd>
@@ -861,7 +886,8 @@ Tripletail::Validator - 値の検証の一括処理
 </dd>
 </dl>
 
-<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcorrectXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf"><span class="pod_lang">組み込みcorrectフィルタ
+<h3><a id="Xe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81XbfcorrectXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">
+<span class="pod_lang">組み込みcorrectフィルタ
 
 </span></a></h3>
 
@@ -1031,43 +1057,43 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 </dd>
-<dt><a id="ForceMinX28X24maxX2cX24valX29"><span class="pod_lang">ForceMin($max,$val)
+<dt><a id="ForceMin($max,$val)"><span class="pod_lang">ForceMin($max,$val)
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">半角数字以外の文字を削除し、min未満なら$valをセットする。$val省略時はundefをセットする。
-<a href=".././Tripletail/Value.html#forceMinX28X24maxX2cX24valX29">&quot;forceMin($max,$val)&quot; in Tripletail::Value</a>。
+<a href=".././Tripletail/Value.html#forceMin($max,$val)">&quot;forceMin($max,$val)&quot; in Tripletail::Value</a>。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="ForceMaxX28X24maxX2cX24valX29"><span class="pod_lang">ForceMax($max,$val)
+<dt><a id="ForceMax($max,$val)"><span class="pod_lang">ForceMax($max,$val)
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">半角数字以外の文字を削除し、maxより大きければ$valをセットする。$val省略時はundefをセットする。
-<a href=".././Tripletail/Value.html#forceMaxX28X24maxX2cX24valX29">&quot;forceMax($max,$val)&quot; in Tripletail::Value</a>。
+<a href=".././Tripletail/Value.html#forceMax($max,$val)">&quot;forceMax($max,$val)&quot; in Tripletail::Value</a>。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="ForceMaxLenX28X24maxX29"><span class="pod_lang">ForceMaxLen($max)
+<dt><a id="ForceMaxLen($max)"><span class="pod_lang">ForceMaxLen($max)
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">最大バイト数を指定。超える場合はそのバイト数までカットする。
-<a href=".././Tripletail/Value.html#forceMaxLenX28X24maxX29">&quot;forceMaxLen($max)&quot; in Tripletail::Value</a>。
+<a href=".././Tripletail/Value.html#forceMaxLen($max)">&quot;forceMaxLen($max)&quot; in Tripletail::Value</a>。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="ForceMaxUtf8LenX28X24maxX29"><span class="pod_lang">ForceMaxUtf8Len($max)
+<dt><a id="ForceMaxUtf8Len($max)"><span class="pod_lang">ForceMaxUtf8Len($max)
 
 </span></a></dt>
 <dd>
@@ -1075,32 +1101,32 @@ Tripletail::Validator - 値の検証の一括処理
 <span class="pod_lang">UTF-8での最大バイト数を指定。
 超える場合はそのバイト数以下まで
 UTF-8の文字単位でカットする。
-<a href=".././Tripletail/Value.html#forceMaxUtf8LenX28X24maxX29">&quot;forceMaxUtf8Len($max)&quot; in Tripletail::Value</a>。
+<a href=".././Tripletail/Value.html#forceMaxUtf8Len($max)">&quot;forceMaxUtf8Len($max)&quot; in Tripletail::Value</a>。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="ForceMaxSjisLenX28X24maxX29"><span class="pod_lang">ForceMaxSjisLen($max)
+<dt><a id="ForceMaxSjisLen($max)"><span class="pod_lang">ForceMaxSjisLen($max)
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">SJISでの最大バイト数を指定。超える場合はそのバイト数以下まで
 SJISの文字単位でカットする。
-<a href=".././Tripletail/Value.html#forceMaxSjisLenX28X24maxX29">&quot;forceMaxSjisLen($max)&quot; in Tripletail::Value</a>。
+<a href=".././Tripletail/Value.html#forceMaxSjisLen($max)">&quot;forceMaxSjisLen($max)&quot; in Tripletail::Value</a>。
 
 </span>
 </p>
 
 </dd>
-<dt><a id="ForceMaxCharLenX28X24maxX29"><span class="pod_lang">ForceMaxCharLen($max)
+<dt><a id="ForceMaxCharLen($max)"><span class="pod_lang">ForceMaxCharLen($max)
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">最大文字数を指定。超える場合はその文字数以下までカットする。
-<a href=".././Tripletail/Value.html#forceMaxCharLenX28X24maxX29">&quot;forceMaxCharLen($max)&quot; in Tripletail::Value</a>。
+<a href=".././Tripletail/Value.html#forceMaxCharLen($max)">&quot;forceMaxCharLen($max)&quot; in Tripletail::Value</a>。
 
 </span>
 </p>
@@ -1142,7 +1168,8 @@ SJISの文字単位でカットする。
 </dd>
 </dl>
 
-<h3><a id="Xe3X83Xa6Xe3X83XbcXe3X82Xb6Xe3X83XbcXe5XaeX9aXe7XbeXa9Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XabXe3X81Xa4Xe3X81X84Xe3X81Xa6"><span class="pod_lang">ユーザー定義フィルタについて
+<h3><a id="Xe3X83Xa6Xe3X83XbcXe3X82Xb6Xe3X83XbcXe5XaeX9aXe7XbeXa9Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XabXe3X81Xa4Xe3X81X84Xe3X81Xa6">
+<span class="pod_lang">ユーザー定義フィルタについて
 
 </span></a></h3>
 
@@ -1152,7 +1179,8 @@ SJISの文字単位でカットする。
 </span>
 </p>
 
-<h4><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XaeXe6Xa7X8bXe7XafX89"><span class="pod_lang">フィルタの構築
+<h4><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XaeXe6Xa7X8bXe7XafX89">
+<span class="pod_lang">フィルタの構築
 
 </span></a></h4>
 
@@ -1169,7 +1197,7 @@ SJISの文字単位でカットする。
 </p>
 
 <dl>
-<dt><a id="X24this"><span class="pod_lang">$this
+<dt><a id="X$this"><span class="pod_lang">$this
 
 </span></a></dt>
 <dd>
@@ -1180,7 +1208,7 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
-<dt><a id="X24values"><span class="pod_lang">$values
+<dt><a id="X$values"><span class="pod_lang">$values
 
 </span></a></dt>
 <dd>
@@ -1191,7 +1219,7 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
-<dt><a id="X24args"><span class="pod_lang">$args
+<dt><a id="X$args"><span class="pod_lang">$args
 
 </span></a></dt>
 <dd>
@@ -1213,7 +1241,8 @@ SJISの文字単位でカットする。
 </span>
 </p>
 
-<h4><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XaeXe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81Xbf"><span class="pod_lang">フィルタの組み込み
+<h4><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X81XaeXe7Xb5X84Xe3X81XbfXe8XbeXbcXe3X81Xbf">
+<span class="pod_lang">フィルタの組み込み
 
 </span></a></h4>
 
@@ -1231,7 +1260,8 @@ SJISの文字単位でカットする。
 </span>
 </p>
 
-<h4><a id="Xe4XbeX8b"><span class="pod_lang">例
+<h4><a id="Xe4XbeX8b">
+<span class="pod_lang">例
 
 </span></a></h4>
 
@@ -1283,7 +1313,8 @@ SJISの文字単位でカットする。
 
 
 <hr />
-<h1><a id="SEE_ALSO"><span class="pod_lang">SEE ALSO
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
 
 </span></a></h1>
 
@@ -1302,7 +1333,8 @@ SJISの文字単位でカットする。
 
 
 <hr />
-<h1><a id="AUTHOR_INFORMATION"><span class="pod_lang">AUTHOR INFORMATION
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
 
 </span></a></h1>
 
@@ -1352,13 +1384,13 @@ Tripletail::Validator - 値の検証の一括処理
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#X24TL-X3enewValidator">$TL-&gt;newValidator</a></li>
-<li><a href="#X24args">$args</a></li>
-<li><a href="#X24this">$this</a></li>
-<li><a href="#X24values">$values</a></li>
+<li><a href="#X$TL->newValidator">$TL-&gt;newValidator</a></li>
+<li><a href="#X$args">$args</a></li>
+<li><a href="#X$this">$this</a></li>
+<li><a href="#X$values">$values</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#Blank">Blank</a></li>
-<li><a href="#CharLenX28X24minX2cX24maxX29">CharLen($min,$max)</a></li>
+<li><a href="#CharLen($min,$max)">CharLen($min,$max)</a></li>
 <li><a href="#ConvBR">ConvBR</a></li>
 <li><a href="#ConvComma">ConvComma</a></li>
 <li><a href="#ConvHira">ConvHira</a></li>
@@ -1373,29 +1405,29 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#DomainName">DomainName</a></li>
 <li><a href="#Email">Email</a></li>
 <li><a href="#Empty">Empty</a></li>
-<li><a href="#EnumX28X24aX2cX24bX2cX24cX29">Enum($a,$b,$c)</a></li>
+<li><a href="#Enum($a,$b,$c)">Enum($a,$b,$c)</a></li>
 <li><a href="#ExistentDay">ExistentDay</a></li>
 <li><a href="#ForceHira">ForceHira</a></li>
 <li><a href="#ForceKata">ForceKata</a></li>
-<li><a href="#ForceMaxX28X24maxX2cX24valX29">ForceMax($max,$val)</a></li>
-<li><a href="#ForceMaxCharLenX28X24maxX29">ForceMaxCharLen($max)</a></li>
-<li><a href="#ForceMaxLenX28X24maxX29">ForceMaxLen($max)</a></li>
-<li><a href="#ForceMaxSjisLenX28X24maxX29">ForceMaxSjisLen($max)</a></li>
-<li><a href="#ForceMaxUtf8LenX28X24maxX29">ForceMaxUtf8Len($max)</a></li>
-<li><a href="#ForceMinX28X24maxX2cX24valX29">ForceMin($max,$val)</a></li>
+<li><a href="#ForceMax($max,$val)">ForceMax($max,$val)</a></li>
+<li><a href="#ForceMaxCharLen($max)">ForceMaxCharLen($max)</a></li>
+<li><a href="#ForceMaxLen($max)">ForceMaxLen($max)</a></li>
+<li><a href="#ForceMaxSjisLen($max)">ForceMaxSjisLen($max)</a></li>
+<li><a href="#ForceMaxUtf8Len($max)">ForceMaxUtf8Len($max)</a></li>
+<li><a href="#ForceMin($max,$val)">ForceMin($max,$val)</a></li>
 <li><a href="#ForceNumber">ForceNumber</a></li>
 <li><a href="#ForcePcPortable">ForcePcPortable</a></li>
 <li><a href="#ForcePortable">ForcePortable</a></li>
 <li><a href="#Gif">Gif</a></li>
 <li><a href="#Hira">Hira</a></li>
-<li><a href="#HttpUrlX28X24modeX29">HttpUrl($mode)</a></li>
+<li><a href="#HttpUrl($mode)">HttpUrl($mode)</a></li>
 <li><a href="#HttpsUrl">HttpsUrl</a></li>
 <li><a href="#IniXe3X83X95Xe3X82Xa1Xe3X82Xa4Xe3X83Xab">Iniファイル</a></li>
-<li><a href="#IntegerX28X24minX2cX24maxX29">Integer($min,$max)</a></li>
+<li><a href="#Integer($min,$max)">Integer($min,$max)</a></li>
 <li><a href="#IpAddress">IpAddress</a></li>
 <li><a href="#Jpeg">Jpeg</a></li>
 <li><a href="#Kata">Kata</a></li>
-<li><a href="#LenX28X24minX2cX24maxX29">Len($min,$max)</a></li>
+<li><a href="#Len($min,$max)">Len($min,$max)</a></li>
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#MobileEmail">MobileEmail</a></li>
 <li><a href="#MultiValues">MultiValues</a></li>
@@ -1404,18 +1436,18 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#NotBlank">NotBlank</a></li>
 <li><a href="#NotEmpty">NotEmpty</a></li>
 <li><a href="#NotWhitespace">NotWhitespace</a></li>
-<li><a href="#OrX28X24filter1X7cX24filter2X7cX24filter3X29">Or($filter1|$filter2|$filter3)</a></li>
-<li><a href="#Password">Password</a></li>
+<li><a href="#Or($filter1X7c$filter2X7c$filter3)">Or($filter1|$filter2|$filter3)</a></li>
+<li><a href="#Password($spec)">Password($spec)</a></li>
 <li><a href="#PcPortable">PcPortable</a></li>
 <li><a href="#Png">Png</a></li>
 <li><a href="#Portable">Portable</a></li>
 <li><a href="#PrintableAscii">PrintableAscii</a></li>
-<li><a href="#RealX28X24minX2cX24maxX29">Real($min,$max)</a></li>
-<li><a href="#RegExpX28X24regexpX29">RegExp($regexp)</a></li>
+<li><a href="#Real($min,$max)">Real($min,$max)</a></li>
+<li><a href="#RegExp($regexp)">RegExp($regexp)</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
 <li><a href="#SingleValue">SingleValue</a></li>
-<li><a href="#SjisLenX28X24minX2cX24maxX29">SjisLen($min,$max)</a></li>
+<li><a href="#SjisLen($min,$max)">SjisLen($min,$max)</a></li>
 <li><a href="#TelNumber">TelNumber</a></li>
 <li><a href="#TestFilter.pm">TestFilter.pm</a></li>
 <li><a href="#TrimWhitespace">TrimWhitespace</a></li>

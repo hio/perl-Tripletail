@@ -92,7 +92,8 @@ Tripletail::Session - セッション
 <!-- =encoding utf-8 -->
 
 <hr />
-<h1><a id="NAME"><span class="pod_lang">NAME
+<h1><a id="NAME">
+<span class="pod_lang">NAME
 
 </span></a></h1>
 
@@ -104,11 +105,13 @@ Tripletail::Session - セッション
 
 
 <hr />
-<h1><a id="SYNOPSIS"><span class="pod_lang">SYNOPSIS
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
 
 </span></a></h1>
 
-<h2><a id="PCXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91"><span class="pod_lang">PCブラウザ向け
+<h2><a id="PCXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">
+<span class="pod_lang">PCブラウザ向け
 
 </span></a></h2>
 
@@ -128,7 +131,8 @@ Tripletail::Session - セッション
       ...
   }</code></pre>
 
-<h2><a id="Xe6X90XbaXe5Xb8XafXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91"><span class="pod_lang">携帯ブラウザ向け
+<h2><a id="Xe6X90XbaXe5Xb8XafXe3X83X96Xe3X83Xa9Xe3X82Xa6Xe3X82Xb6Xe5X90X91Xe3X81X91">
+<span class="pod_lang">携帯ブラウザ向け
 
 </span></a></h2>
 
@@ -155,7 +159,8 @@ Tripletail::Session - セッション
 
 
 <hr />
-<h1><a id="DESCRIPTION"><span class="pod_lang">DESCRIPTION
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
 
 </span></a></h1>
 
@@ -251,12 +256,13 @@ Tripletail::Session - セッション
 </span>
 </p>
 
-<h2><a id="METHODS"><span class="pod_lang">METHODS
+<h2><a id="METHODS">
+<span class="pod_lang">METHODS
 
 </span></a></h2>
 
 <dl>
-<dt><a id="X24TL-X3egetSession"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getSession</code>
+<dt><a id="X$TL->getSession"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getSession</code>
 
 </span></a></dt>
 <dd>
@@ -314,7 +320,7 @@ Tripletail::Session - セッション
 </p>
 
 <p>
-<span class="pod_lang">セッションキーは64bit符号無し整数値となる。
+<span class="pod_lang">セッションキーは64bit整数値の負の数を除いた範囲となる。
 
 </span>
 </p>
@@ -404,7 +410,7 @@ Tripletail::Session - セッション
 </p>
 
 <p>
-<span class="pod_lang">設定できる値は '64bit符号無し整数' のみ。
+<span class="pod_lang">設定できる値は '64bit符号無し整数' のみ（※PostgreSQL利用時は64bit整数値のみ）。
 その他のデータを管理したい場合は、セッションキーを用いて別途実装する必要がある。
 
 </span>
@@ -473,7 +479,8 @@ httpsモードで非SSL側から書き換えようとした場合は <code class
 </dd>
 </dl>
 
-<h2><a id="Xe5X8fXa4Xe3X81X84Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X87Xe3X83XbcXe3X82XbfXe3X81XaeXe5X89X8aXe9X99Xa4"><span class="pod_lang">古いセッションデータの削除
+<h2><a id="Xe5X8fXa4Xe3X81X84Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X87Xe3X83XbcXe3X82XbfXe3X81XaeXe5X89X8aXe9X99Xa4">
+<span class="pod_lang">古いセッションデータの削除
 
 </span></a></h2>
 
@@ -524,7 +531,8 @@ LIMIT句を利用することを推奨します。
 </span>
 </p>
 
-<h3><a id="TripletaiL_0.29_Xe4XbbXa5Xe5X89X8dXe3X81XaeXe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X81XaeXe6Xb3Xa8Xe6X84X8f"><span class="pod_lang">TripletaiL 0.29 以前のセッションテーブルの注意
+<h3><a id="TripletaiL_0.29_Xe4XbbXa5Xe5X89X8dXe3X81XaeXe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X81XaeXe6Xb3Xa8Xe6X84X8f">
+<span class="pod_lang">TripletaiL 0.29 以前のセッションテーブルの注意
 
 </span></a></h3>
 
@@ -551,7 +559,8 @@ updatetime カラムにインデックスを張っていませんでした。
 <pre class="pod_verbatim"><code> ALTER TABLE tablename ADD INDEX (updatetime);
  CREATE INDEX tablename_updtime_idx ON tablename (updatetime);</code></pre>
 
-<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf"><span class="pod_lang">Ini パラメータ
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
 
 </span></a></h2>
 
@@ -850,7 +859,8 @@ TripletaiL のセッションテーブルは Fixed 型となるため、
 
 
 <hr />
-<h1><a id="SEE_ALSO"><span class="pod_lang">SEE ALSO
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
 
 </span></a></h1>
 
@@ -894,7 +904,8 @@ TripletaiL のセッションテーブルは Fixed 型となるため、
 
 
 <hr />
-<h1><a id="AUTHOR_INFORMATION"><span class="pod_lang">AUTHOR INFORMATION
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
 
 </span></a></h1>
 
@@ -944,7 +955,7 @@ Tripletail::Session - セッション
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#X24TL-X3egetSession">$TL-&gt;getSession</a></li>
+<li><a href="#X$TL->getSession">$TL-&gt;getSession</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">Ini パラメータ</a></li>

@@ -1,5 +1,17 @@
 Revision history for Tripletail
 
+0.47
+	- Template#existsFile メソッドを追加．
+	- MemCached#setでリファレンスを保存できるように変更．
+	- DBクラスのIniいるにおいて，mysql_read_default_file，mysql_read_default_group を指定することで my.cnf から設定を読み込む機能を追加．
+	- 0.46で追加したDB再接続処理をpreRequestではなくinitRequestで行うように変更.
+	  (preRequestの前に行われるフォームのデコード処理でセッション関連のDBアクセスが発生することがあるため)
+	- InputFilterで文字コードを指定するオプションを追加.
+	  文字コードを指定した場合はCCCパラメータを使用した自動判定は行われない.
+	- Iniで特化指定を使用したときに、Iniファイルの上から順番に設定が使用されていなかった問題の修正
+	- Ini#deleteGroup メソッドで特化指定を含んでいるときに全てのグループが削除されていなかった問題の修正
+	- Ini#set メソッドにraw指定を追加
+
 0.46 Tue May 26 16:56:32 JST 2009
 	- FastCGIで長時間アクセスがない場合に，MySQLとのDB接続が
 	　タイムアウトして切れていると，その後のアクセスでエラーが
@@ -11,8 +23,10 @@ Revision history for Tripletail
 	  コンテントタイプがapplication/xhtml+xmlになるように変更.
 	- $TL->dispatchを使用したときにプロセス名に分岐先のコマンドを追加するようにした.
 	  本機能を新しい INI パラメータ [TL]command_add_processnameで使用するかを選択できるようにした.
+	- SessonクラスでPostgreSQLをサポート。(This information wrote at 2009/6/10. Sorry...)
+	- Sessonクラスで生成されるセッションキーを19桁から18桁(64bit整数値の負の数を除いた範囲)へ変更。(This information wrote at 2009/6/10. Sorry...)
 
-0.45
+0.45 Wed Jan 14 15:22:58 2009 +0900
 	- Validator MultiValues で 0 件は受理するように修正.
 	- $TL->eval() を追加
 	- [[重要:非互換な仕様変更]]

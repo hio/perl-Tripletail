@@ -73,7 +73,13 @@ sub _getIncode {
 		}
 	}
 
-	if(defined($CCC)) {
+	# 文字コードが指定されていたらそれを使用
+	my $charset = $TL->INI->get('InputFilter' => 'charset');
+
+	if(defined($charset)) {
+		$charset;
+	}
+	elsif(defined($CCC)) {
 		$this->_getIncodeFromCCC($CCC);
 	} else {
 		'auto';
@@ -195,6 +201,18 @@ URLにフラグメント部分は含まれない。もしフラグメントが�
 
 =back
 
+=head2 Ini パラメータ
+
+=over 4
+
+=item C<< charset >>
+
+    charset = UTF-8
+
+クエリの文字コードを指定する。ここで文字コードを指定した場合は文字コードの自動判別は行われない。
+L<< $TL->charconv|Tripletail/"charconv" >>で使用できる文字コードを指定可能。
+
+=back
 
 =head1 SEE ALSO
 

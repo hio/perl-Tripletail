@@ -1,6 +1,7 @@
 use Test::More tests =>
   108
   +2 # trim.
+  +4 # existsFile
   ;
 use Test::Exception;
 use strict;
@@ -194,6 +195,11 @@ dies_ok {$t->loadTemplate('./../../../../../../../../dummy.txt')} 'loadTemplate 
 
 $t = $TL->newTemplate;
 ok($t->loadTemplate("tmp$$.ini"), 'loadTemplate');
+
+dies_ok {$t->existsFile} 'existsFile die';
+dies_ok {$t->existsFile(\123)} 'existsFile die';
+is($t->existsFile('./../../../../../../../../dummy.txt'), undef, 'existsFile');
+is($t->existsFile("tmp$$.ini"), 1, 'existsFile');
 
 my $node;
 dies_ok {$t->node} 'node die';

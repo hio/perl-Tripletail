@@ -178,6 +178,21 @@ sub loadTemplate {
 	$this;
 }
 
+sub existsFile {
+	my $this  = shift;
+	my $filepath = shift;
+
+	if(!defined($filepath)) {
+		die __PACKAGE__."#existsFile: arg[1] is not defined. (第1引数が指定されていません)\n";
+	} elsif(ref($filepath)) {
+		die __PACKAGE__."#existsFile: arg[1] is a reference. (第1引数がリファレンスです)\n";
+	}
+
+	$filepath = __rel2abs($filepath, $this->{basepath});
+
+	-e $filepath;
+}
+
 sub DESTROY {
 	my $this = shift;
 
@@ -454,6 +469,13 @@ $icode が省略された場合は 'auto' 文字コード自動判別となる�
 
 自動判別はUTF-8よりShift_JISを優先するので、テンプレートファイルは
 Shift_JISコードで作成することを推奨する。
+
+=item existsFile
+
+  $t->existsFile($filepath)
+
+指定されたファイルが存在するなら1を、しないならundefを返す。
+loadTemplate に先立ってテンプレートファイルが存在するかどうか確認したい場合に使用する。
 
 =item setTemplate
 

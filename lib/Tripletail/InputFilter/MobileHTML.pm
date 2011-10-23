@@ -52,14 +52,21 @@ sub _getIncode {
 		}
 	}
 
-    if (my $charset = $TL->newValue($ENV{HTTP_USER_AGENT})->detectMobileAgent()) {
-        return $charset;
-    }
+	# 文字コードが指定されていたらそれを使用
+	my $charset = $TL->INI->get('InputFilter' => 'charset');
+
+	if(defined($charset)) {
+		return $charset;
+	}
+
+	if (my $charset = $TL->newValue($ENV{HTTP_USER_AGENT})->detectMobileAgent()) {
+		return $charset;
+	}
 
 	if (defined $CCC) {
 		$this->_getIncodeFromCCC($CCC);
 	}
-    else {
+	else {
 		'auto';
 	}
 }

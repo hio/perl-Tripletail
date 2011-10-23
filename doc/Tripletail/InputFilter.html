@@ -48,6 +48,11 @@ Tripletail::InputFilter - CGIクエリパラメータを読み取る
 
 </span></a>
 </li>
+<li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
+
+</span></a>
+</li>
 </ul>
 </li>
 <li><a href="#SEE_ALSO">
@@ -215,6 +220,28 @@ URLにフラグメント部分は含まれない。もしフラグメントが�
 </dd>
 </dl>
 
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
+
+</span></a></h2>
+
+<dl>
+<dt><a id="charset"><span class="pod_lang"><code class="pod_iseq_C">charset</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>    charset = UTF-8</code></pre>
+
+<p>
+<span class="pod_lang">クエリの文字コードを指定する。ここで文字コードを指定した場合は文字コードの自動判別は行われない。
+<a href=".././Tripletail.html#charconv">$TL-&gt;charconv</a>で使用できる文字コードを指定可能。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
 
 <hr />
 <h1><a id="SEE_ALSO">
@@ -291,6 +318,7 @@ Tripletail::InputFilter - CGIクエリパラメータを読み取る
 <li><a href="#X$TL->newInputFilter">$TL-&gt;newInputFilter</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">Ini パラメータ</a></li>
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#NAME">NAME</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
@@ -301,6 +329,7 @@ Tripletail::InputFilter - CGIクエリパラメータを読み取る
 <li><a href="#X__00">Tripletail::InputFilter::MobileHTML</a></li>
 <li><a href="#X__02">Tripletail::InputFilter::Plain</a></li>
 <li><a href="#X__01">Tripletail::InputFilter::SEO</a></li>
+<li><a href="#charset">charset</a></li>
 <li><a href="#decodeCgi">decodeCgi</a></li>
 <li><a href="#decodeURL">decodeURL</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe4Xb8X80Xe8Xa6Xa7">フィルタ一覧</a></li>

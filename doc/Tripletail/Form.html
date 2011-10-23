@@ -429,6 +429,33 @@ undef を返す。
 </span>
 </p>
 
+<p>
+<span class="pod_lang">ファイル名はベース名部分のみを返す(0.45以降)。
+(以前の動作に関しては <a href=".././Tripletail.html#compat_form_getfilename_returns_fullpath">&quot;compat_form_getfilename_returns_fullpath&quot; in Tripletail</a> 
+を参照。)
+
+</span>
+</p>
+
+</dd>
+<dt><a id="getFullFileName"><span class="pod_lang">getFullFileName
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $filename = $form-&gt;getFullFileName($key)</code></pre>
+
+<p>
+<span class="pod_lang"><a href="#getFileName">&quot;getFileName&quot;</a> と同様だが、(提供されている場合)フルパスで返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">(0.45 以降)
+
+</span>
+</p>
+
 </dd>
 <dt><a id="setFileName"><span class="pod_lang">setFileName
 
@@ -674,6 +701,7 @@ Tripletail::Form - フォーム情報
 <li><a href="#getFileKeys">getFileKeys</a></li>
 <li><a href="#getFileName">getFileName</a></li>
 <li><a href="#getFragment">getFragment</a></li>
+<li><a href="#getFullFileName">getFullFileName</a></li>
 <li><a href="#getKeys">getKeys</a></li>
 <li><a href="#getSlice">getSlice</a></li>
 <li><a href="#getSliceValues">getSliceValues</a></li>

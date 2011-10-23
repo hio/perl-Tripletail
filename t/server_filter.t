@@ -8,15 +8,16 @@ use lib '.';
 use t::test_server;
 
 &setup;
-plan tests => 4 + 4 + 2 + 1 + 7 + 1 + 2 + 10;
+plan tests => 4 + 4 + 2 + 1 + 8 + 1 + 2 + 10 + 1;
 &test_01_html;              #4.
 &test_02_mobile_html;       #4.
 &test_03_csv;               #2.
 &test_04_binary;            #1.
-&test_05_input_filter;      #7.
+&test_05_input_filter;      #8.
 &test_06_seo_filter;        #1.
 &test_07_seo_input_filter;  #2.
 &test_08_xhtml;             #10.
+&test_09_input_filter_mobile; # 1.
 exit;
 
 # -----------------------------------------------------------------------------
@@ -262,7 +263,7 @@ sub test_04_binary
 					-main => \&main,
 				 );
 				sub main {
-					$TL->print("\x{de}\x{ad}\x{be}\x{ef}");
+					$TL->print("\x{de}\x{ad}\x{be}\x{ef}"); #"
 				}
 			},
 		);
@@ -437,6 +438,34 @@ sub test_05_input_filter
 			 qq{Ged a sheo'l mi fada bhuaip\r\n}.
 			 qq{Air long nan crannaibh caola}, '[input] multipart/form-data [3]';
 	}
+
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				 );
+				sub main {
+					$TL->setContentFilter('Tripletail::Filter::HTML', charset => 'UTF-8');
+					$TL->print(
+						sprintf('%s-%s', $TL->CGI->getSliceValues(qw[foo bar])),
+				 );
+				}
+			},
+			env => {
+				QUERY_STRING => 'foo=%e3%81%84%e3%81%ac&bar=C%20D',
+			},
+			ini => {
+				'InputFilter' => {
+					charset => 'UTF-8',
+				},
+			},
+		);
+		# テスト文字は自動判定で文字化けする文字なら何でもよい
+		is $res->content, 'いぬ-C D', '[input] get UTF-8(no CCC)';
+	}
+	
 }
 
 # -----------------------------------------------------------------------------
@@ -752,6 +781,40 @@ sub test_08_xhtml
 		is($c, qq{1<br />test<br />\nmsg<br />\n}, '[xhtml] br (xhtml)');
 	}
 	
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::InputFilter::MobileHTML
+# 
+sub test_09_input_filter_mobile
+{
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->setInputFilter('Tripletail::InputFilter::MobileHTML');
+				$TL->startCgi(
+					-main => \&main,
+				 );
+				sub main {
+					$TL->setContentFilter('Tripletail::Filter::HTML', charset => 'UTF-8');
+					$TL->print(
+						sprintf('%s-%s', $TL->CGI->getSliceValues(qw[foo bar])),
+				 );
+				}
+			},
+			env => {
+				QUERY_STRING => 'foo=%e3%81%84%e3%81%ac&bar=C%20D',
+			},
+			ini => {
+				InputFilter => {
+					charset => 'UTF-8',
+				},
+			},
+		);
+		# テスト文字は自動判定で文字化けする文字なら何でもよい
+		is $res->content, 'いぬ-C D', '[input] get UTF-8(no CCC)';
+	}
 }
 
 # -----------------------------------------------------------------------------

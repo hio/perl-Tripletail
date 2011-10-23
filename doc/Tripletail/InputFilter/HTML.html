@@ -5,14 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <link rel="stylesheet" type="text/css" href="../../style.css" />
-  <title>Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り</title>
+  <title>Tripletail::InputFilter::HTML - 通常 HTML 向け CGI クエリ読み取り</title>
   <link rel="index"     href="./" />
   <link rel="up"        href="../" />
 </head>
 <body>
 
 <div class="pod_title_block">
-Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
+Tripletail::InputFilter::HTML - 通常 HTML 向け CGI クエリ読み取り
 
 
 </div>
@@ -69,7 +69,7 @@ Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
 </span></a></h1>
 
 <p>
-<span class="pod_lang">Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
+<span class="pod_lang">Tripletail::InputFilter::HTML - 通常 HTML 向け CGI クエリ読み取り
 
 </span>
 </p>
@@ -124,9 +124,9 @@ Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
 <dd>
 <p>
 <span class="pod_lang">application/x-www-form-urlencoded または multipart/form-data を読み取る。
-multipartでファイルがアップロードされた場合は、そのファイル名とIOハンド
-ルハンドルが <a href="../.././Tripletail/Form.html">Form</a> に格納される。詳しくは <a href="../.././Tripletail.html">Tripletail</a> のIniパラメー
-タを参照。
+multipartでファイルがアップロードされた場合は、そのファイル名と
+IO ハンドルが <a href="../.././Tripletail/Form.html">Form</a> に格納される。
+詳しくは <a href="../.././Tripletail.html">Tripletail</a> の Ini パラメータを参照。
 
 </span>
 </p>
@@ -142,15 +142,16 @@ multipartでファイルがアップロードされた場合は、そのファ�
 </p>
 
 <p>
-<span class="pod_lang">クエリの文字コードは自動判別され、文字コード変換にはEncodeが優先される。
-Encodeが利用可能でない場合はUnicode::Japaneseが用いられる。
+<span class="pod_lang">クエリの文字コードはINIの<a href="../.././Tripletail/InputFilter.html#charset">charset</a>が指定されていればそれが使用される。
+指定されていない場合は自動判別され、文字コード変換には Encode が優先される。
+Encode が利用可能でない場合はUnicode::Japaneseが用いられる。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">文字コードの判別は、フォームの中の CCC キーに含まれる「愛」という文字列によって行われる。
-通常、TL から出力された HTML には、自動的にこの情報が追加されるが、
+<span class="pod_lang">文字コードの自動判別は、フォームの中の CCC キーに含まれる「愛」という文字列によって行われる。
+通常、 TL から出力された HTML には、自動的にこの情報が追加されるが、
 外部の静的な HTML や FLASH コンテンツ等からフォームデータを渡す場合は、
 追加する必要がある。
 
@@ -158,7 +159,7 @@ Encodeが利用可能でない場合はUnicode::Japaneseが用いられる。
 </p>
 
 <p>
-<span class="pod_lang">例えば、UTF-8 コードで、name キーに「名前」の文字列を渡す場合は、
+<span class="pod_lang">例えば、 UTF-8 コードで、name キーに「名前」の文字列を渡す場合は、
 CCC=%e6%84%9b&amp;name=%E5%90%8D%E5%89%8D
 をフォームデータとして渡す。
 
@@ -263,7 +264,7 @@ CCC=%e6%84%9b&amp;name=%E5%90%8D%E5%89%8D
 <!-- End CONTENT -->
 
 <div class="pod_title_block">
-Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
+Tripletail::InputFilter::HTML - 通常 HTML 向け CGI クエリ読み取り
 
 
 </div>
@@ -291,7 +292,7 @@ Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
 <!-- End INDEX -->
 
 <div class="pod_title_block">
-Tripletail::InputFilter::HTML - 通常HTML向けCGIクエリ読み取り
+Tripletail::InputFilter::HTML - 通常 HTML 向け CGI クエリ読み取り
 
 
 </div>

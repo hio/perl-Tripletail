@@ -53,12 +53,12 @@ Tripletail::DB - DBI のラッパ
 
 </span></a>
 <ul>
-<li><a href="#TripletailX3aX3aDB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
+<li><a href="#Tripletail::DB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
 <span class="pod_lang"><code class="pod_iseq_C">Tripletail::DB</code> メソッド
 
 </span></a>
 </li>
-<li><a href="#TripletailX3aX3aDBX3aX3aSTH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
+<li><a href="#Tripletail::DB::STH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
 <span class="pod_lang"><code class="pod_iseq_C">Tripletail::DB::STH</code> メソッド
 
 </span></a>
@@ -107,7 +107,8 @@ Tripletail::DB - DBI のラッパ
 <!-- =encoding utf-8 -->
 
 <hr />
-<h1><a id="NAME"><span class="pod_lang">NAME
+<h1><a id="NAME">
+<span class="pod_lang">NAME
 
 </span></a></h1>
 
@@ -119,7 +120,8 @@ Tripletail::DB - DBI のラッパ
 
 
 <hr />
-<h1><a id="SYNOPSIS"><span class="pod_lang">SYNOPSIS
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
 
 </span></a></h1>
 
@@ -148,12 +150,13 @@ Tripletail::DB - DBI のラッパ
 
 
 <hr />
-<h1><a id="DESCRIPTION"><span class="pod_lang">DESCRIPTION
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
 
 </span></a></h1>
 
 <dl>
-<dt><a id="Xe6X8eXa5Xe7Xb6X9aX2fXe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82"><span class="pod_lang">接続/切断は自動で行われる。
+<dt><a id="Xe6X8eXa5Xe7Xb6X9a/Xe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82"><span class="pod_lang">接続/切断は自動で行われる。
 
 </span></a></dt>
 <dd>
@@ -169,7 +172,7 @@ Tripletail::DB - DBI のラッパ
 </span></a></dt>
 <dd>
 </dd>
-<dt><a id="prepareX2fexecuteXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X81X93Xe3X81Xa8Xe3X82X82Xe3X81Xa7Xe3X81X8dXe3X82X8bXe3X80X82"><span class="pod_lang">prepare/executeを分けない。fetchは分けることもできる。
+<dt><a id="prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X81X93Xe3X81Xa8Xe3X82X82Xe3X81Xa7Xe3X81X8dXe3X82X8bXe3X80X82"><span class="pod_lang">prepare/executeを分けない。fetchは分けることもできる。
 
 </span></a></dt>
 <dd>
@@ -276,7 +279,8 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 </dd>
 </dl>
 
-<h2><a id="DBI_Xe3X81X8bXe3X82X89Xe3X81XaeXe7Xa7XbbXe8Xa1X8c"><span class="pod_lang">DBI からの移行
+<h2><a id="DBI_Xe3X81X8bXe3X82X89Xe3X81XaeXe7Xa7XbbXe8Xa1X8c">
+<span class="pod_lang">DBI からの移行
 
 </span></a></h2>
 
@@ -431,7 +435,8 @@ die なしにコードを抜けた時に自動的にコミットされる。
 </span>
 </p>
 
-<h2><a id="Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe8Xa9Xb3Xe7Xb4Xb0"><span class="pod_lang">拡張プレースホルダ詳細
+<h2><a id="Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe8Xa9Xb3Xe7Xb4Xb0">
+<span class="pod_lang">拡張プレースホルダ詳細
 
 </span></a></h2>
 
@@ -497,16 +502,18 @@ SQL 型名として扱われる。配列が複数の値を持つ時には、そ�
       [[100, \'SQL_INTEGER'], 'foo', \'SQL_VARCHAR'], 800);
   ==&gt; SELECT * FROM a WHERE a IN (100, 'foo') AND b = '800'</code></pre>
 
-<h2><a id="METHODS"><span class="pod_lang">METHODS
+<h2><a id="METHODS">
+<span class="pod_lang">METHODS
 
 </span></a></h2>
 
-<h3><a id="TripletailX3aX3aDB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89"><span class="pod_lang"><code class="pod_iseq_C">Tripletail::DB</code> メソッド
+<h3><a id="Tripletail::DB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
+<span class="pod_lang"><code class="pod_iseq_C">Tripletail::DB</code> メソッド
 
 </span></a></h3>
 
 <dl>
-<dt><a id="X24TL-X3egetDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getDB</code>
+<dt><a id="X$TL->getDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getDB</code>
 
 </span></a></dt>
 <dd>
@@ -528,7 +535,7 @@ SQL 型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 </dd>
-<dt><a id="X24TL-X3enewDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newDB</code>
+<dt><a id="X$TL->newDB"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newDB</code>
 
 </span></a></dt>
 <dd>
@@ -568,7 +575,7 @@ SQL 型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 <p>
-<span class="pod_lang"><a href="#X24TL-X3enewDB">$TL-&gt;newDB</a> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへ接続する必要がある。
+<span class="pod_lang"><a href="#X$TL-&gt;newDB">$TL-&gt;newDB</a> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへ接続する必要がある。
 
 </span>
 </p>
@@ -597,7 +604,7 @@ SQL 型名として扱われる。配列が複数の値を持つ時には、そ�
 </p>
 
 <p>
-<span class="pod_lang"><a href="#X24TL-X3enewDB">$TL-&gt;newDB</a> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへの接続を切断する必要がある。
+<span class="pod_lang"><a href="#X$TL-&gt;newDB">$TL-&gt;newDB</a> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへの接続を切断する必要がある。
 
 </span>
 </p>
@@ -991,7 +998,8 @@ DBセットで SQL が実行される。
 </dd>
 </dl>
 
-<h3><a id="TripletailX3aX3aDBX3aX3aSTH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89"><span class="pod_lang"><code class="pod_iseq_C">Tripletail::DB::STH</code> メソッド
+<h3><a id="Tripletail::DB::STH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
+<span class="pod_lang"><code class="pod_iseq_C">Tripletail::DB::STH</code> メソッド
 
 </span></a></h3>
 
@@ -1089,11 +1097,13 @@ DBセットで SQL が実行される。
 </dd>
 </dl>
 
-<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf"><span class="pod_lang">Ini パラメータ
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
 
 </span></a></h2>
 
-<h3><a id="DBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3"><span class="pod_lang">DBセット・DBコネクション
+<h3><a id="DBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3">
+<span class="pod_lang">DBセット・DBコネクション
 
 </span></a></h3>
 
@@ -1187,7 +1197,8 @@ mysql, pgsql, oracle, sqlite, mssql が使用可能。
 </dd>
 </dl>
 
-<h3><a id="DBXe5XaeX9aXe7XbeXa9"><span class="pod_lang">DB定義
+<h3><a id="DBXe5XaeX9aXe7XbeXa9">
+<span class="pod_lang">DB定義
 
 </span></a></h3>
 
@@ -1246,9 +1257,41 @@ mysql, pgsql, oracle, sqlite, mssql が使用可能。
 </p>
 
 </dd>
+<dt><a id="mysql_read_default_file"><span class="pod_lang"><code class="pod_iseq_C">mysql_read_default_file</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  mysql_read_default_file = .../tl_mysql.cnf</code></pre>
+
+<p>
+<span class="pod_lang">mysql クライアントライブラリが使用する設定ファイル my.cnf のパスを指定する。
+パスの指定を .../ で始めることで、 ini ファイルからの相対パスとして指定する事も可能。
+設定ファイルを使用する事で、 default-character-set 等の Tripletail::DB や DBD::mysql からは設定できない項目が設定できる。
+また、設定ファイルで user, password, host 等の値を指定する場合は、 Ini パラメータ のDBコネクションの値を省略する事ができる。(dbname だけは省略できない)
+
+</span>
+</p>
+
+</dd>
+<dt><a id="mysql_read_default_group"><span class="pod_lang"><code class="pod_iseq_C">mysql_read_default_group</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  mysql_read_default_group = tripletail</code></pre>
+
+<p>
+<span class="pod_lang">mysql_read_default_file 指定時に、設定ファイル中のどのグループを使用するかを指定する。
+グループを指定した場合は、 [client] グループの設定と指定したグループの設定の両方が有効になる。
+グループを指定しない場合、 [client] グループの設定のみが有効となる。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
-<h3><a id="SQL_Server_Xe8Xa8XadXe5XaeX9a"><span class="pod_lang">SQL Server 設定
+<h3><a id="SQL_Server_Xe8Xa8XadXe5XaeX9a">
+<span class="pod_lang">SQL Server 設定
 
 </span></a></h3>
 
@@ -1295,7 +1338,8 @@ DBD::ODBC と, Linux であれば unixODBC + freetds で, Windows であれば
 
 
 <hr />
-<h1><a id="SEE_ALSO"><span class="pod_lang">SEE ALSO
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
 
 </span></a></h1>
 
@@ -1307,7 +1351,8 @@ DBD::ODBC と, Linux であれば unixODBC + freetds で, Windows であれば
 
 
 <hr />
-<h1><a id="AUTHOR_INFORMATION"><span class="pod_lang">AUTHOR INFORMATION
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
 
 </span></a></h1>
 
@@ -1357,8 +1402,8 @@ Tripletail::DB - DBI のラッパ
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#X24TL-X3egetDB">$TL-&gt;getDB</a></li>
-<li><a href="#X24TL-X3enewDB">$TL-&gt;newDB</a></li>
+<li><a href="#X$TL->getDB">$TL-&gt;getDB</a></li>
+<li><a href="#X$TL->newDB">$TL-&gt;newDB</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DBI_Xe3X81X8bXe3X82X89Xe3X81XaeXe7Xa7XbbXe8Xa1X8c">DBI からの移行</a></li>
 <li><a href="#DBXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X83XbbDBXe3X82XbbXe3X83X83Xe3X83X88Xe3X83XbbDBXe3X82Xb3Xe3X83X8dXe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3">DBグループ・DBセット・DBコネクション</a></li>
@@ -1371,8 +1416,8 @@ Tripletail::DB - DBI のラッパ
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
 <li><a href="#SQL_Server_Xe8Xa8XadXe5XaeX9a">SQL Server 設定</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
-<li><a href="#TripletailX3aX3aDB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB メソッド</a></li>
-<li><a href="#TripletailX3aX3aDBX3aX3aSTH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB::STH メソッド</a></li>
+<li><a href="#Tripletail::DB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB メソッド</a></li>
+<li><a href="#Tripletail::DB::STH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB::STH メソッド</a></li>
 <li><a href="#begin">begin</a></li>
 <li><a href="#commit">commit</a></li>
 <li><a href="#connect">connect</a></li>
@@ -1389,11 +1434,13 @@ Tripletail::DB - DBI のラッパ
 <li><a href="#host">host</a></li>
 <li><a href="#inTx">inTx</a></li>
 <li><a href="#lock">lock</a></li>
+<li><a href="#mysql_read_default_file">mysql_read_default_file</a></li>
+<li><a href="#mysql_read_default_group">mysql_read_default_group</a></li>
 <li><a href="#nameArray">nameArray</a></li>
 <li><a href="#nameHash">nameHash</a></li>
 <li><a href="#namequery">namequery</a></li>
 <li><a href="#password">password</a></li>
-<li><a href="#prepareX2fexecuteXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X81X93Xe3X81Xa8Xe3X82X82Xe3X81Xa7Xe3X81X8dXe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分けることもできる。</a></li>
+<li><a href="#prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X81X93Xe3X81Xa8Xe3X82X82Xe3X81Xa7Xe3X81X8dXe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分けることもできる。</a></li>
 <li><a href="#ret">ret</a></li>
 <li><a href="#rollback">rollback</a></li>
 <li><a href="#rows">rows</a></li>
@@ -1414,7 +1461,7 @@ Tripletail::DB - DBI のラッパ
 <li><a href="#Xe5XaeX9fXe8Xa1X8cXe3X82XafXe3X82Xa8Xe3X83XaaXe3X81XaeXe5X87Xa6Xe7X90X86Xe6X99X82Xe9X96X93Xe3X83XbbXe5XaeX9fXe8Xa1X8cXe8Xa8X88Xe7X94XbbXe3X83XbbXe7Xb5X90Xe6X9eX9cXe3X82X92Xe8Xa8X98Xe9X8cXb2Xe3X81X99Xe3X82X8bXe3X83X87Xe3X83X90Xe3X83X83Xe3X82Xb0Xe3X83Xa2Xe3X83XbcXe3X83X89Xe3X80X82">実行クエリの処理時間・実行計画・結果を記録するデバッグモード。</a></li>
 <li><a href="#Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe6Xa9X9fXe8X83Xbd">拡張プレースホルダ機能</a></li>
 <li><a href="#Xe6X8bXa1Xe5XbcXb5Xe3X83X97Xe3X83XacXe3X83XbcXe3X82Xb9Xe3X83X9bXe3X83XabXe3X83X80Xe8Xa9Xb3Xe7Xb4Xb0">拡張プレースホルダ詳細</a></li>
-<li><a href="#Xe6X8eXa5Xe7Xb6X9aX2fXe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82">接続/切断は自動で行われる。</a></li>
+<li><a href="#Xe6X8eXa5Xe7Xb6X9a/Xe5X88X87Xe6X96XadXe3X81XafXe8X87XaaXe5X8bX95Xe3X81Xa7Xe8Xa1X8cXe3X82X8fXe3X82X8cXe3X82X8bXe3X80X82">接続/切断は自動で行われる。</a></li>
 <li><a href="#Xe9XabX98Xe9X80X9fXe3X81XaaXe5X87Xa6Xe7X90X86Xe3X81X8cXe5XbfX85Xe8Xa6X81Xe3X81Xa7Xe3X80X81Xe3X83Xa9Xe3X83X83Xe3X83X91Xe3X81XaeXe3X82XaaXe3X83XbcXe3X83X90Xe3X83X98Xe3X83X83Xe3X83X89Xe3X82X92Xe5X9bX9eXe9X81XbfXe3X81X97Xe3X81X9fXe3X81X84Xe5Xa0Xb4Xe5X90X88Xe3X80X82">高速な処理が必要で、ラッパのオーバヘッドを回避したい場合。</a></li>
 </ul>
 </div>

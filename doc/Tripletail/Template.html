@@ -95,7 +95,8 @@ Tripletail::Template - テンプレート
 <!-- =encoding utf-8 -->
 
 <hr />
-<h1><a id="NAME"><span class="pod_lang">NAME
+<h1><a id="NAME">
+<span class="pod_lang">NAME
 
 </span></a></h1>
 
@@ -107,7 +108,8 @@ Tripletail::Template - テンプレート
 
 
 <hr />
-<h1><a id="SYNOPSIS"><span class="pod_lang">SYNOPSIS
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
 
 </span></a></h1>
 
@@ -142,7 +144,8 @@ Tripletail::Template - テンプレート
 
 
 <hr />
-<h1><a id="DESCRIPTION"><span class="pod_lang">DESCRIPTION
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
 
 </span></a></h1>
 
@@ -159,7 +162,8 @@ Tripletail::Template - テンプレート
 </span>
 </p>
 
-<h2><a id="Xe3X83X86Xe3X83Xb3Xe3X83X97Xe3X83XacXe3X83XbcXe3X83X88Xe6X9bXb8Xe5XbcX8f"><span class="pod_lang">テンプレート書式
+<h2><a id="Xe3X83X86Xe3X83Xb3Xe3X83X97Xe3X83XacXe3X83XbcXe3X83X88Xe6X9bXb8Xe5XbcX8f">
+<span class="pod_lang">テンプレート書式
 
 </span></a></h2>
 
@@ -253,7 +257,8 @@ loadTemplate が呼ばれていない場合は、カレントディレクトリ�
 </dd>
 </dl>
 
-<h2><a id="Xe5X88Xa9Xe7X94Xa8Xe4Xb8X8aXe3X81XaeXe6Xb3Xa8Xe6X84X8f"><span class="pod_lang">利用上の注意
+<h2><a id="Xe5X88Xa9Xe7X94Xa8Xe4Xb8X8aXe3X81XaeXe6Xb3Xa8Xe6X84X8f">
+<span class="pod_lang">利用上の注意
 
 </span></a></h2>
 
@@ -314,12 +319,13 @@ setFormやaddHiddenFormなどを利用すると、正しいHTML形式ではな�
 </span>
 </p>
 
-<h2><a id="METHODS"><span class="pod_lang">METHODS
+<h2><a id="METHODS">
+<span class="pod_lang">METHODS
 
 </span></a></h2>
 
 <dl>
-<dt><a id="X24TL-X3enewTemplate"><span class="pod_lang">$TL-&gt;newTemplate
+<dt><a id="X$TL->newTemplate"><span class="pod_lang">$TL-&gt;newTemplate
 
 </span></a></dt>
 <dd>
@@ -365,6 +371,20 @@ setFormやaddHiddenFormなどを利用すると、正しいHTML形式ではな�
 <p>
 <span class="pod_lang">自動判別はUTF-8よりShift_JISを優先するので、テンプレートファイルは
 Shift_JISコードで作成することを推奨する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="existsFile"><span class="pod_lang">existsFile
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $t-&gt;existsFile($filepath)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたファイルが存在するなら1を、しないならundefを返す。
+loadTemplate に先立ってテンプレートファイルが存在するかどうか確認したい場合に使用する。
 
 </span>
 </p>
@@ -876,7 +896,8 @@ Templateの場合、全体を出力する。
 </dd>
 </dl>
 
-<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf"><span class="pod_lang">Ini パラメータ
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
 
 </span></a></h2>
 
@@ -964,11 +985,13 @@ getForm, setForm, extForm, addHiddenForm, addSessionCheckを
 </dd>
 </dl>
 
-<h2><a id="flush_Xe3X82Xb5Xe3X83Xb3Xe3X83X97Xe3X83Xab"><span class="pod_lang">flush サンプル
+<h2><a id="flush_Xe3X82Xb5Xe3X83Xb3Xe3X83X97Xe3X83Xab">
+<span class="pod_lang">flush サンプル
 
 </span></a></h2>
 
-<h3><a id="Xe3X82XbdXe3X83XbcXe3X82Xb9Xe3X82Xb3Xe3X83XbcXe3X83X89"><span class="pod_lang">ソースコード
+<h3><a id="Xe3X82XbdXe3X83XbcXe3X82Xb9Xe3X82Xb3Xe3X83XbcXe3X83X89">
+<span class="pod_lang">ソースコード
 
 </span></a></h3>
 
@@ -1025,7 +1048,8 @@ getForm, setForm, extForm, addHiddenForm, addSessionCheckを
  print &quot;\n#--- root-&gt;flush;\n&quot;;
  $t-&gt;flush;</code></pre>
 
-<h3><a id="Xe5XaeX9fXe8Xa1X8cXe7Xb5X90Xe6X9eX9c"><span class="pod_lang">実行結果
+<h3><a id="Xe5XaeX9fXe8Xa1X8cXe7Xb5X90Xe6X9eX9c">
+<span class="pod_lang">実行結果
 
 </span></a></h3>
 
@@ -1076,7 +1100,8 @@ getForm, setForm, extForm, addHiddenForm, addSessionCheckを
 
 
 <hr />
-<h1><a id="SEE_ALSO"><span class="pod_lang">SEE ALSO
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
 
 </span></a></h1>
 
@@ -1088,7 +1113,8 @@ getForm, setForm, extForm, addHiddenForm, addSessionCheckを
 
 
 <hr />
-<h1><a id="AUTHOR_INFORMATION"><span class="pod_lang">AUTHOR INFORMATION
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
 
 </span></a></h1>
 
@@ -1138,7 +1164,7 @@ Tripletail::Template - テンプレート
 <h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
 <div class="pod_idx_outer">
 <ul class="pod_idx">
-<li><a href="#X24TL-X3enewTemplate">$TL-&gt;newTemplate</a></li>
+<li><a href="#X$TL->newTemplate">$TL-&gt;newTemplate</a></li>
 <li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
 <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
 <li><a href="#IncludeXe3X82XbfXe3X82Xb0">Includeタグ</a></li>
@@ -1155,6 +1181,7 @@ Tripletail::Template - テンプレート
 <li><a href="#basepath">basepath</a></li>
 <li><a href="#br">br</a></li>
 <li><a href="#exists">exists</a></li>
+<li><a href="#existsFile">existsFile</a></li>
 <li><a href="#expand">expand</a></li>
 <li><a href="#expandAny">expandAny</a></li>
 <li><a href="#extForm">extForm</a></li>

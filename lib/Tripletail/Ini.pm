@@ -16,6 +16,7 @@ sub _new {
 
 	$this->{filename} = undef;
 	$this->{ini} = {};
+	$this->{order} = {};
 
 	if(scalar(@_)) {
 		$this->read(@_);
@@ -35,7 +36,8 @@ sub read {
 	my $filename = shift;
 
 	%{$this->{ini}} = ();
-
+	%{$this->{order}} = ();
+	
 	my $fh = $TL->_gensym;
 	if(!open($fh, "$filename")) {
 		die __PACKAGE__."#read: failed to open a file to read. [$filename] ($!) (ファイルを読めません)\n";
@@ -55,8 +57,12 @@ sub read {
 		} else {
 			my ($key, $value) = split(/\s*=\s*/, $_, 2);
 			if(defined($group) && defined($key) && defined ($value)) {
+				if(!exists($this->{ini}{$group})) {
+					push(@{$this->{order}{group}},$group);
+				}
 				if(!exists($this->{ini}{$group}{$key})) {
 					$this->{ini}{$group}{$key} = $value;
+					push(@{$this->{order}{key}{$group}},$key);
 				}
 			} else {
 				die __PACKAGE__."#read: syntax error in the ini. line [$.] (INIファイルの形式が不正です)\n";
@@ -81,9 +87,9 @@ sub write {
 	binmode($fh);
 	flock($fh, 2);
 	seek($fh, 0, 0);
-	foreach my $group (keys %{$this->{ini}}) {
+	foreach my $group (@{$this->{order}{group}}) {
 		print $fh "[$group]\n";
-		foreach my $key (keys %{$this->{ini}{$group}}) {
+		foreach my $key (@{$this->{order}{key}{$group}}) {
 			print $fh "$key = " . $this->{ini}{$group}{$key} . "\n";
 		}
 		print $fh "\n";
@@ -152,19 +158,23 @@ sub getGroups {
 	my $this = shift;
 	my $raw = shift;
 	
+	my @groups;
+	
 	if($raw) {
-		keys %{$this->{ini}};
+		foreach my $group (@{$this->{order}{group}}) {
+			push(@groups,$group);
+		}
 	} else {
-		my $groups;
-		foreach my $group (keys %{$this->{ini}}) {
+		foreach my $group (@{$this->{order}{group}}) {
 			$group =~ /^([^:]+)/;
 			foreach my $groupname ($this->_getrawgroupname($1)) {
 				$groupname =~ /^([^:]+)/;
-				$groups->{$1} = 1;
+				push(@groups,$1);
 			}
 		}
-		keys %{$groups};
 	}
+
+	@groups;
 }
 
 sub getKeys {
@@ -188,12 +198,10 @@ sub getKeys {
 	my @result;
 	my %occurence;
 	foreach my $groupname (@group) {
-		if(my $grp = $this->{ini}{$groupname}) {
-			foreach my $key (keys %$grp) {
-				if(!$occurence{$key}) {
-					push(@result,$key);
-					$occurence{$key} = 1;
-				}
+		foreach my $key (@{$this->{order}{key}{$groupname}}) {
+			if(!$occurence{$key}) {
+				push(@result,$key);
+				$occurence{$key} = 1;
 			}
 		}
 	}
@@ -257,6 +265,7 @@ sub set {
 	my $group = shift;
 	my $key = shift;
 	my $value = shift;
+	my $raw = shift;
 
 	if(exists($this->{const})) {
 		die __PACKAGE__."#set: This instance is a const object. (このIniオブジェクトの内容は変更できません)\n";
@@ -296,6 +305,17 @@ sub set {
 		die __PACKAGE__."#set: arg[3]: the argument is not allowed to have preceding or trailing spaces. (第3引数の前後にスペースが含まれています)\n";
 	}
 
+	if(!$raw) {
+		my @group = $this->_getrawgroupname($group);
+		$group = $group[0] if(defined($group[0]) && $group[0] ne '');
+	}
+
+	if(!exists($this->{ini}{$group})) {
+		push(@{$this->{order}{group}},$group);
+	}
+	if(!exists($this->{ini}{$group}{$key})) {
+		push(@{$this->{order}{key}{$group}},$key);
+	}
 	$this->{ini}{$group}{$key} = $value;
 
 	$this;
@@ -352,9 +372,16 @@ sub deleteGroup {
 		die __PACKAGE__."#delete: arg[1] is a reference. [$group] (第1引数がリファレンスです)\n";
 	}
 
-	$group = $this->_getrawgroupname($group) if(!$raw);
+	my @group;
+	if($raw) {
+		push(@group,$group);
+	} else {
+		@group = $this->_getrawgroupname($group);
+	}
 
-	delete $this->{ini}{$group};
+	foreach my $groupname (@group) {
+		delete $this->{ini}{$groupname};
+	}
 
 	$this;
 }
@@ -373,6 +400,7 @@ sub _getrawgroupname {
 	foreach my $spec (@Tripletail::specialization, '') {
 		my $groupname = (length $spec ? "$group:$spec" : $group);
 		foreach my $rawgroup ($this->getGroups(1)) {
+			next if(!defined($rawgroup));
 			if($rawgroup =~ m/^([^\@]+)/) {
 				next if($groupname ne $1);
 				my $matchflag = 1;
@@ -467,23 +495,21 @@ Tripletail::Ini - 設定ファイルを読み書きする
 
 =item グループ名には "[" "]" 制御文字(0x00-0x20,0x7f,0x80-0x9f,0xff) 以外の半角英数字が使用可能。
 
-=item グループ名の"@" ":"は特化指定用の文字となる為、任意の項目への使用は出来ない。
+=item 全て大文字のグループ名は予約語の為、任意のグループ名としては使用は出来ない。
 
-=item 空行は無視
+=item グループ名の"@" ":"は特化指定用の文字となる為、任意のグループ名には使用は出来ない。
 
-=item # で始まる行はコメント
+=item 空行は無視する
+
+=item # で始まる行はコメントになる（writeを使用し書き出した場合、コメント行は反映されない）
 
 =item 連続行は対応しない
 
-=item 同一グループ名は一つのグループとして扱われる
+=item 同じグループ名を複数記述した場合、一つのグループとして扱われる
 
-=item 同一項目は最初に書かれた物が有効
+=item 同一項目は最初に書かれた物が有効になる（特化指定を使っている場合も同様であるため、通常は特化指定は非特化指定グループより先に書く必要性がある）
 
 =item 特化指定は グループ名:名称@server:Servermask@remote:Remotemask の順番で記述する必要性がある
-
-=item 適合する特化指定が複数存在する場合、最初に存在する物が有効となる
-
-=item 特化指定が存在する場合、特化指定無しは常に最後に利用される
 
 =item 初期にC<use>で指定されるiniファイル以外のiniファイルにもC<use>で指定した特化指定が有効となる
 
@@ -516,6 +542,7 @@ Tripletail::Ini オブジェクトを作成。
 
 指定した設定ファイルに書き込む。
 自動的に読み込まれる$INIに関しては書き込みは出来ない。
+コメント行に関しては書き込まれないので注意が必要である。
 
 =item C<< existsGroup >>
 
@@ -565,9 +592,11 @@ $rawに1を指定した場合、特化指定を含んだグループ文字列で
 
 =item C<< set >>
 
-  $ini->set($group => $key => $value)
+  $ini->set($group => $key => $value, $raw)
 
 指定されたグループ・キーの値を設定する。グループがなければ作成される。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で作成する。
+指定しない場合、現在利用可能な最も上位のグループに設定される。
 
 =item C<< const >>
 

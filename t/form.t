@@ -205,6 +205,8 @@ is($f1->get('aaa'), undef , 'remove check');
   is($form->getFullFileName('file'), "a/b/c.dat", "getFullFileName returns fullpath (unix)");
   {
   local($TL->{INI}{ini}{TL}{compat_form_getfilename_returns_fullpath}) = 1;
+  local($TL->{INI}{order}{group}[0]) = 'TL';
+  local($TL->{INI}{order}{key}{TL}[0]) = 'compat_form_getfilename_returns_fullpath';
   is($form->getFileName('file'), "a/b/c.dat", "getFileName+compat returns fullpath (unix)");
   }
 
@@ -214,6 +216,8 @@ is($f1->get('aaa'), undef , 'remove check');
   is($form->getFullFileName('file'), "a:\\b\\c.dat", "getFullFileName returns fullpath (win)");
   {
   local($TL->{INI}{ini}{TL}{compat_form_getfilename_returns_fullpath}) = 1;
+  local($TL->{INI}{order}{group}[0]) = 'TL';
+  local($TL->{INI}{order}{key}{TL}[0]) = 'compat_form_getfilename_returns_fullpath';
   is($form->getFileName('file'), "a:\\b\\c.dat", "getFileName+compat returns fullpath (win)");
   }
 }

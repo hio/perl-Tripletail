@@ -107,7 +107,7 @@ Tripletail::Sendmail::MailQueue - 独自のメールキューを使用するメ�
 </span></a></h1>
 
 <p>
-<span class="pod_lang">送信要求されたメールを、TripletaiL のメールキューに保存する．
+<span class="pod_lang">送信要求されたメールを、 TripletaiL のメールキューに保存する．
 
 </span>
 </p>
@@ -237,8 +237,8 @@ CGIのプロセスから直接呼ぶべきではない。
 </p>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">null@example.org%localhost</code> のように使用するsmtpサーバーを指定する。
-%以降は省略可能で、省略された場合はlocalhostとなる。
+<span class="pod_lang"><code class="pod_iseq_C">null@example.org%localhost</code> のように使用する smtp サーバーを指定する。
+<code class="pod_iseq_C">%</code> 以降は省略可能で、省略された場合は <code class="pod_iseq_C">localhost</code> となる。
 
 </span>
 </p>
@@ -305,7 +305,7 @@ queue へ rename(2) する。ファイル名は、時刻、プロセスID等を�
 <dd>
 <p>
 <span class="pod_lang">メールを処理するときは，outgoing に rename してから処理を行い、終わったら
-rm する。rename(2) する際、ファイル名の末尾に「.」とプロセスIDを記述する。
+<code class="pod_iseq_C">rm</code> する。<code class="pod_iseq_C">rename(2)</code> する際、ファイル名の末尾に「.」とプロセスIDを記述する。
 
 </span>
 </p>

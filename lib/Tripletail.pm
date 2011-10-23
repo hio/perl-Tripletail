@@ -14,7 +14,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.46';
+our $VERSION = '0.47';
 our $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 

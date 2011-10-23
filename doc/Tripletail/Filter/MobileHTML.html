@@ -5,14 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <link rel="stylesheet" type="text/css" href="../../style.css" />
-  <title>Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ</title>
+  <title>Tripletail::Filter::MobileHTML - 携帯電話向け HTML 出力用フィルタ</title>
   <link rel="index"     href="./" />
   <link rel="up"        href="../" />
 </head>
 <body>
 
 <div class="pod_title_block">
-Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
+Tripletail::Filter::MobileHTML - 携帯電話向け HTML 出力用フィルタ
 
 
 </div>
@@ -84,7 +84,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </span></a></h1>
 
 <p>
-<span class="pod_lang">Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
+<span class="pod_lang">Tripletail::Filter::MobileHTML - 携帯電話向け HTML 出力用フィルタ
 
 </span>
 </p>
@@ -108,7 +108,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </span></a></h1>
 
 <p>
-<span class="pod_lang">HTMLに対して以下の処理を行う。
+<span class="pod_lang">HTML に対して以下の処理を行う。
 
 </span>
 </p>
@@ -132,7 +132,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </li>
 <li>
 <p>
-<span class="pod_lang">&lt;form action=&quot;&quot;&gt; が空欄の場合、自分自身のCGI名を埋める
+<span class="pod_lang">&lt;form action=&quot;&quot;&gt; が空欄の場合、自分自身の CGI 名を埋める
 
 </span>
 </p>
@@ -201,9 +201,9 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <ul>
 <li>
 <p>
-<span class="pod_lang">リンクの場合は、リンクの中に INT というキーが存在すれば、セッション情報を
-付与し、INT キーを削除する。
-INT キーがなければ、セッション情報は付与されない。
+<span class="pod_lang">リンクの場合は、リンクの中に <code class="pod_iseq_C">INT</code> というキーが存在すれば、セッション情報を
+付与し、 <code class="pod_iseq_C">INT</code> キーを削除する。
+<code class="pod_iseq_C">INT</code> キーがなければ、セッション情報は付与されない。
 
 </span>
 </p>
@@ -212,8 +212,8 @@ INT キーがなければ、セッション情報は付与されない。
  &lt;a href=&quot;tl.cgi&quot;&gt;セッション情報が付与されないリンク&lt;/a&gt;</code></pre>
 
 <p>
-<span class="pod_lang">INT キーは、Form クラスの toLink メソッドを利用すると自動的に付与される。
-toExtLink メソッドを利用すると、INT キーは付与されない。
+<span class="pod_lang"><code class="pod_iseq_C">INT</code> キーは、Form クラスの toLink メソッドを利用すると自動的に付与される。
+toExtLink メソッドを利用すると、<code class="pod_iseq_C">INT</code> キーは付与されない。
 
 </span>
 </p>
@@ -260,8 +260,8 @@ toExtLink メソッドを利用すると、INT キーは付与されない。
 </ul>
 
 <p>
-<span class="pod_lang">セッション情報は、http領域用のセッション情報は <code class="pod_iseq_C">&quot;SID + セッショングループ名&quot;</code>、
-https領域用のセッション情報は <code class="pod_iseq_C">&quot;SIDS + セッショングループ名&quot;</code> という名称で保存する。
+<span class="pod_lang">セッション情報は、 http 領域用のセッション情報は <code class="pod_iseq_C">&quot;SID + セッショングループ名&quot;</code>、
+https 領域用のセッション情報は <code class="pod_iseq_C">&quot;SIDS + セッショングループ名&quot;</code> という名称で保存する。
 
 </span>
 </p>
@@ -272,31 +272,32 @@ https領域用のセッション情報は <code class="pod_iseq_C">&quot;SIDS + 
 </span></a></h2>
 
 <p>
-<span class="pod_lang">USER_AGENT文字列を元に、DoCoMo、Softbank（Vodafone、J-PHONE）、AU、ASTEL を自動判別し、
+<span class="pod_lang">USER_AGENT 文字列を元に、 DoCoMo 、 Softbank （ Vodafone 、 J-PHONE ）、
+AU 、 ASTEL を自動判別し、
 それぞれの端末用に出力します。
 文字コードは Softbank 3G 以外は Shift_JIS ＋ 各キャリアの絵文字コード、
-Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとなります。
+Softbank 3G の場合は UTF-8 ＋ Softbank 絵文字コードとなります。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">それ以外の端末（WillcomやPC）の場合は、Shift_JIS コードで出力します。
+<span class="pod_lang">それ以外の端末（ Willcom や PC ）の場合は、Shift_JIS コードで出力します。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">携帯から送信されたフォームデータは、DoCoMo、Softbank 2G 以前（J-PHONE）、AU、ASTEL の場合は
-Shift_JIS ＋ 各キャリアの絵文字コード、Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとして
+<span class="pod_lang">携帯から送信されたフォームデータは、 DoCoMo 、 Softbank 2G 以前（ J-PHONE ）、 AU 、 ASTEL の場合は
+Shift_JIS ＋ 各キャリアの絵文字コード、 Softbank 3G の場合は UTF-8 ＋ Softbank 絵文字コードとして
 解析します。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">それ以外の端末（WillcomやPC）の場合は、<a href="../.././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a> と同様に
-CCC による文字コード判別を行います。
+<span class="pod_lang">それ以外の端末（ Willcom や PC ）の場合は、<a href="../.././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a> と同様に
+<code class="pod_iseq_C">CCC</code> による文字コード判別を行います。
 
 </span>
 </p>
@@ -334,21 +335,27 @@ CCC による文字コード判別を行います。
 <pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML', type =&gt; 'xhtml');</code></pre>
 
 <p>
-<span class="pod_lang">'html' もしくは 'xhtml' を利用可能。省略可能。
+<span class="pod_lang">'<code class="pod_iseq_C">html</code>' もしくは '<code class="pod_iseq_C">xhtml</code>' を利用可能。省略可能。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">フィルタがHTMLを書換える際の動作を調整する為のオプション。
-XHTMLを出力する際に、このパラメータをhtmlのままにした場合、
-不正なXHTMLが出力される事がある。
+<span class="pod_lang">フィルタが HTML を書換える際の動作を調整する為のオプション。
+XHTML を出力する際に、このパラメータを <code class="pod_iseq_C">html</code> のままにした場合、
+不正な XHTML が出力される事がある。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">デフォルトは 'html'。
+<span class="pod_lang"><code class="pod_iseq_C">xhtml</code>を指定した場合、コンテントタイプは application/xhtml+xml となる.
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは '<code class="pod_iseq_C">html</code>'。
 
 </span>
 </p>
@@ -529,7 +536,7 @@ XHTMLを出力する際に、このパラメータをhtmlのままにした場�
 <!-- End CONTENT -->
 
 <div class="pod_title_block">
-Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
+Tripletail::Filter::MobileHTML - 携帯電話向け HTML 出力用フィルタ
 
 
 </div>
@@ -564,7 +571,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <!-- End INDEX -->
 
 <div class="pod_title_block">
-Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
+Tripletail::Filter::MobileHTML - 携帯電話向け HTML 出力用フィルタ
 
 
 </div>

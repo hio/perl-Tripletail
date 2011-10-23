@@ -8,7 +8,7 @@ use Tripletail;
 require Time::HiRes;
 use DBI qw(:sql_types);
 
-sub _PRE_REQUEST_HOOK_PRIORITY()  { -1_000_000 } # 順序は問わない
+sub _INIT_REQUEST_HOOK_PRIORITY()  { -1_000_000 } # 順序は問わない
 sub _POST_REQUEST_HOOK_PRIORITY() { -1_000_000 } # セッションフックの後
 sub _TERM_HOOK_PRIORITY()         { -1_000_000 } # セッションフックの後
 
@@ -891,11 +891,11 @@ sub _connect {
 		$INSTANCES->{$group} = $class->_new($group)->connect;
 	}
 
-	# preRequest, postRequest, term をフックする
+	# initRequest, postRequest, term をフックする
 	$TL->setHook(
-		'preRequest',
-		_PRE_REQUEST_HOOK_PRIORITY,
-		\&__preRequest,
+		'initRequest',
+		_INIT_REQUEST_HOOK_PRIORITY,
+		\&__initRequest,
 	);
 
 	$TL->setHook(
@@ -993,7 +993,7 @@ sub __nameQuery {
 	$query;
 }
 
-sub __preRequest {
+sub __initRequest {
 	# $INSTANCESの中から、接続が確立していないものを接続する。
 	foreach my $db (values %$INSTANCES) {
 		$db->connect;
@@ -1114,6 +1114,20 @@ sub connect {
 		my $port = $TL->INI->get($this->{inigroup} => 'port');
 		if(defined($port)) {
 			$opts->{port} = $port;
+		}
+
+		# mysql_read_default_file, mysql_read_default_group オプションを渡す
+		my $default_file = $TL->INI->get_reloc($this->{inigroup} => 'mysql_read_default_file');
+		if(defined($default_file)) {
+			if ( ! -e $default_file ) {
+				die __PACKAGE__."#connect: file $default_file does not exist. ($default_file が存在しません) ('mysql_read_default_file' in [$this->{inigroup}])\n";
+			}
+			$opts->{mysql_read_default_file} = $default_file;
+
+			my $default_group = $TL->INI->get($this->{inigroup} => 'mysql_read_default_group');
+			if(defined($default_group)) {
+				$opts->{mysql_read_default_group} = $default_group;
+			}
 		}
 
 		no warnings 'redefine';
@@ -2440,6 +2454,23 @@ DBに接続する際のユーザー名を設定する。
 
 DBに接続する際のパスワードを設定する。
 省略可能。
+
+=item C<< mysql_read_default_file >>
+
+  mysql_read_default_file = .../tl_mysql.cnf
+
+mysql クライアントライブラリが使用する設定ファイル my.cnf のパスを指定する。
+パスの指定を .../ で始めることで、 ini ファイルからの相対パスとして指定する事も可能。
+設定ファイルを使用する事で、 default-character-set 等の Tripletail::DB や DBD::mysql からは設定できない項目が設定できる。
+また、設定ファイルで user, password, host 等の値を指定する場合は、 Ini パラメータ のDBコネクションの値を省略する事ができる。(dbname だけは省略できない)
+
+=item C<< mysql_read_default_group >>
+
+  mysql_read_default_group = tripletail
+
+mysql_read_default_file 指定時に、設定ファイル中のどのグループを使用するかを指定する。
+グループを指定した場合は、 [client] グループの設定と指定したグループの設定の両方が有効になる。
+グループを指定しない場合、 [client] グループの設定のみが有効となる。
 
 =back
 

@@ -79,8 +79,6 @@ sub set {
 
 	if(!defined($value)) {
 		die __PACKAGE__."#set: arg[2] is not defined. (第2引数が指定されていません)\n";
-	} elsif(ref($value)) {
-		die __PACKAGE__."#set: arg[2] is a reference. (第2引数がリファレンスです)\n";
 	}
 	
 	my $data = $this->{memd}->set($key, $value, $expires);
