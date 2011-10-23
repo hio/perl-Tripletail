@@ -5,18 +5,20 @@
 #
 # Copyright 2006 YAMASHINA Hio
 # -----------------------------------------------------------------------------
-# $Id: MY_Metafile.pm 4052 2006-11-07 08:00:48Z hio $
+# $Id: MY_Metafile.pm 4969 2007-11-29 04:48:37Z hio $
 # -----------------------------------------------------------------------------
 package ExtUtils::MY_Metafile;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 our @EXPORT = qw(my_metafile);
 
 our %META_PARAMS; # DISTNAME(pkgname)=>HASHREF.
 our $DIAG_VERSION and &_diag_version;
+
+our $DEFAULT_META_SPEC_VERSION = '1.3';
 
 1;
 
@@ -135,14 +137,14 @@ sub _gen_meta_yml
 	# from MakeMaker-6.30.
 	my $this = shift;
 	my $param = shift;
-	my $check_mete_spec = 1;
+	my $check_meta_spec = 1;
 	if( !$param )
 	{
 		$param = $META_PARAMS{$this->{DISTNAME}} || $META_PARAMS{''};
 		if( !$param )
 		{
 			$param = {};
-			$check_mete_spec = 0;
+			$check_meta_spec = 0;
 		}
 	}
 	if( $META_PARAMS{':all'} )
@@ -150,7 +152,22 @@ sub _gen_meta_yml
 		# special key.
 		$param = { %{$META_PARAMS{':all'}}, %$param };
 	}
-	
+
+	# meta_spec and meta_spec_version.
+	my $meta_spec = $param->{meta_spec} || $param->{'meta-spec'};
+	if($param->{meta_spec} && $param->{'meta-spec'} )
+	{
+		warn "both meta_spec and meta-spec exist.\n";
+	}
+	$meta_spec &&= {%$meta_spec}; # sharrow-copy.
+	$meta_spec ||= {};
+	if( exists($param->{meta_spec_version}) && exists($meta_spec->{version}) )
+	{
+		warn "both meta_spec_vesrion and meta_spec.version exist.\n";
+	}
+	$meta_spec->{version} ||= $param->{meta_spec_version} || $DEFAULT_META_SPEC_VERSION;
+	$meta_spec->{url}     ||= "http://module-build.sourceforge.net/META-spec-v$meta_spec->{version}.html";
+
 	# requires:, build_requires:
 	my $requires_to_yaml = sub{
 		my $key = shift;
@@ -183,12 +200,21 @@ sub _gen_meta_yml
 	chomp $no_index;
 	if( $param->{no_index} && !$ENV{NO_NO_INDEX_CHECK} )
 	{
+		my $warned;
 		foreach my $key (keys %{$param->{no_index}})
 		{
-			# dir is in spec-v1.2, directory is from spec-v1.3? (blead).
+			# dir is in spec-v1.2, directory is from spec-v1.3.
+			if( $key eq 'dir' && $meta_spec->{version}>=1.3 )
+			{
+				$warned ||= print STDERR "\n";
+				warn "$key should be `directory' in META-spec-v1.3 and later.\n";
+				next;
+			}
 			$key =~ /^(file|dir|directory|package|namespace)$/ and next;
+			$warned ||= print STDERR "\n";
 			warn "$key is invalid field for no_index.\n";
 		}
+		$warned and print STDERR "\n";
 	}
 	
 	# abstract is from file.
@@ -216,7 +242,9 @@ sub _gen_meta_yml
 	chomp $abstract;
 	
 	# build yaml object as hash.
-	my $yaml = {};
+	my $yaml = {}; # key=>"value as yaml-text".
+
+	# first, set from arguments for WriteMakefile().
 	$yaml->{name}         = $this->{DISTNAME};
 	$yaml->{version}      = $this->{VERSION};
 	$yaml->{version_from} = $this->{VERSION_FROM};
@@ -238,15 +266,16 @@ sub _gen_meta_yml
 	
 	$yaml->{distribution_type} = 'distribution_type: module';
 	$yaml->{generated_by} = "generated_by: ExtUtils::MY_Metafile version $VERSION, EUMM-$ExtUtils::MakeMaker::VERSION.";
+
 	$yaml->{'meta-spec'}  = "meta-spec:\n";
-	$yaml->{'meta-spec'} .= "  version: 1.2\n";
-	$yaml->{'meta-spec'} .= "  url: http://module-build.sourceforge.net/META-spec-v1.2.html\n";
-	
-	# customize yaml.
+	$yaml->{'meta-spec'} .= "  version: ".delete($meta_spec->{version})."\n";
+	$yaml->{'meta-spec'} .= "  url: ".delete($meta_spec->{url})."\n";
+
+	# next, set from arguments for my_metafile().
 	my $extras = {};
 	foreach my $key (sort keys %$param)
 	{
-		grep{$key eq $_} qw(no_index requires build_requires) and next;
+		grep{$key eq $_} qw(no_index requires build_requires meta_spec meta-spec meta_spec_version) and next;
 		my $line = _yaml_out->({$key=>$param->{$key}});
 		if( exists($yaml->{$key}) )
 		{
@@ -258,16 +287,22 @@ sub _gen_meta_yml
 		}
 	}
 	$yaml->{extras} = join('', map{$extras->{$_}} sort keys %$extras);
-	
+
+	# then, check required keys by yaml-spec.
 	my @required_keys = qw(meta-spec name version abstract author license generated_by);
 	foreach my $key (@required_keys)
 	{
-		$check_mete_spec or next;
+		$check_meta_spec or next;
 		my $ok = $yaml->{$key} && $yaml->{$key}=~/\w/;
 		$ok  ||= $extras->{$key} and next;
 		warn "$key is required for meta-spec v1.2 ($this->{DISTNAME}).\n";
 	}
-	
+
+	if( exists($param->{license}) && exists($this->{LICENSE}) && $param->{license} ne $this->{LICENSE} )
+	{
+		warn "WriteMakefile.LICENSE ($this->{LICENSE}) is different from my_metafile.license ($param->{license}).";
+	}
+
 	$yaml->{license} ||= 'license: unknown';
 	foreach my $key (keys %$yaml)
 	{
@@ -275,7 +310,13 @@ sub _gen_meta_yml
 		$yaml->{$key} ||= "#$key:";
 	}
 	$yaml->{extras} &&= "\n# extras.\n$yaml->{extras}";
-	
+
+	foreach my $key (qw(abstract license))
+	{
+		my $pad = ' 'x(12-length($key));
+		$yaml->{$key} =~ s/^$key: +(.+)\z/$key:$pad $1/;
+	}
+
 	# packing into singple text.
 	my $meta = <<YAML;
 # http://module-build.sourceforge.net/META-spec.html
@@ -338,6 +379,7 @@ sub _yaml_out
 # -----------------------------------------------------------------------------
 # End of Code.
 # -----------------------------------------------------------------------------
+
 __END__
 
 =encoding utf8
@@ -359,7 +401,7 @@ ExtUtils::MY_Metafile - META.yml customize with ExtUtil::MakeMaker
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 
 =head1 SYNOPSIS
@@ -417,8 +459,8 @@ Some parameters are checked automatically.
 =item no_index
 
 If you not specify C<directory> parameter for C<no_index> and
-there is directory C<inc t ex eg example examples sample samples
-demo demos>, they are set as it.
+there are any directory of F<inc t ex eg example examples
+sample samples demo demos>, they are set as it.
 
 
 =item requires

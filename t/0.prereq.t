@@ -8,6 +8,6 @@ for my $info(
 )
 {
 	my ($pkg, $ver) = @$info;
-	lives_ok { eval qq{require $pkg;}; @$ and die; $pkg->VERSION($ver); } "prereq: $pkg $ver";
+	lives_ok { eval qq{require $pkg;}; $@ and die; $pkg->VERSION($ver); } "prereq: $pkg $ver";
 }
 
