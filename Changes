@@ -1,6 +1,13 @@
 Revision history for Tripletail
 
-0.47
+0.48 Mon Oct 19 10:35:26 JST 2009
+	- FileSentinel に依存モジュールの watch を自動で行う機能を追加しました。
+	　（Thanks to Haruka Kataoka.）
+	- DB での mysql使用時に、テーブルのエイリアスに対する lock ができる
+	　ように拡張しました。
+	　（Thanks to Haruka Kataoka.）
+
+0.47 Fri Jul 17 16:41:35 JST 2009
 	- Template#existsFile メソッドを追加．
 	- MemCached#setでリファレンスを保存できるように変更．
 	- DBクラスのIniいるにおいて，mysql_read_default_file，mysql_read_default_group を指定することで my.cnf から設定を読み込む機能を追加．

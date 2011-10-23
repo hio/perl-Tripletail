@@ -484,7 +484,7 @@ sub execute {
 					die __PACKAGE__."#execute: the number of `??' is fewer than the number of given parameters. (??の数が不足しています)\n";
 				}
 			} else {
-				die __PACKAGE__."#execut: arg[$param] is not a scalar nor ARRAY Ref. (arg[$param]はスカラでも配列へのリファレンスでもありません)\n";
+				die __PACKAGE__."#execute: arg[$param] is not a scalar nor ARRAY Ref. (arg[$param]はスカラでも配列へのリファレンスでもありません)\n";
 			}
 		}
 
@@ -658,21 +658,23 @@ sub lock {
 	my $this = shift;
 	my $opts = { @_ };
 
-	my @tables;			# [name, 'WRITE' or 'READ']
+	my @tables;			# [name, alias, 'WRITE' or 'READ']
 	foreach my $type (qw(read write))
 	{
 		if(defined(my $table = $opts->{$type})) {
 			if(!ref($table)) {
-				push @tables, [$table, uc $type];
+				push @tables, [$table, undef, uc $type];
 			} elsif (ref($table) eq 'ARRAY') {
 				push @tables, map {
 					if(!defined) {
 						die __PACKAGE__."#lock: $type => [...] contains an undef. (${type}にundefが含まれています)\n";
+					} elsif('HASH' eq ref) {
+						[(keys %$_)[0], (values %$_)[0], uc $type];
 					} elsif(ref) {
 						die __PACKAGE__."#lock: $type => [...] contains a reference. [$_] (${type}にリファレンスが含まれています)\n";
+					} else {
+						[$_, undef, uc $type];
 					}
-
-					[$_, uc $type];
 				} @$table;
 			} else {
 				die __PACKAGE__."#lock: arg[$type] is an unacceptable reference. [$table] (arg[$type]は不正なリファレンスです)\n";
@@ -708,11 +710,17 @@ sub lock {
 		', ',
 		map {
 			my $table = $_->[0];
-			my $type  = $_->[1];
+			my $alias = $_->[1];
+			my $type  = $_->[2];
 
-			sprintf '%s %s',
-				$this->symquote($table, $opts->{set}),
-				$type;
+			defined $alias ? 
+				sprintf '%s AS %s %s',
+					$this->symquote($table, $opts->{set}),
+					$this->symquote($alias, $opts->{set}),
+					$type : 
+				sprintf '%s %s',
+					$this->symquote($table, $opts->{set}),
+					$type;
 		} @tables);
 	}else
 	{
@@ -2262,6 +2270,16 @@ SELECT結果の最初の１行を配列へのリファレンスで返す。
 1度に開始出来るロックは、1つのDBグループにつき1つだけとなる。
 
 現在 mysql でのみ使用可能.
+
+mysql ではロック中にテーブルのエイリアスを使用する場合、エイリアスに対してもロックを指定する必要がある。これを行うには、テーブル名の文字列の替わりにハッシュのリファレンス {'テーブル名' => 'エイリアス'} を指定する。次に、テーブル sample とそのエイリアス A, B をロックする例を示す。
+
+  $DB->lock(read => ['sample', {'sample' => 'A'}, {'sample' => 'B'}]);
+  $DB->execute(q{
+    SELECT sample.nval, A.nval as A, B.nval as B 
+    FROM sample, sample AS A, sample AS B 
+    WHERE sample.nval + 1 = A.nval AND A.nval + 1 = B.nval
+  });
+  $DB->unlock;
 
 =item C<< unlock >>
 
