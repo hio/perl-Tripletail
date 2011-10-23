@@ -128,7 +128,7 @@ Tripletail::Filter::CSV - CSV出力フィルタ
       filename => 'foo.csv',
   );
 
-  $TL->print('aaa,"b,b,b",ccc,ddd');
+  $TL->print('aaa,"b,b,b",ccc,ddd' . "\n");
   $TL->print(['aaa', 'b,b,b', 'ccc', 'ddd']);
 
 =head1 DESCRIPTION

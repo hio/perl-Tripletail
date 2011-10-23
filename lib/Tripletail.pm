@@ -8,7 +8,7 @@ use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -657,7 +657,7 @@ sub _log {
 		. sprintf('%04d%02d/%02d-%02d.log', @localtime[5,4,3,2]);
 
 	if(!exists($this->{cacheLogPath}) || !defined($dirstat[1]) || $path ne $this->{cacheLogPath}) {
-
+		# month is changed.
 		delete $this->{cacheLogFh};
 		my $umask = umask(0);
 		local($@);
@@ -685,6 +685,7 @@ sub _log {
 	my @stat = stat($path);
 	if(!defined($this->{cacheLogFh}) || !defined($stat[1]) || ($this->{cacheLogInode} != $stat[1])) {
 
+		# hour is changed.
 		my $fh = $this->_gensym;
 		if(!open($fh, ">>$path")) {
 			print "Content-Type: text/plain\n\n";
@@ -701,6 +702,14 @@ sub _log {
 		my @newstat = stat($path);
 		$this->{cacheLogFh} = $fh;
 		$this->{cacheLogInode} = $newstat[1];
+		local($@);
+		eval
+		{
+			local($SIG{__DIE__});
+			my $cur_linkfile = File::Spec->catfile($this->{logdir}, "current");
+			unlink($cur_linkfile);
+			symlink($path, $cur_linkfile);
+		};
 	}
 
 	my $fh = $this->{cacheLogFh};
@@ -2300,9 +2309,10 @@ typeは、L</"init">, L</"term">, L</"preRequest">, L</"postRequest">
 
 L</"出力フィルタ"> を設定する。
 全ての出力の前に実行する必要がある。
-２番目の書式では、プライオリティを指定して独自のコンテンツフィルタを追加できる。
-省略時は優先度は1000となる。同一優先度のフィルタが既にセットされているときは、
-以前のフィルタ設定は解除される。
+２番目の書式では、プライオリティを指定して独自のコンテンツフィルタを
+追加できる。省略時は優先度は1000となる。小さい優先度のフィルタが先に、
+大きい優先度のフィルタが後に呼ばれる。同一優先度のフィルタが既に
+セットされているときは、以前のフィルタ設定は解除される。
 
 返される値は、指定された L<Tripletail::Filter> のサブクラスのインスタンスである。
 

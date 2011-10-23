@@ -1,5 +1,10 @@
 Revision history for Tripletail
 
+0.19	Fri Oct 20 16:05:20 JST 2006
+	- Validator の Integer フィルタで, 値が存在しない場合に通過していたバグの修正.
+	- Validator のユーザ定義フィルタのドキュメントが間違っていたので修正.
+	- logディレクトリにcurrentのリンクを追加.
+
 0.18	Fri Sep 15 10:57:55 JST 2006
 	- [[重要:0.17からの非互換な仕様変更]]
 	 - errorTrapをtrapErrorに変更

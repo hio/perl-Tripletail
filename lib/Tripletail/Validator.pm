@@ -55,44 +55,36 @@ sub check {
 
 	foreach my $key ( keys %{ $this->{_filters} } ) {
 		foreach my $filter ( @{ $this->{_filters}->{$key} } ) {
-			my $e =
-			  Tripletail::Validator::FilterFactory::getFilter(
-				$filter->{filter} )
-			  ->doFilter( [ $form->getValues($key) ], $filter->{args} );
-			if (ref($e)) {
-				$TL->log(
-					'Tripletail::Validator' => qq/ok and skip { $key => ['@{[
-						join(q{', '}, $form->getValues($key))
-					]}'] } : $filter->{filter}@{[
-						( defined( $filter->{args} )    ? qq{($filter->{args})}    : '' ) .
-						( defined( $filter->{message} ) ? qq{[$filter->{message}]} : '' )
-					]}/
-				);
-				last;
-			} elsif ($e) {
-				$TL->log(
-					'Tripletail::Validator' => qq/error { $key => ['@{[
-						join(q{', '}, $form->getValues($key))
-					]}'] } : $filter->{filter}@{[
-						( defined( $filter->{args} )    ? qq{($filter->{args})}    : '' ) .
-						( defined( $filter->{message} ) ? qq{[$filter->{message}]} : '' )
-					]}/
-				);
+			my @values = $form->getValues($key);
+			my $diag = do
+			{
+				my $vals = join(', ', @values);
+				my $diag = "{ $key => [$vals] } : $filter->{filter}";
+				defined($filter->{args}) and $diag .= "($filter->{args})";
+				defined($filter->{message}) and $diag .= "[$filter->{message}]";
+				$diag;
+			};
+			
+			my $res = Tripletail::Validator::FilterFactory::getFilter( $filter->{filter} )->doFilter( \@values, $filter->{args} );
+			if( !$res )
+			{
+				$TL->log( 'Tripletail::Validator' => "ok $diag");
+				next;
+			}
+			
+			if( ref($res) )
+			{
+				$TL->log( 'Tripletail::Validator' => "ok and skip $diag");
+			}else
+			{
+				$TL->log( 'Tripletail::Validator' => "error $diag");
+				
 				$error->{$key} =
 				  defined( $filter->{message} )
 				  ? $filter->{message}
 				  : $filter->{filter};
-				last;
-			} else {
-				$TL->log(
-					'Tripletail::Validator' => qq/ok { $key => ['@{[
-						join(q{', '}, $form->getValues($key))
-					]}'] } : $filter->{filter}@{[
-						( defined( $filter->{args} )    ? qq{($filter->{args})}    : '' ) .
-						( defined( $filter->{message} ) ? qq{[$filter->{message}]} : '' )
-					]}/
-				);
 			}
+			last;
 		}
 	}
 
@@ -373,10 +365,10 @@ doFilterメソッドに渡される引数は、以下の通り。
 
 =back
 
-doFilterメソッドの戻り値をスカラで評価し、結果が真であれば検証OK、偽であれば検証NGと判断する。
-検証OKであれば次のフィルタへ処理が移り、NGであればその項目の検証は終了する。
-
-doFilterメソッドの戻り値がリファレンスであった場合は、検証OKとし、それ以降のフィルタの処理を行わず、その項目の検証を終了する。
+doFilterメソッドの戻り値をスカラで評価し、その復帰値が真で且つ
+リファレンスでなければ検証NGと判断する。
+偽であれば、そのフィルタは通過して次のフィルタに。
+リファレンスであればそのキーは検証OKとして、そのキーの検証を終了する。
 
 =head4 フィルタの組み込み
 

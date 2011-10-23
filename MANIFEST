@@ -72,6 +72,7 @@ ext/Tripletail-SMIME/openssl_config.PL
 ext/Tripletail-SMIME/t/smime.more.t
 ext/Tripletail-SMIME/t/smime.t
 ext/Tripletail-SMIME/typemap
+inc/ExtUtils/MY_Metafile.pm
 lib/Tripletail.pm
 lib/Tripletail/CSV.pm
 lib/Tripletail/CharConv.pm
@@ -157,6 +158,8 @@ t/csv2.t
 t/datetime.t
 t/db.t
 t/filter.t
+t/filter_chain.t
+t/filter_csv.t
 t/form.t
 t/htmlfilter.t
 t/ini.t
@@ -177,6 +180,7 @@ t/tl.t
 t/v002_select.t
 t/v018.reqnon.pl
 t/v018.t
+t/v019_validate_int.t
 t/validator.t
 t/value.t
 META.yml                                 Module meta-data (added by MakeMaker)

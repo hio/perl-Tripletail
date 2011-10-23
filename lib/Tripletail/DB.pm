@@ -7,9 +7,9 @@ use warnings;
 use Tripletail;
 require Time::HiRes;
 
-sub _PRE_REQUEST_HOOK_PRIORITY() { -1_000_000 } # 順序は問わない
+sub _PRE_REQUEST_HOOK_PRIORITY()  { -1_000_000 } # 順序は問わない
 sub _POST_REQUEST_HOOK_PRIORITY() { -1_000_000 } # セッションフックの後
-sub _TERM_HOOK_PRIORITY() { -1_000_000 } # セッションフックの後
+sub _TERM_HOOK_PRIORITY()         { -1_000_000 } # セッションフックの後
 
 our $INSTANCES = {}; # グループ名 => インスタンス
 

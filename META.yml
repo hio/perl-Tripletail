@@ -1,9 +1,11 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Tripletail
-version:      0.18
+version:      0.19
 version_from: lib/Tripletail.pm
 installdirs:  site
+author:       Ymirlink <tl@tripletail.jp>
+abstract: Tripletail, Framework for Japanese Web Application
 requires:
     Crypt::CBC:                    0
     Crypt::Rijndael:               0
@@ -18,10 +20,14 @@ requires:
     Test::More:                    0
     Text::CSV_XS:                  0
     Unicode::Japanese:             0
-
-no_index: 
-  directory: 
+no_index:
+  directory:
     - sample
     - t
+license: perl
+
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30 (modified by Tripletail 0.18)
+generated_by: ExtUtils::MY_Metafile version 0.03
+meta-spec:
+  version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html

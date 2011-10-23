@@ -170,7 +170,9 @@ sub doFilter {
 	my $this   = shift;
 	my $values = shift;
 	my $args   = shift;
-
+	
+	@$values or return 'no items';
+	
 	my ( $min, $max ) =
 	  defined($args) ? map { $_ ne '' ? $_ : undef } split( ',', $args ) : ();
 	return grep { !$TL->newValue($_)->isInteger( $min, $max ) } @$values;
