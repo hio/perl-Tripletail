@@ -31,6 +31,9 @@ END {
     unlink "tmp$$.ini";
 }
 
+eval { require DBD::mysql; 1; };
+$@ and plan skip_all => "no DBD::mysql";
+
 eval {
     $TL->trapError(
 	-DB   => 'DB',

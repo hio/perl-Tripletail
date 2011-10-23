@@ -30,6 +30,9 @@ END {
     unlink "tmp$$.ini";
 }
 
+eval { require DBD::mysql; 1; };
+$@ and plan skip_all => "no DBD::mysql";
+
 my $planned;
 
 eval {

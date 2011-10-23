@@ -8,7 +8,7 @@ use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -705,10 +705,11 @@ sub _log {
 		local($@);
 		eval
 		{
+			my $rel_to_logfile = sprintf('%04d%02d/%02d-%02d.log', @localtime[5,4,3,2]);
 			local($SIG{__DIE__});
 			my $cur_linkfile = File::Spec->catfile($this->{logdir}, "current");
 			unlink($cur_linkfile);
-			symlink($path, $cur_linkfile);
+			symlink($rel_to_logfile, $cur_linkfile);
 		};
 	}
 

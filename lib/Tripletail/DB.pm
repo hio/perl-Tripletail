@@ -873,6 +873,20 @@ sub connect {
 			PrintError => 0,
 			RaiseError => 1,
 		});
+	} elsif($type eq 'sqlite') {
+		my $opts = {
+			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
+		};
+		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+
+		$this->{dbh} = DBI->connect(
+			'dbi:SQLite:' . join(';', map { "$_=$opts->{$_}" } keys %$opts),
+			$TL->INI->get($this->{inigroup} => 'user'),
+			$TL->INI->get($this->{inigroup} => 'password'), {
+			AutoCommit => 1,
+			PrintError => 0,
+			RaiseError => 1,
+		});
 	} else {
 		die __PACKAGE__."#connect, DB type [$type] is not supported.\n";
 	}

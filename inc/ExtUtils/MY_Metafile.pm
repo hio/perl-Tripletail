@@ -5,16 +5,17 @@
 #
 # Copyright 2006 YAMASHINA Hio
 # -----------------------------------------------------------------------------
-# $Id: MY_Metafile.pm,v 1.1 2006/10/20 07:06:48 hio Exp $
+# $Id: MY_Metafile.pm,v 1.2 2006/11/07 08:00:47 hio Exp $
 # -----------------------------------------------------------------------------
 package ExtUtils::MY_Metafile;
 use strict;
 use warnings;
+use ExtUtils::MakeMaker;
 
-our $VERSION = '0.03';
+our $VERSION = '0.07';
 our @EXPORT = qw(my_metafile);
 
-our %META_PARAMS; # DISTNAME=>HASHREF.
+our %META_PARAMS; # DISTNAME(pkgname)=>HASHREF.
 our $DIAG_VERSION and &_diag_version;
 
 1;
@@ -56,7 +57,6 @@ sub import
 #
 sub _diag_version
 {
-	require ExtUtils::MakeMaker;
 	my $mmver = $ExtUtils::MakeMaker::VERSION;
 	if( $mmver >= 6.30 )
 	{
@@ -132,130 +132,164 @@ sub _mm_metafile
 #
 sub _gen_meta_yml
 {
-    # from MakeMaker-6.30.
-    my $this = shift;
-    my $param = shift;
-    if( !$param )
-    {
-      $param = $META_PARAMS{$this->{DISTNAME}} || $META_PARAMS{''} || {};
-    }
-		if( $META_PARAMS{':all'} )
+	# from MakeMaker-6.30.
+	my $this = shift;
+	my $param = shift;
+	my $check_mete_spec = 1;
+	if( !$param )
+	{
+		$param = $META_PARAMS{$this->{DISTNAME}} || $META_PARAMS{''};
+		if( !$param )
 		{
-			# special key.
-			$param = { %{$META_PARAMS{':all'}}, %$param };
+			$param = {};
+			$check_mete_spec = 0;
 		}
-    
-    # requires:
-    my $requires = $param->{requires} || $this->{PREREQ_PM};
-    my $prereq_pm = '';
-    foreach my $mod ( sort { lc $a cmp lc $b } keys %$requires ) {
-        my $ver = $this->{PREREQ_PM}{$mod};
-        $prereq_pm .= sprintf "    %-30s %s\n", "$mod:", $ver;
-    }
-    chomp $prereq_pm;
-    $prereq_pm and $prereq_pm = "requires:\n".$prereq_pm;
-
-    # no_index:
-    my $no_index = $param->{no_index};
-    if( !$no_index )
-    {
-      my @dirs = grep{-d $_} (qw(example examples inc t));
-      $no_index = @dirs && +{ directory => \@dirs };
-    }
-    $no_index = $no_index ? _yaml_out({no_index=>$no_index}) : '';
-    chomp $no_index;
-    if( $param->{no_index} && !$ENV{NO_NO_INDEX_CHECK} )
-    {
-      foreach my $key (keys %{$param->{no_index}})
-      {
-        # dir is in spec-v1.2, directory is from spec-v1.3? (blead).
-        $key =~ /^(file|dir|directory|package|namespace)$/ and next;
-        warn "$key is invalid field for no_index.\n";
-      }
-    }
-
-    # abstract is from file.
-    my $abstract = '';
-    if( $this->{ABSTRACT} )
-    {
-      $abstract = _yaml_out({abstract => $this->{ABSTRACT}});
-    }elsif( $this->{ABSTRACT_FROM} && open(my$fh, "< $this->{ABSTRACT_FROM}") )
-    {
-      while(<$fh>)
-      {
-        /^=head1 NAME$/ or next;
-        (my $pkg = $this->{DISTNAME}) =~ s/-/::/g;
-        while(<$fh>)
-        {
-          /^=/ and last;
-          /^(\Q$pkg\E\s+-+\s+)(.*)/ or next;
-          $abstract = $2;
-          last;
-        }
-        last;
-      }
-      $abstract = $abstract ? _yaml_out({abstract=>$abstract}) : '';
-    }
-    chomp $abstract;
-    
-    # build yaml object as hash.
-    my $yaml = {};
-    $yaml->{name}         = $this->{DISTNAME};
-    $yaml->{version}      = $this->{VERSION};
-    $yaml->{version_from} = $this->{VERSION_FROM};
-    $yaml->{installdirs}  = $this->{INSTALLDIRS};
-    $yaml->{author}       = $this->{AUTHOR};
-    foreach my $key (keys %$yaml)
-    {
-      if( $yaml->{$key} )
-      {
-        my $pad = ' 'x(12-length($key));
-        $yaml->{$key} = sprintf('%s:%s %s', $key, $pad, $yaml->{$key});
-      }else
-      {
-        $yaml->{$key} = "#$key:";
-      }
-    }
-    $yaml->{abstract} = $abstract  || "#abstract:";
-    $yaml->{requires} = $prereq_pm || "#requires:";
-    $yaml->{no_index} = $no_index;
-    
-    $yaml->{distribution_type} = 'distribution_type: module';
-    $yaml->{generated_by} = "generated_by: ExtUtils::MY_Metafile version $VERSION";
-    $yaml->{'meta-spec'}  = "meta-spec:\n";
-    $yaml->{'meta-spec'} .= "  version: 1.2\n";
-    $yaml->{'meta-spec'} .= "  url: http://module-build.sourceforge.net/META-spec-v1.2.html\n";
-    
-    # customize yaml.
-    my $extra = '';
-    foreach my $key (sort keys %$param)
-    {
-      $key eq 'no_index' and next;
-      my $line = _yaml_out->({$key=>$param->{$key}});
-      if( $yaml->{$key} )
-      {
-        chomp $line;
-        $yaml->{$key} = $line;
-      }else
-      {
-        $extra .= $line;
-      }
-    }
-    $yaml->{extra}    = $extra;
-    
-    # packing into singple text.
-    my $meta = <<YAML;
+	}
+	if( $META_PARAMS{':all'} )
+	{
+		# special key.
+		$param = { %{$META_PARAMS{':all'}}, %$param };
+	}
+	
+	# requires:, build_requires:
+	my $requires_to_yaml = sub{
+		my $key = shift;
+		my $hash = shift;
+		my $yaml = '';
+		my ($maxkeylen) = sort{$b<=>$a} map{length($_)} keys   %$hash;
+		my ($maxvallen) = sort{$b<=>$a} map{length($_)} values %$hash;
+		foreach my $name ( sort { lc $a cmp lc $b } keys %$hash )
+		{
+			my $ver = $hash->{$name};
+			$yaml .= sprintf "  %-*s %*s\n", $maxkeylen+1, "$name:", $maxvallen, $ver;
+		}
+		chomp $yaml;
+		$yaml ? "$key:\n$yaml" : '';
+	};
+	my $requires = $requires_to_yaml->(requires => $param->{requires} || $this->{PREREQ_PM});
+	my $build_requires = $requires_to_yaml->(build_requires => $param->{build_requires});
+	
+	# no_index:
+	my $no_index = $param->{no_index};
+	if( !$no_index || !$no_index->{directory} )
+	{
+		my @dirs = grep{-d $_} (qw(
+			inc t
+			ex eg example examples sample samples demo demos
+		));
+		$no_index = @dirs && +{ directory => \@dirs };
+	}
+	$no_index = $no_index ? _yaml_out({no_index=>$no_index}) : '';
+	chomp $no_index;
+	if( $param->{no_index} && !$ENV{NO_NO_INDEX_CHECK} )
+	{
+		foreach my $key (keys %{$param->{no_index}})
+		{
+			# dir is in spec-v1.2, directory is from spec-v1.3? (blead).
+			$key =~ /^(file|dir|directory|package|namespace)$/ and next;
+			warn "$key is invalid field for no_index.\n";
+		}
+	}
+	
+	# abstract is from file.
+	my $abstract = '';
+	if( $this->{ABSTRACT} )
+	{
+		$abstract = _yaml_out({abstract => $this->{ABSTRACT}});
+	}elsif( $this->{ABSTRACT_FROM} && open(my$fh, "< $this->{ABSTRACT_FROM}") )
+	{
+		while(<$fh>)
+		{
+			/^=head1 NAME$/ or next;
+			(my $pkg = $this->{DISTNAME}) =~ s/-/::/g;
+			while(<$fh>)
+			{
+				/^=/ and last;
+				/^(\Q$pkg\E\s+-+\s+)(.*)/ or next;
+				$abstract = $2;
+				last;
+			}
+			last;
+		}
+		$abstract = $abstract ? _yaml_out({abstract=>$abstract}) : '';
+	}
+	chomp $abstract;
+	
+	# build yaml object as hash.
+	my $yaml = {};
+	$yaml->{name}         = $this->{DISTNAME};
+	$yaml->{version}      = $this->{VERSION};
+	$yaml->{version_from} = $this->{VERSION_FROM};
+	$yaml->{installdirs}  = $this->{INSTALLDIRS};
+	$yaml->{author}       = $this->{AUTHOR};
+	$yaml->{license}      = $this->{LICENSE};
+	foreach my $key (keys %$yaml)
+	{
+		if( $yaml->{$key} )
+		{
+			my $pad = ' 'x(12-length($key));
+			$yaml->{$key} = sprintf('%s:%s %s', $key, $pad, $yaml->{$key});
+		}
+	}
+	$yaml->{abstract} = $abstract;
+	$yaml->{no_index} = $no_index;
+	$yaml->{requires} = $requires;
+	$yaml->{build_requires} = $build_requires;
+	
+	$yaml->{distribution_type} = 'distribution_type: module';
+	$yaml->{generated_by} = "generated_by: ExtUtils::MY_Metafile version $VERSION, EUMM-$ExtUtils::MakeMaker::VERSION.";
+	$yaml->{'meta-spec'}  = "meta-spec:\n";
+	$yaml->{'meta-spec'} .= "  version: 1.2\n";
+	$yaml->{'meta-spec'} .= "  url: http://module-build.sourceforge.net/META-spec-v1.2.html\n";
+	
+	# customize yaml.
+	my $extras = {};
+	foreach my $key (sort keys %$param)
+	{
+		grep{$key eq $_} qw(no_index requires build_requires) and next;
+		my $line = _yaml_out->({$key=>$param->{$key}});
+		if( exists($yaml->{$key}) )
+		{
+			chomp $line;
+			$yaml->{$key} = $line;
+		}else
+		{
+			$extras->{$key} = $line;
+		}
+	}
+	$yaml->{extras} = join('', map{$extras->{$_}} sort keys %$extras);
+	
+	my @required_keys = qw(meta-spec name version abstract author license generated_by);
+	foreach my $key (@required_keys)
+	{
+		$check_mete_spec or next;
+		my $ok = $yaml->{$key} && $yaml->{$key}=~/\w/;
+		$ok  ||= $extras->{$key} and next;
+		warn "$key is required for meta-spec v1.2 ($this->{DISTNAME}).\n";
+	}
+	
+	$yaml->{license} ||= 'license: unknown';
+	foreach my $key (keys %$yaml)
+	{
+		$key eq 'extras' and next;
+		$yaml->{$key} ||= "#$key:";
+	}
+	$yaml->{extras} &&= "\n# extras.\n$yaml->{extras}";
+	
+	# packing into singple text.
+	my $meta = <<YAML;
 # http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 $yaml->{name}
 $yaml->{version}
 $yaml->{version_from}
 $yaml->{installdirs}
 $yaml->{author}
 $yaml->{abstract}
+$yaml->{license}
 $yaml->{requires}
+$yaml->{build_requires}
 $yaml->{no_index}
-$yaml->{extra}
+$yaml->{extras}
 $yaml->{distribution_type}
 $yaml->{generated_by}
 $yaml->{'meta-spec'}
@@ -306,17 +340,39 @@ sub _yaml_out
 # -----------------------------------------------------------------------------
 __END__
 
+=encoding utf8
+
+=for stopwords
+  YAMASHINA
+	Hio
+	ACKNOWLEDGEMENTS
+	AnnoCPAN
+	CPAN
+	EUMM
+	META.yml
+	RT
+
 =head1 NAME
 
 ExtUtils::MY_Metafile - META.yml customize with ExtUtil::MakeMaker
 
+
 =head1 VERSION
 
-Version 0.03
+Version 0.07
+
 
 =head1 SYNOPSIS
 
-  # in your Makefile.PL
+put ExtUtils/MY_Metafile.pm into inc/ExtUtils/MY_Metafile.pm:
+
+
+  $ mkdir -p inc/ExtUtils
+  $ cp `perldoc -l ExtUtils::MY_Metafile` inc/ExtUtils/
+
+and write in your Makefile.PL:
+
+
   use ExtUtils::MakeMaker;
   use inc::ExtUtils::MY_Metafile;
   
@@ -336,13 +392,15 @@ Version 0.03
 
 This module exports one function.
 
+
 =head1 FUNCTIONS
 
-=head2 my_metafile \%meta_param;
+=head2 my_metafile $modname => \%meta_param;
 
-Takes one or two arguments.
+Takes two arguments.
 First one is package name to be generated, and you can omit this 
 argument.  Second is hashref which contains META.yml contents.
+
 
   my_metafile {
     no_index => {
@@ -351,9 +409,30 @@ argument.  Second is hashref which contains META.yml contents.
     license  => 'perl',
   };
 
+Some parameters are checked automatically.
+
+
+=over
+
+=item no_index
+
+If you not specify C<directory> parameter for C<no_index> and
+there is directory C<inc t ex eg example examples sample samples
+demo demos>, they are set as it.
+
+
+=item requires
+
+C<requires> directive is set from C<PREREQ_PM> parameter
+of EUMM. If you want to use C<build_requires>, you can write it.
+
+
+=back
+
 =head1 AUTHOR
 
 YAMASHINA Hio, C<< <hio at cpan.org> >>
+
 
 =head1 BUGS
 
@@ -363,13 +442,16 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ExtUtils-MY_Metafile>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
+
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
+
     perldoc ExtUtils::MY_Metafile
 
 You can also look for information at:
+
 
 =over 4
 
@@ -377,17 +459,21 @@ You can also look for information at:
 
 L<http://annocpan.org/dist/ExtUtils-MY_Metafile>
 
+
 =item * CPAN Ratings
 
 L<http://cpanratings.perl.org/d/ExtUtils-MY_Metafile>
+
 
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=ExtUtils-MY_Metafile>
 
+
 =item * Search CPAN
 
 L<http://search.cpan.org/dist/ExtUtils-MY_Metafile>
+
 
 =back
 
@@ -396,6 +482,7 @@ L<http://search.cpan.org/dist/ExtUtils-MY_Metafile>
 =head1 COPYRIGHT & LICENSE
 
 Copyright 2006 YAMASHINA Hio, all rights reserved.
+
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

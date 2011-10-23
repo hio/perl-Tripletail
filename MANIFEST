@@ -156,14 +156,17 @@ t/cookie.t
 t/csv.t
 t/csv2.t
 t/datetime.t
+t/db-sqlite.t
 t/db.t
 t/filter.t
 t/filter_chain.t
 t/filter_csv.t
+t/filter_null.pm
 t/form.t
 t/htmlfilter.t
 t/ini.t
 t/mail.t
+t/make_ini.pm
 t/memcache.t
 t/pager.t
 t/pod-coverage.t
@@ -177,6 +180,7 @@ t/server_session.t
 t/tagcheck.t
 t/template.t
 t/tl.t
+t/test_server.pm
 t/v002_select.t
 t/v018.reqnon.pl
 t/v018.t
