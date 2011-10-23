@@ -8,7 +8,7 @@ use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

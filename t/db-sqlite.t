@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.2 2006/11/07 05:18:42 hio Exp $
+# $Id: db-sqlite.t,v 1.4 2006/12/04 10:14:52 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -37,12 +37,13 @@ if( !$has_DBD_SQLite )
 # -----------------------------------------------------------------------------
 # test spec.
 # -----------------------------------------------------------------------------
-plan tests => 46;
+plan tests => 1+3+23+15+15+4;
 
 &test_setup; #1.
 &test_getdb; #3.
 &test_misc;  #23.
 &test_transaction;  #15.
+&test_transaction2; #15.
 &test_locks;  #4.
 
 # -----------------------------------------------------------------------------
@@ -226,11 +227,95 @@ sub test_transaction
 			
 			# check whether rollback works.
 			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[tran] test table contains 6 records");
-			lives_ok { $DB->begin; } "[trans] begin";
-			lives_ok { $DB->execute("DELETE FROM test_colors"); } "[trans] delete all";
+			lives_ok { $DB->begin; } "[tran] begin";
+			lives_ok { $DB->execute("DELETE FROM test_colors"); } "[tran] delete all";
 			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 0, "[tran] test table contains no records");
-			lives_ok { $DB->rollback; } "[trans] rollback";
+			lives_ok { $DB->rollback; } "[tran] rollback";
 			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[tran] test table contains 6 records");
+		},
+	);
+}
+
+# -----------------------------------------------------------------------------
+# test transaction (2).
+# -----------------------------------------------------------------------------
+sub test_transaction2
+{
+	$TL->trapError(
+		-DB => 'DB',
+		-main => sub{
+			my $DB = $TL->getDB();
+			
+			# requireTx, requireNoTx.
+			lives_ok {
+				$DB->begin();
+				$DB->requireTx();
+				$DB->commit();
+			} "[tran2] requireTx on transaction";
+			throws_ok {
+				$DB->requireTx();
+			} qr/^Tripletail::DB#requireTx, transaction required at/, "[tran2] requireTx outside of tx";
+			lives_ok {
+				$DB->requireNoTx();
+			} "[tran2] requireNoTx out of transaction";
+			throws_ok {
+				$DB->begin();
+				$DB->requireNoTx();
+			} qr/^Tripletail::DB#requireNoTx, no transaction required at/, "[tran2] requireNoTx on transaction";
+			eval{ $DB->rollback(); };
+			
+			# tx.
+			my $tx_works;
+			$DB->tx(sub{
+				$tx_works = 1;
+			});
+			ok($tx_works, "[tran2] tx works");
+			
+			lives_ok {$DB->tx(sub{
+				$DB->requireTx();
+			})} "[tran2] requireTx in tx";
+			
+			
+			# create test data (blue red yellow green aqua cyan)
+			_create_table_colors($DB);
+			{
+				my $s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 6, '[tran2] implicit commit, 6 records in tx');
+				$DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'yellow');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					is(@$s, 5, '[tran2] implicit commit, 5 records at end of tx');
+				});
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 5, '[tran2] implicit commit, 5 records after tx');
+				
+				$DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'red');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					is(@$s, 4, '[tran2] explicit rollback, 4 records in tx');
+					$DB->rollback;
+				});
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 5, '[tran2] explicit rollback, 5 records after tx (rollbacked)');
+				
+				$DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'red');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					$DB->commit;
+				});
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 4, '[tran2] explicit commit');
+				
+				eval{ $DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'cyan');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					is(@$s, 3, '[tran2] die implicits rollback, 3 records in tx');
+					die "test\n";
+				}) };
+				is($@, "test\n", "[trans] die in tx");
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 4, '[tran2] die implicits rollback, 4 records after tx');
+			}
 		},
 	);
 }
@@ -246,11 +331,11 @@ sub test_locks
 			my $DB = $TL->getDB();
 			_create_table_colors($DB);
 			
-			lives_ok { $DB->execute(q{SELECT COUNT(*) FROM test_colors}) } "table test_colors exists";
-			dies_ok { $DB->lock(read=>'test_colors') } "lock test_colors failed";
+			lives_ok { $DB->execute(q{SELECT COUNT(*) FROM test_colors}) } "[locks] table test_colors exists";
+			dies_ok { $DB->lock(read=>'test_colors') } "[locks] lock test_colors failed";
 			
-			throws_ok { $DB->lock } qr/Tripletail::DB#lock, no tables are being locked. Specify at least one table./, "[lock] lock no tables";
-			throws_ok { $DB->unlock } qr/Tripletail::DB#unlock, no tables are locked/, "[lock] unlock w/o lock";
+			throws_ok { $DB->lock } qr/Tripletail::DB#lock, no tables are being locked. Specify at least one table./, "[locks] lock no tables";
+			throws_ok { $DB->unlock } qr/Tripletail::DB#unlock, no tables are locked/, "[locks] unlock w/o lock";
 			
 		},
 	);

@@ -1,5 +1,9 @@
 Revision history for Tripletail
 
+0.21	Mon Dec  4 19:14:30 JST 2006
+	- 空白から始まるファイルをアップロードできないバグの修正.
+	- Htmlフィルタで落ちることがあるバグの修正. 
+
 0.20	Tue Nov  7 17:11:07 JST 2006
 	- logのcurrentリンクを相対パスに変更.
 

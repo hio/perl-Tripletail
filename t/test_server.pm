@@ -5,11 +5,12 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: test_server.pm,v 1.1 2006/11/08 01:13:29 hio Exp $
+# $Id: test_server.pm,v 1.2 2006/11/16 07:32:56 hio Exp $
 # -----------------------------------------------------------------------------
 package t::test_server;
 use strict;
 use warnings;
+use Data::Dumper;
 
 our $HTTP_PORT = 8967;
 our $SERVER_PID;
@@ -304,7 +305,7 @@ sub request
 	# 実行するコードを文字列で引数から.
 	my $code_str = $opts->{script};
 	
-	# DB と Session.
+	# DB と Session. 渡された時だけパラメータ生成. 
 	my $dumper = sub{
 		my ($key, $val) = @_;
 		my $text = Data::Dumper->new([$val])->Terse(1)->Indent(0)->Dump;
@@ -379,7 +380,8 @@ sub request
 #  script => $code.
 #  stdin  => $stdin.
 #  env    => $env.
-#  request => 'GET','POST' (required)
+#  method => 'GET','POST' (required)
+#  params => \%params,\@params, to user-agent get/post request.
 #
 #  script で渡したコードをそのまま実行する.
 #  指定しなかったパラメータは前のが残る(子プロセスで消してないから).

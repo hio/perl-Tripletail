@@ -13,6 +13,7 @@ my $requires = {
     'PadWalker'           => '1.0',
     'Unicode::Japanese'   => 0,
     'Text::CSV_XS'        => 0, # optional
+    'Sub::ScopeFinalizer' => 0,
 };
 
 my $build_requires = {

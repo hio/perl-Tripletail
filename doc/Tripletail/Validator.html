@@ -201,7 +201,8 @@ Tripletail::Validator - 値の検証の一括処理
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $error = $validator-&gt;check($form)</code></pre>
+<pre class="pod_verbatim"><code>  $error = $validator-&gt;check($form)
+  $error = $validator-&gt;check($form, sub{...} )</code></pre>
 
 <p>
 <span class="pod_lang">設定したフィルタを利用して、フォームの値を検証する。
@@ -210,8 +211,18 @@ Tripletail::Validator - 値の検証の一括処理
 </p>
 
 <p>
-<span class="pod_lang">それぞれのフォームのキーに対してエラーがあれば、「[message]」、もしくは指定がない場合はフィルタ名を値としたハッシュリファレンスを返す。
+<span class="pod_lang">それぞれのフォームのキーに対してエラーがあれば、「[message]」、
+もしくは指定がない場合はフィルタ名を値としたハッシュリファレンスを返す。
 エラーがなければ、そのキーは含まれない。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">２番目の引数に関数リファレンスを渡すと, エラー時にそれが呼ばれる。
+エラーがなかった場合には呼ばれない。
+引数として、１つめに check メソッドが返すのと同じハッシュを,
+２つめに文字列でのエラーメッセージを渡す.
 
 </span>
 </p>

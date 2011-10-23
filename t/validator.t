@@ -1,21 +1,18 @@
-BEGIN {
-    open my $fh, '>', "tmp$$.ini";
-    print $fh q{
-[TL]
-trap = none
-};
-    close $fh;
-    eval q{use Tripletail "tmp$$.ini"};
-}
-
-END {
-    unlink "tmp$$.ini";
-}
-
+#! perl -w
 use strict;
 use warnings;
 use Test::Exception;
 use Test::More tests => 139;
+
+use t::make_ini {
+	ini => {
+		TL => {
+			trap => 'none',
+		},
+	},
+};
+use Tripletail $t::make_ini::INI_FILE;
+
 
 #---------------------------------- 一般
 

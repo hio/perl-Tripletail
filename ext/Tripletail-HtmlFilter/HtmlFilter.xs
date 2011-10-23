@@ -5,7 +5,7 @@
  *
  * Copyright 2005 YAMASHINA Hio
  * ----------------------------------------------------------------------------
- * $Id: HtmlFilter.xs,v 1.14 2006/08/17 09:51:02 hio Exp $
+ * $Id: HtmlFilter.xs,v 1.15 2006/12/04 09:33:59 hio Exp $
  * ------------------------------------------------------------------------- */
 
 #include "EXTERN.h"
@@ -589,8 +589,8 @@ PPCODE:
 	  }
 
 	  /* ここで elem と elem_name がスコープを外れる */
-	  SvREFCNT_dec(elem);
 	  SvREFCNT_dec(elem_name);
+	  SvREFCNT_dec(elem);
 
 	  /* ($interested,$parsed); */
 	  XPUSHs(sv_2mortal(interested));
@@ -612,14 +612,15 @@ CODE:
     if( SvTYPE(this_av)==SVt_PVAV && len>=2 )
     {
       STRLEN pos,i;
+      /* s/^<//; */
       pos = str[0]=='<' ? 1 : 0;
 
-      /* (s/^\s*(\/?\w+)//) and ($this->{name} = $1); */
-      while( isSPACE(str[pos]) )
+      /* (s/^\s*(\/?\w+)//) and ($this->[NAME] = $1); */
+      while( pos<len && isSPACE(str[pos]) )
       {
         ++pos;
       }
-      i = str[pos]=='/' ? pos+1 : pos;
+      i = pos<len && str[pos]=='/' ? pos+1 : pos;
       while( i<len && isALNUM(str[i]) )
       {
         ++i;
@@ -634,10 +635,10 @@ CODE:
       /*
         while(1)
         {
-          (s/([\w:\-]+)\s*=\s*"([^\"]*)"//) ? ($this->attr($1 => $2)) :
-	    (s/([\w:\-]+)\s*=\s*([^\s\>]+)//) ? ($this->attr($1 => $2)) :
-	      (s~(\w+|/)~~)                  ? ($this->end($1)) :
-	        last;
+          (s/([\w:\-]+)\s*=\s*"([^\"]*)"//)   ? ($this->attr($1 => $2)) :
+            (s/([\w:\-]+)\s*=\s*([^\s\>]+)//) ? ($this->attr($1 => $2)) :
+              (s~(\w+|/)~~)                   ? ($this->end($1)) :
+                last;
         }
         \w* (-:[\w:-]+)?  \s* = \s* " [^\"]*     "
         \w* (-:[\w:-]+)?  \s* = \s*   [^\s\>]*   
@@ -728,6 +729,8 @@ CODE:
           XPUSHs(sv_2mortal(newSVpvn(str+pos_value_start, pos_value_end-pos_value_start)));
           PUTBACK;
           call_method("attr", G_DISCARD);
+          SPAGAIN;
+          PUTBACK;
           FREETMPS;
           LEAVE;
         }

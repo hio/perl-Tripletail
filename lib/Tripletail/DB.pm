@@ -56,22 +56,90 @@ sub disconnect {
 	$this;
 }
 
+sub tx
+{
+	my $this = shift;
+	my $setname = !ref($_[0]) && shift;
+	my $sub  = shift;
+	
+	require Sub::ScopeFinalizer;
+	my @ret;
+	
+	my $succ = 0;
+	my $anchor = Sub::ScopeFinalizer->new(sub{
+		$succ or $this->rollback();
+	});
+	$this->begin($setname);
+	if( wantarray )
+	{
+		@ret    = $sub->();
+	}else
+	{
+		$ret[0] = $sub->();
+	}
+	if( $this->{trans_dbh} )
+	{
+		$this->commit();
+	}
+	$succ = 1;
+	wantarray ? @ret : $ret[0];
+}
+
+sub requireTx
+{
+	my $this = shift;
+	my $set  = shift;
+	$this->_requireTx($set, 'requireTx', 1);
+}
+sub requireNoTx
+{
+	my $this = shift;
+	my $set  = shift;
+	$this->_requireTx($set, 'requireNoTx', 0);
+}
+sub _requireTx
+{
+	my $this    = shift;
+	my $setname = shift;
+	my $where   = shift;
+	my $require = shift;
+	
+	if( my $trans = $this->{trans_dbh} )
+	{
+		my $set = $this->_getDbSetName($setname);
+		
+		my $trans_set = $trans->getSetName;
+		if($trans_set ne $set)
+		{
+			# another transaction running.
+			die __PACKAGE__."#$where, attempted to begin a".
+				" new transaction on DB Set [$set] but".
+				" another DB Set [$trans_set] were already in transaction.".
+				" Commit or rollback it before begin another one.\n";
+		} else {
+			# same transaction.
+			if( !$require )
+			{
+				die __PACKAGE__."#$where, no transaction required";
+			}
+		}
+	}else
+	{
+		# no transaction.
+		if( $require )
+		{
+			die __PACKAGE__."#$where, transaction required";
+		}
+	}
+}
+
 sub begin {
 	my $this = shift;
 	my $setname = shift;
 
 	my $set = $this->_getDbSetName($setname);
 
-	if(my $trans = $this->{trans_dbh}) {
-		my $trans_set = $trans->getSetName;
-		if($trans_set ne $set) {
-			die __PACKAGE__."#begin, attempted to begin a transaction on DB Set [$set] but".
-				" another DB Set [$trans_set] were already in transaction.".
-				" Commit or rollback it before begin another one.\n";
-		} else {
-			die __PACKAGE__."#begin, already in transaction.";
-		}
-	}
+	$this->_requireTx($setname, 'begin', 0);
 
 	my $begintime = [Time::HiRes::gettimeofday()];
 
@@ -1042,22 +1110,23 @@ Tripletail::DB - DBIのラッパ
       -DB      => 'DB',
       -main        => \&main,
   );
-
+  
   sub main {
     my $DB = $TL->getDB('DB');
-
+    
     $DB->setDefaultSet('R_Trans');
-    $DB->begin;
-
-    my $sth = $DB->execute(q{SELECT a, b FROM foo WHERE a = ?}, 999);
-    while (my $hash = $sth->fetchHash) {
+    $DB->tx(sub{
+      my $sth = $DB->execute(q{SELECT a, b FROM foo WHERE a = ?}, 999);
+      while (my $hash = $sth->fetchHash) {
         print $hash->{a};
+      }
+      # commit is done implicitly.
+    });
+    
+    $DB->tx('W_Trans' => sub{
+      $DB->execute(q{UPDATE counter SET counter = counter + 1 WHERE id = ?}, 1);
+      $DB->commit; # can commit explicitly.
     }
-    $DB->commit;
-
-    $DB->begin('W_Trans');
-    $DB->execute(q{UPDATE counter SET counter = counter + 1 WHERE id = ?}, 1);
-    $DB->commit;
   }
 
 =head1 DESCRIPTION
@@ -1185,14 +1254,24 @@ TLの拡張プレースホルダ（??で表記される）を利用し、配列�
  # TL
  my $id = $DB->getDbh()->{mysql_insertid};
 
-BEGIN/COMMIT/ROLLBACKはDBIとほぼ同様である。ただし、TLの場合はAutoCommitがデフォルトでONであり、トランザクションを開始する場合は専用のbeginメソッドを利用する。
+トランザクションには C<$DB->tx(sub{...})> メソッドを用いる。
+DBセットを指定する時には C<$DB->tx(dbset_name=E<gt>sub{...})> となる.
+渡したコードをトランザクション内で実行する. 
+die なしにコードを抜けた時に自動的にコミットされる. 
+途中で die した場合にはトランザクションはロールバックされる. 
 
  # DBI
  $DB->do(q{BEGIN WORK});
+ #   do something.
  $DB->commit;
+ 
  # TL
- $DB->begin;    # $DB->execute(q{BEGIN WORK}) としてはならない
- $DB->commit;
+ $DB->tx(sub{
+   # do something.
+ });
+
+C<begin()> メソッドも実装はされているがその使用は非推奨である. 
+また, C<< $DB->execute(q{BEGIN WORK}); >> は無効にされている. 
 
 =head2 拡張プレースホルダ詳細
 
@@ -1281,21 +1360,20 @@ L<< $TL->startCgi|Tripletail/"startCgi" >> /  L<< $TL->trapError|Tripletail/"tra
 
 L<< $TL->newDB|"$TL->newDB" >> で作成した Tripletail::DB オブジェクトに関しては、このメソッドを呼び出し、DBへの接続を切断する必要がある。
 
-=item C<< begin >>
+=item C<< tx >>
 
-  $DB->begin
-  $DB->begin('SET_W_Trans')
+  $DB->tx(sub{...})
+  $DB->tx('SET_W_Trans' => sub{...})
 
-指定されたDBセット名でトランザクションを開始する。トランザクション名
-(DBセット名) はiniで定義されていなければならない。
-名前を省略した場合は、デフォルトのDBセットが使われるが、
+指定されたDBセット名でトランザクションを開始し、その中でコードを
+実行する。トランザクション名(DBセット名) はiniで定義されていな
+ければならない。名前を省略した場合は、デフォルトのDBセットが使われるが、
 setDefaultSetによってデフォルトが選ばれていない場合にはエラーとなる。
 
-CGIの中でトランザクションを開始し、終了せずにMain関数を抜けた場合は、自動的に
-rollbackされる。
+コードを die なしに終了した時にトランザクションは暗黙にコミットされる。
+die した場合にはロールバックされる。
+コードの中で明示的にコミット若しくはロールバックを行うこともできる。
 
-トランザクション実行中にこのメソッドを呼んだ場合には、エラーとなる。
-1度に開始出来るトランザクションは、1つのDBグループにつき1つだけとなる。
 
 =item C<< rollback >>
 
@@ -1308,6 +1386,39 @@ rollbackされる。
   $DB->commit
 
 現在実行中のトランザクションを確定する。
+
+=item C<< requireTx >>
+
+  $DB->requireTx();
+
+トランザクション中であることを確認する。
+もしトランザクションの中でなければ例外を生成する。
+
+=item C<< requireNoTx >>
+
+  $DB->requireNoTx();
+
+トランザクション中でないことを確認する。
+もしトランザクションの中であれば例外を生成する。
+C<< $DB->requireTx() >> の逆。
+
+=item C<< begin >>
+
+  $DB->begin
+  $DB->begin('SET_W_Trans')
+
+非推奨。L</tx> を使用のこと。
+
+指定されたDBセット名でトランザクションを開始する。トランザクション名
+(DBセット名) はiniで定義されていなければならない。
+名前を省略した場合は、デフォルトのDBセットが使われるが、
+setDefaultSetによってデフォルトが選ばれていない場合にはエラーとなる。
+
+CGIの中でトランザクションを開始し、終了せずにMain関数を抜けた場合は、自動的に
+rollbackされる。
+
+トランザクション実行中にこのメソッドを呼んだ場合には、エラーとなる。
+1度に開始出来るトランザクションは、1つのDBグループにつき1つだけとなる。
 
 =item C<< setDefaultSet >>
 

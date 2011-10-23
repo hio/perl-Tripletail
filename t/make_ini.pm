@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: make_ini.pm,v 1.1 2006/11/06 11:21:49 hio Exp $
+# $Id: make_ini.pm,v 1.3 2006/12/04 09:35:21 hio Exp $
 # -----------------------------------------------------------------------------
 package t::make_ini;
 use strict;
@@ -22,6 +22,7 @@ our $NOCLEAN = $ENV{TL_TEST_NOCLEAN};
 
 # -----------------------------------------------------------------------------
 # $pkg->import({ ini => \%ini, });
+# $pkg->import({ ini => sub{\%ini}, cleanup=>[qw(..)]);
 # use t::make_ini \%opts;
 # -----------------------------------------------------------------------------
 sub import
@@ -34,7 +35,10 @@ sub import
 	ref($ini) eq 'CODE' and $ini = $ini->();
 	write_ini($ini);
 	
-	push(@cleanup, @{$opts->{clean}});
+	if( $opts->{clean} )
+	{
+		push(@cleanup, @{$opts->{clean}});
+	}
 }
 
 # -----------------------------------------------------------------------------
@@ -58,7 +62,8 @@ END
 }
 
 # -----------------------------------------------------------------------------
-# write ini.
+# write_ini(%ini);
+# write ini on $t::make_ini::INI_FILE;
 # -----------------------------------------------------------------------------
 sub write_ini
 {
@@ -66,8 +71,12 @@ sub write_ini
 	
 	#print STDERR "write [$INI_FILE]\n";
 	open my $fh, '>', $INI_FILE or die "could not create file [$INI_FILE]: $!";
-	foreach my $group (sort keys %$hash)
+	my @keys = sort keys %$hash;
+	@keys = ((grep{/^TL$/}@keys),(grep{!/^TL$/}@keys));
+	my $cont = 0;
+	foreach my $group (@keys)
 	{
+		$cont and print $fh "\n";
 		print $fh "[$group]\n";
 		foreach my $key (sort keys %{$hash->{$group}})
 		{
@@ -75,6 +84,7 @@ sub write_ini
 			ref($val) eq 'ARRAY' and $val = join(',',@$val);
 			print $fh "$key = $val\n";
 		}
+		$cont = 1;
 	}
 	close $fh;
 	push(@cleanup, $INI_FILE);

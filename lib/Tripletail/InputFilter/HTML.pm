@@ -214,7 +214,7 @@ sub __pairsFromMultipart {
 		my $str = shift;
 
 		# バッファ中に$strが現れるまでfillし続ける。
-		while (index($buffer, $str, 0) == -1) {
+		while (index($buffer, $str) == -1) {
 			$fill->();
 		}
 	};
@@ -244,8 +244,8 @@ sub __pairsFromMultipart {
 		while (1) {
 			$fill_until->("\x0d\x0a");
 
-			my $pos = index $buffer, "\x0d\x0a", 0;
-			if ($buffer =~ s/^(.{$pos})\x0d\x0a[ \t]+/$1 /s) {
+			my $pos = index $buffer, "\x0d\x0a";
+			if ( $pos>0 && $buffer =~ s/^(.{$pos})\x0d\x0a[ \t]+/$1 /s) {
 				next; # もう一度。
 			}
 			last;

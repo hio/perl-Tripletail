@@ -51,6 +51,7 @@ sub addFilter {
 sub check {
 	my $this = shift;
 	my $form = shift;
+	my $onfail;
 	my $error;
 
 	foreach my $key ( keys %{ $this->{_filters} } ) {
@@ -87,9 +88,23 @@ sub check {
 			last;
 		}
 	}
+	if( $error && $onfail )
+	{
+		my $message = $this->_checkerror_to_message($error);
+		$onfail->($error, $message);
+	}
 
 	return $error;
 }
+
+sub _checkerror_to_message
+{
+	my $this = shift;
+	my $error = shift;
+	my $message = join(', ', map{ "$_($error->{$_})" } sort keys %$error );
+	$message;
+}
+
 
 sub getKeys {
 	my $this = shift;
@@ -157,11 +172,18 @@ Tripletail::Validator オブジェクトを作成。
 =item check
 
   $error = $validator->check($form)
+  $error = $validator->check($form, sub{...} )
 
 設定したフィルタを利用して、フォームの値を検証する。
 
-それぞれのフォームのキーに対してエラーがあれば、「[message]」、もしくは指定がない場合はフィルタ名を値としたハッシュリファレンスを返す。
+それぞれのフォームのキーに対してエラーがあれば、「[message]」、
+もしくは指定がない場合はフィルタ名を値としたハッシュリファレンスを返す。
 エラーがなければ、そのキーは含まれない。
+
+２番目の引数に関数リファレンスを渡すと, エラー時にそれが呼ばれる。
+エラーがなかった場合には呼ばれない。
+引数として、１つめに check メソッドが返すのと同じハッシュを,
+２つめに文字列でのエラーメッセージを渡す.
 
 =item getKeys
 

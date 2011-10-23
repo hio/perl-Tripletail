@@ -3,33 +3,24 @@ use Test::Exception;
 use strict;
 use warnings;
 
-
-BEGIN {
-    my ($name) = eval{getpwuid($<)} || $ENV{USERNAME};
-    $name = $name && $name=~/^(\w+)$/ ? $1 : 'guest';
-    
-    open my $fh, '>', "tmp$$.ini";
-    print $fh qq{
-[TL]
-trap = none
-
-[DB]
-type   = mysql
-defaultset = SET_Default
-SET_Default = CON_DBR1
-
-[CON_DBR1]
-host   = localhost
-user   = $name
-dbname = test
+use t::make_ini {
+	ini => sub{+{
+		TL => {
+			trap => 'none',
+		},
+		DB => {
+			type       => 'mysql',
+			defaultset => 'SET_Default',
+			SET_Default => [qw(DBCONN_test)]
+		},
+		DBCONN_test => {
+			host   => 'localhost',
+			user   => $t::make_ini::USER,
+			dbname => 'test',
+		},
+	};},
 };
-    close $fh;
-    eval q{use Tripletail "tmp$$.ini"};
-}
-
-END {
-    unlink "tmp$$.ini";
-}
+use Tripletail $t::make_ini::INI_FILE;
 
 eval { require DBD::mysql; 1; };
 $@ and plan skip_all => "no DBD::mysql";
@@ -44,20 +35,21 @@ if ($@) {
 	plan skip_all => "Failed to connect to local MySQL: $@";
 }
 
-plan tests => 67;
+plan tests => 67+15+15;
 
-dies_ok {$TL->getDB} '_getInstance die';
+&test_mysql; #67.
+&test_transaction;  #15.
+&test_transaction2; #15.
 
-eval {
-    $TL->trapError(
-	-DB   => 'DB',
-	-main => \&main,
-       );
-};
-if ($@) {
-	die $@;
+sub test_mysql
+{
+	dies_ok {$TL->getDB} '_getInstance die';
+	
+	$TL->trapError(
+		-DB   => 'DB',
+		-main => \&main,
+	);
 }
-
 sub main {
 
     my $DB;
@@ -115,7 +107,7 @@ sub main {
         INSERT INTO TripletaiL_DB_Test
                (foo, bar, baz)
         VALUES (?,   ?,   ?  )
-    }, 'QQQ', 'WWW', 'EEE'), 'execute die'};
+    }, 'QQQ', 'WWW', 'EEE')} 'execute die';
 
 	ok($DB->execute(
 		\'SET_Default' => q{
@@ -287,4 +279,152 @@ sub main {
 	$DB->execute(q{
         DROP TABLE TripletaiL_DB_Test
     });
+}
+
+# -----------------------------------------------------------------------------
+# CREATE TABLE test_colors
+# -----------------------------------------------------------------------------
+sub _create_table_colors
+{
+	my $DB = shift;
+	$DB->execute( q{
+		CREATE TEMPORARY TABLE test_colors
+		(
+			nval INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
+			sval TINYBLOB NOT NULL
+		) Type=innodb
+	});
+	foreach my $sval (qw(blue red yellow green aqua cyan))
+	{
+		$DB->execute( q{
+			INSERT
+			  INTO test_colors (sval)
+			VALUES (?)
+		}, $sval);
+	}
+}
+
+# -----------------------------------------------------------------------------
+# test transaction.
+# -----------------------------------------------------------------------------
+sub test_transaction
+{
+	$TL->trapError(
+		-DB => 'DB',
+		-main => sub{
+			my $DB = $TL->getDB();
+			
+			# begin and commit.
+			lives_ok { $DB->begin; }    "[tran] begin ok";
+			lives_ok { $DB->commit; }   "[tran] commit ok";
+			
+			# begin and rollback.
+			lives_ok { $DB->begin; }    "[tran] begin ok";
+			lives_ok { $DB->rollback; } "[tran] rollback ok";
+			
+			# begin tran within transaction;
+			lives_ok { $DB->begin; }    "[tran] begin ok";
+			dies_ok  { $DB->begin; }    "[tran] begin in tran dies";
+			lives_ok { $DB->rollback; } "[tran] rollback ok";
+			
+			# begin/rollback w/o transaction.
+			dies_ok { $DB->commit; }   "[tran] commit w/o transaction dies";
+			dies_ok { $DB->rollback; } "[tran] rollback w/o transaction dies";
+			
+			# create test data.
+			_create_table_colors($DB);
+			
+			# check whether rollback works.
+			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[tran] test table contains 6 records");
+			lives_ok { $DB->begin; } "[tran] begin";
+			lives_ok { $DB->execute("DELETE FROM test_colors"); } "[tran] delete all";
+			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 0, "[tran] test table contains no records");
+			lives_ok { $DB->rollback; } "[tran] rollback";
+			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[tran] test table contains 6 records");
+		},
+	);
+}
+
+# -----------------------------------------------------------------------------
+# test transaction (2).
+# -----------------------------------------------------------------------------
+sub test_transaction2
+{
+	$TL->trapError(
+		-DB => 'DB',
+		-main => sub{
+			my $DB = $TL->getDB();
+			
+			# requireTx, requireNoTx.
+			lives_ok {
+				$DB->begin();
+				$DB->requireTx();
+				$DB->commit();
+			} "[tran2] requireTx on transaction";
+			throws_ok {
+				$DB->requireTx();
+			} qr/^Tripletail::DB#requireTx, transaction required at/, "[tran2] requireTx outside of tx";
+			lives_ok {
+				$DB->requireNoTx();
+			} "[tran2] requireNoTx out of transaction";
+			throws_ok {
+				$DB->begin();
+				$DB->requireNoTx();
+			} qr/^Tripletail::DB#requireNoTx, no transaction required at/, "[tran2] requireNoTx on transaction";
+			eval{ $DB->rollback(); };
+			
+			# tx.
+			my $tx_works;
+			$DB->tx(sub{
+				$tx_works = 1;
+			});
+			ok($tx_works, "[tran2] tx works");
+			
+			lives_ok {$DB->tx(sub{
+				$DB->requireTx();
+			})} "[tran2] requireTx in tx";
+			
+			
+			# create test data (blue red yellow green aqua cyan)
+			_create_table_colors($DB);
+			{
+				my $s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 6, '[tran2] implicit commit, 6 records in tx');
+				$DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'yellow');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					is(@$s, 5, '[tran2] implicit commit, 5 records at end of tx');
+				});
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 5, '[tran2] implicit commit, 5 records after tx');
+				
+				$DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'red');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					is(@$s, 4, '[tran2] explicit rollback, 4 records in tx');
+					$DB->rollback;
+				});
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 5, '[tran2] explicit rollback, 5 records after tx (rollbacked)');
+				
+				$DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'red');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					$DB->commit;
+				});
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 4, '[tran2] explicit commit');
+				
+				eval{ $DB->tx(sub{
+					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'cyan');
+					$s = $DB->selectAllHash("SELECT * FROM test_colors");
+					is(@$s, 3, '[tran2] die implicits rollback, 3 records in tx');
+					die "test\n";
+				}) };
+				is($@, "test\n", "[trans] die in tx");
+				$s = $DB->selectAllHash("SELECT * FROM test_colors");
+				is(@$s, 4, '[tran2] die implicits rollback, 4 records after tx');
+			}
+		},
+	);
 }
