@@ -26,6 +26,7 @@ sub _new {
 
 	# デフォルト値を埋める。
 	my $defaults = [
+		[linebreak   => "\r\n"],
 		[charset     => 'Shift_JIS'],
 		[contenttype => sub {
 			# 動的に決まるのでCODE Refを渡す。引数は取らない。
@@ -44,6 +45,7 @@ sub _new {
 
 	# オプションのチェック
 	my $check = {
+		linebreak   => [qw(defined no_empty scalar)],
 		charset     => [qw(defined no_empty scalar)],
 		contenttype => [qw(defined no_empty scalar)],
 		filename    => [qw(no_empty scalar)],
@@ -68,7 +70,7 @@ sub print {
 
 	if (ref($data)) {
 		if (ref($data) eq 'ARRAY') {
-			$data = $TL->getCsv->makeCsv($data) . "\n";
+			$data = $TL->getCsv->makeCsv($data) . $this->{option}{linebreak};
 		}
 		else {
 			die __PACKAGE__."#print: arg[1] is neither SCALAR nor ARRAY Ref. [$data] (第1引数がスカラでも配列のリファレンスでもありません)\n";
@@ -128,7 +130,7 @@ Tripletail::Filter::CSV - CSV出力フィルタ
       filename => 'foo.csv',
   );
 
-  $TL->print('aaa,"b,b,b",ccc,ddd' . "\n");
+  $TL->print('aaa,"b,b,b",ccc,ddd' . "\r\n");
   $TL->print(['aaa', 'b,b,b', 'ccc', 'ddd']);
 
 =head1 DESCRIPTION
@@ -139,7 +141,9 @@ CSVの出力を支援する。
 
 また、このフィルタの使用時には、L<< $TL->print|Tripletail/"print" >>
 に文字列の配列を渡す事も出来る。配列が渡された場合は、各要素を
-必要に応じて "" で囲み、カンマで繋げて出力する。
+必要に応じて "" で囲み、カンマで繋げ、改行コードを付けて出力する。
+
+文字列を渡す場合は、改行コードは付与されないことに注意。
 
 =head2 フィルタパラメータ
 
@@ -161,6 +165,12 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 Content-Typeを指定する。省略可能。
 
 デフォルトはtext/csv; charset=（charasetで指定された文字コード）。
+
+=item linebreak
+
+配列が渡されたときに、どのような改行コードを利用するかを指定する。省略可能。
+
+デフォルトは "\r\n"。
 
 =item filename
 

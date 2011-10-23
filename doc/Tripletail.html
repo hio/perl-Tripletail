@@ -53,6 +53,11 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 </span></a>
 </li>
+<li><a href="#Xe6X90XbaXe5Xb8XafXe5X90X91Xe3X81X91Xe8Xa8XadXe5XaeX9a">
+<span class="pod_lang">携帯向け設定
+
+</span></a>
+</li>
 <li><a href="#Xe3X82XadXe3X83Xa3Xe3X83X83Xe3X82Xb7Xe3X83Xa5Xe3X81XaeXe5X88Xa9Xe7X94Xa8">
 <span class="pod_lang">キャッシュの利用
 
@@ -404,6 +409,11 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 
 </span></a>
 </li>
+<li><a href="#setCacheFilter">
+<span class="pod_lang"><code class="pod_iseq_C">setCacheFilter</code>
+
+</span></a>
+</li>
 <li><a href="#printCacheUnlessModified">
 <span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
 
@@ -722,6 +732,67 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <pre class="pod_verbatim"><code>  [TL]
   logdir = /home/tl/logs</code></pre>
 
+<h2><a id="Xe6X90XbaXe5Xb8XafXe5X90X91Xe3X81X91Xe8Xa8XadXe5XaeX9a">
+<span class="pod_lang">携帯向け設定
+
+</span></a></h2>
+
+<p>
+<span class="pod_lang">以下のように、<a href="././Tripletail/InputFilter/MobileHTML.html">Tripletail::InputFilter::MobileHTML</a> 入力フィルタと
+<a href="././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a> 出力フィルタを利用することで、
+携帯絵文字を含めて扱うことができる。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  use Tripletail qw(tl.ini);
+  
+  # startCgi前に入力フィルタを設定する
+  $TL-&gt;setInputFilter('Tripletail::InputFilter::MobileHTML');
+  $TL-&gt;startCgi(
+      -main =&gt; \&amp;main,
+  );
+  
+  sub main {
+      # mainの最初で出力フィルタを設定する
+      $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML');
+      my $t = $TL-&gt;newTemplate('index.html');
+      
+      $t-&gt;flush;
+  }</code></pre>
+
+<p>
+<span class="pod_lang">入力された絵文字は、Unicode のプライベート領域にマップされる。
+この文字は、UTF-8 で4バイトの長さとなるため、DBに保存する場合などには
+注意が必要となる。BLOB型など、バイナリ形式で保存すると安全である。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">絵文字は出力時に各端末にあわせて変換される。
+同じ携帯キャリアであれば元の絵文字に戻され、
+他のキャリアであれば Unicode::Japanese の変換マップに従い変換されて出力される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">変換マップで該当する絵文字が無い場合や、PC向けに出力した場合は「?」に変換される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">テンプレートファイルで絵文字を使う場合は、絵文字コードをバイナリで
+埋め込む必要がある。
+バイナリで埋め込まれた絵文字は Unicode::Japanese で自動判別される。
+sjis-imode (DoCoMo)、sjis-jsky (Softbank)、sjis-au (AU) などが利用できるが、
+複数の携帯キャリアの絵文字を混在させることはできない。
+
+</span>
+</p>
+
 <h2><a id="Xe3X82XadXe3X83Xa3Xe3X83X83Xe3X82Xb7Xe3X83Xa5Xe3X81XaeXe5X88Xa9Xe7X94Xa8">
 <span class="pod_lang">キャッシュの利用
 
@@ -784,8 +855,8 @@ servers = localhost:11211
 <pre class="pod_verbatim"><code>  #クッキーデータの取得、クッキーに固有の情報を入れておくと高速に動作出来る
   #（DB等から読み込みTripletail::Formクラスにセットしても可）
   my $cookiedata = $TL-&gt;getCookie-&gt;get('TLTEST');
-  $cookiedata-&gt;set('#NAME' =&gt; $name) if(!$cookiedata-&gt;exists('name'));
-  $cookiedata-&gt;set('#POINT' =&gt; $point) if(!$cookiedata-&gt;exists('point'));
+  $cookiedata-&gt;set('&lt;#NAME&gt;' =&gt; $name) if(!$cookiedata-&gt;exists('name'));
+  $cookiedata-&gt;set('&lt;#POINT&gt;' =&gt; $point) if(!$cookiedata-&gt;exists('point'));
 
   #まず、画面毎にキーを設定する。例のケースではtopという名称を付けている。
   #固有情報が変更された場合、ブラウザ側のキャッシュ情報をクリアしないと情報が変わらない為、
@@ -793,18 +864,24 @@ servers = localhost:11211
   #
   #固有の情報を置換するための情報をセットすると、キーがそのまま置換される。
   #その他の条件はページ全体をキャッシュする場合と同様。
-  return if(!defined($TL-&gt;printCacheUnlessModified('top','off',$cookiedata)));
-  #キャッシュすることを宣言する。その際、固有の情報を置換するための情報をセットする。
-  $TL-&gt;setCache('top',$cookiedata);
+  $TL-&gt;setCacheFilter($cookiedata);
+  return if(!defined($TL-&gt;printCacheUnlessModified('top','200')));
+  #キャッシュすることを宣言する。
+  $TL-&gt;setCache('top');
 
   #実際のスクリプトを記述し、出力を行う
   #この際、固有の情報の部分に関しては、特殊タグ（文字列）に置換する。特殊タグはどのような形でもかまわないが、
   #出力文字列中の全ての同様の特殊タグが変換対象になるため、ユーザーや管理者が任意に変更出来る部分に注意する。
   #（エスケープする、その特殊タグが入力された場合エラーにするetc）
   
+  $t-&gt;setAttr(
+    NAME =&gt; 'raw',
+    POINT =&gt; 'raw',
+  );
+  
   $t-&gt;expand(
-    NAME =&gt; '#NAME',
-    POINT =&gt; '#POINT',
+    NAME =&gt; '&lt;#NAME&gt;',
+    POINT =&gt; '&lt;#POINT&gt;',
   );
 
   
@@ -818,7 +895,7 @@ servers = localhost:11211
 <pre class="pod_verbatim"><code>  #書き込みを行った場合、そのデータを表示する可能性があるキャッシュを全て削除する
   #削除漏れがあると、キャッシュしている内容が必要な為注意が必要。
   #必要があれば、固有の文字列を出力用にクッキーなどに書き出したりする。
-  $TL-&gt;getCookie-&gt;set(TLTEST =&gt; $TL-&gt;newForm('#NAME' =&gt; $CGI-&gt;get('name'),'#POINT' =&gt; 1000));
+  $TL-&gt;getCookie-&gt;set(TLTEST =&gt; $TL-&gt;newForm('&lt;#NAME&gt;' =&gt; $CGI-&gt;get('name'),'&lt;#POINT&gt;' =&gt; 1000));
 
   $TL-&gt;deleteCache('top');
   $TL-&gt;deleteCache('top2');</code></pre>
@@ -986,6 +1063,7 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 <p>
 <span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、フォームをデコードした後、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> が呼ばれる前に呼ばれる。
 リクエストごとに呼び出される。
+ただし、フォームのデコード処理に失敗した場合、<a href="#X/preRequest">&quot;/preRequest&quot;</a> は実行されずにリクエスト処理が終了する。
 
 </span>
 </p>
@@ -1004,6 +1082,7 @@ $CGI オブジェクトか <a href="#CGI">$TL-&gt;CGI</a> メソッドで取得�
 <p>
 <span class="pod_lang"><a href="#startCgi">&quot;startCgi&quot;</a> 利用時は、<a href="#MainXe9X96Xa2Xe6X95Xb0">&quot;Main関数&quot;</a> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
 リクエストごとに呼び出される。
+ただし、フォームのデコード処理に失敗した場合、<a href="#postRequest">&quot;postRequest&quot;</a> は実行されずにリクエスト処理が終了する。
 
 </span>
 </p>
@@ -2036,41 +2115,32 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
-<h4><a id="printCacheUnlessModified">
-<span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
+<h4><a id="setCacheFilter">
+<span class="pod_lang"><code class="pod_iseq_C">setCacheFilter</code>
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $bool = $TL-&gt;printCacheUnlessModified($key, $flag, $param, $charset)</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;setCacheFilter($form)
+  $TL-&gt;setCacheFilter($form, $charset)
+  $TL-&gt;setCacheFilter($hashref)
+  $TL-&gt;setCacheFilter($hashref, $charset)</code></pre>
 
 <p>
-<span class="pod_lang">第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
-利用するには、memcached が必須となる。
+<span class="pod_lang"><a href="#printCacheUnlessModified">&quot;printCacheUnlessModified&quot;</a> と <a href="#setCache">&quot;setCache&quot;</a> を利用する際に使用する。
+第1引数で渡された <a href="././Tripletail/Form.html">Tripletail::Form</a> オブジェクトのキーが出力文字列中に存在している場合、値に置換する。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">第2引数がonの場合、304レスポンスを送る動作を行う。offの場合、動作を行わない。省略可能。
+<span class="pod_lang"><a href="././Tripletail/Form.html">Tripletail::Form</a>オブジェクトの代わりにハッシュのリファレンスを渡すことも出来る。
+ハッシュのリファレンスを渡した場合は、$TL-&gt;newForm($hashref) した結果のフォームオブジェクトを追加する。
 
 </span>
 </p>
 
 <p>
-<span class="pod_lang">デフォルトはon。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">第3引数では、<a href="././Tripletail/Form.html">Tripletail::Form</a> クラスのインスタンスを指定する。
-Formクラスのキーが出力文字列中に存在している場合、値に置換する。省略可能。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">第4引数では、第3引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
+<span class="pod_lang">第2引数は、第1引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
 省略可能。
 
 </span>
@@ -2089,9 +2159,36 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </span>
 </p>
 
+<h4><a id="printCacheUnlessModified">
+<span class="pod_lang"><code class="pod_iseq_C">printCacheUnlessModified</code>
+
+</span></a></h4>
+
+<pre class="pod_verbatim"><code>  $bool = $TL-&gt;printCacheUnlessModified($key, $status)</code></pre>
+
+<p>
+<span class="pod_lang">第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
+利用するには、memcached が必須となる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">第2引数が304の場合、304レスポンスを送る動作を行う。200の場合、200レスポンスを送る動作を行う。
+省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは304。
+
+</span>
+</p>
+
 <p>
 <span class="pod_lang">この関数は次のような動作を行っている。
-	
+
 </span>
 </p>
 
@@ -2111,7 +2208,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <p>
 <span class="pod_lang">3.アクセスされた時間が新しければ、304レスポンスを出力し、undefを返す。
-（第2引数がonの場合のみ、offの場合はキャッシュデータを出力する）
+（第2引数が304の場合。200の場合はキャッシュデータを出力する）
 
 </span>
 </p>
@@ -2127,7 +2224,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $TL-&gt;setCache($key, $param, $charset, $priority)</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;setCache($key, $priority)</code></pre>
 
 <p>
 <span class="pod_lang">第1引数で割り当てられたキーに対して出力される内容をメモリ上にキャッシュする。
@@ -2139,34 +2236,7 @@ printCacheUnlessModifiedより後で実行する必要がある。
 </p>
 
 <p>
-<span class="pod_lang">第2引数では、<a href="././Tripletail/Form.html">Tripletail::Form</a> クラスのインスタンスを指定する。
-Formクラスのキーが出力文字列中に存在している場合、値に置換する。省略可能。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">第3引数では、第2引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
-省略可能。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">使用可能なコードは次の通り。
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">デフォルトはShift_JIS。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">第4引数には、<a href="././Tripletail/Filter/MemCached.html">Tripletail::Filter::MemCached</a>への優先度を記述する。省略可能。
+<span class="pod_lang">第2引数には、<a href="././Tripletail/Filter/MemCached.html">Tripletail::Filter::MemCached</a>への優先度を記述する。省略可能。
 デフォルトは1500。
 
 </span>
@@ -3299,6 +3369,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#removeInputFilter">removeInputFilter</a></li>
 <li><a href="#sendError">sendError</a></li>
 <li><a href="#setCache">setCache</a></li>
+<li><a href="#setCacheFilter">setCacheFilter</a></li>
 <li><a href="#setContentFilter">setContentFilter</a></li>
 <li><a href="#setHook">setHook</a></li>
 <li><a href="#setInputFilter">setInputFilter</a></li>
@@ -3327,6 +3398,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86">変換処理</a></li>
 <li><a href="#Xe5XaeX9fXe8Xa1X8cXe3X83Xa2Xe3X83XbcXe3X83X89">実行モード</a></li>
 <li><a href="#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">度量衡</a></li>
+<li><a href="#Xe6X90XbaXe5Xb8XafXe5X90X91Xe3X81X91Xe8Xa8XadXe5XaeX9a">携帯向け設定</a></li>
 <li><a href="#Xe6X95Xb0Xe5X80Xa4Xe3X81XaeXe3X81Xbf_00">数値のみ</a></li>
 <li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Ei'">数値＋ 'Ei'</a></li>
 <li><a href="#Xe6X95Xb0Xe5X80Xa4XefXbcX8b_'Gi'">数値＋ 'Gi'</a></li>

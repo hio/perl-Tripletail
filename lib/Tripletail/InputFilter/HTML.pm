@@ -98,11 +98,11 @@ sub __pairsFromUrlEncoded {
 				my $read = read STDIN, $chunk, $size;
 
 				if(!defined($read)) {
-					die __PACKAGE__.": we got IO error while reading from stdin. [$!] (stdinからの読み込み中にIOエラーが発生しました)\n";
+					die $TL->newError('error', __PACKAGE__.": we got IO error while reading from stdin. [$!] (stdinからの読み込み中にIOエラーが発生しました)\n");
 				} elsif($read == 0) {
-					die __PACKAGE__.": we got EOF while reading from stdin.".
+					die $TL->newError('error', __PACKAGE__.": we got EOF while reading from stdin.".
 					  " We read ".length($input)." bytes actually but $remaining bytes remain. ".
-					  " (stdinからの読み取り途中でEOFを受信しました。".length($input)."バイト読み取りましたが${remaining}バイトが残っています)\n";
+					  " (stdinからの読み取り途中でEOFを受信しました。".length($input)."バイト読み取りましたが${remaining}バイトが残っています)\n");
 				}
 
 				$input .= $chunk;

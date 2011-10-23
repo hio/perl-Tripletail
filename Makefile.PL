@@ -7,6 +7,7 @@ my $requires = {
     'DBI'                 => 0,
     'Data::Dumper'        => 0,
     'Digest::HMAC_SHA1'   => 0,
+    'Encode'              => 0,
     'File::Path'          => 0,
     'IO::Scalar'          => 0, # IO-stringy
     'MIME::Tools'         => '5.411',

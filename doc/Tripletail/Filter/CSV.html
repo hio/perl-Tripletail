@@ -91,7 +91,7 @@ Tripletail::Filter::CSV - CSV出力フィルタ
       filename =&gt; 'foo.csv',
   );
 
-  $TL-&gt;print('aaa,&quot;b,b,b&quot;,ccc,ddd' . &quot;\n&quot;);
+  $TL-&gt;print('aaa,&quot;b,b,b&quot;,ccc,ddd' . &quot;\r\n&quot;);
   $TL-&gt;print(['aaa', 'b,b,b', 'ccc', 'ddd']);</code></pre>
 
 
@@ -116,7 +116,13 @@ Tripletail::Filter::CSV - CSV出力フィルタ
 <p>
 <span class="pod_lang">また、このフィルタの使用時には、<a href="../.././Tripletail.html#print">$TL-&gt;print</a>
 に文字列の配列を渡す事も出来る。配列が渡された場合は、各要素を
-必要に応じて &quot;&quot; で囲み、カンマで繋げて出力する。
+必要に応じて &quot;&quot; で囲み、カンマで繋げ、改行コードを付けて出力する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">文字列を渡す場合は、改行コードは付与されないことに注意。
 
 </span>
 </p>
@@ -165,6 +171,23 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <p>
 <span class="pod_lang">デフォルトはtext/csv; charset=（charasetで指定された文字コード）。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="linebreak"><span class="pod_lang">linebreak
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">配列が渡されたときに、どのような改行コードを利用するかを指定する。省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは &quot;\r\n&quot;。
 
 </span>
 </p>
@@ -345,6 +368,7 @@ Tripletail::Filter::CSV - CSV出力フィルタ
 <li><a href="#contenttype">contenttype</a></li>
 <li><a href="#filename">filename</a></li>
 <li><a href="#flush">flush</a></li>
+<li><a href="#linebreak">linebreak</a></li>
 <li><a href="#print">print</a></li>
 <li><a href="#setHeader">setHeader</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">フィルタパラメータ</a></li>

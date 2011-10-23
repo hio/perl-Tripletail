@@ -37,6 +37,8 @@ application/      サンプルアプリケーション(未制作)
 advanced/         高度な利用方法
   customfilter      カスタムフィルタによる出力加工
 
+memcached/        MemCachedを使用してアクセスを高速化するサンプル
+  memcached
 
 
 

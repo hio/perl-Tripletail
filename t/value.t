@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 155 + 6*4+7;
+use Test::More tests => 157 + 6*4+7;
 
 #---------------------------------- 一般
 my $v;
@@ -45,8 +45,8 @@ is($v->getAge('2005-08-01'), 5, 'getAge');
 is($v->getAge('2005-07-31'), 4, 'getAge');
 is($v->getAge('****-**-**'), undef, 'getAge');
 
-my $re_hira = qr/\xe3(?:\x81[\x81-\xbf]|\x82[\x80-\x93])/;
-my $re_kata = qr/\xe3(?:\x82[\xa1-\xbf]|\x83[\x80-\xb3])/;
+my $re_hira = qr/\xe3(?:\x81[\x81-\xbf]|\x82[\x80-\x93]|\x83\xbc)/;
+my $re_kata = qr/\xe3(?:\x82[\xa1-\xbf]|\x83[\x80-\xb3]|\x83\xbc)/;
 my $re_narrownum = qr{\d};
 my $re_widenum = qr/\xef\xbc[\x90-\x99]/;
 dies_ok {$v->getRegexp(undef)} 'getRegexp undef';
@@ -104,8 +104,10 @@ ok(! $v->set('500.')->isReal, 'isReal');
 
 ok($v->set('あああ')->isHira, 'isHira');
 ok(! $v->set('あああ1')->isHira, 'isHira');
+ok($v->set('ぁーん')->isHira, 'isHira');
 ok($v->set('アアア')->isKata, 'isKata');
 ok(! $v->set('アアア1')->isKata, 'isKata');
+ok($v->set('ァーン')->isKata, 'isKata');
 
 ok($v->set('2004-02-29')->isExistentDay, 'isExistentDay');
 ok(! $v->set('2003-02-29')->isExistentDay, 'isExistentDay');

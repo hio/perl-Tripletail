@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v 1.223 2007/09/10 07:28:04 hio Exp $
+# $Id: Tripletail.pm,v 1.231 2007/09/14 05:50:06 hio Exp $
 package Tripletail;
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use File::Spec;
 use Data::Dumper;
 use Cwd ();
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -1887,42 +1887,73 @@ sub dump {
     $this->log($group => $dump);
 }
 
+sub setCacheFilter {
+	my $this = shift;
+	my $form = shift;
+	my $charset = shift;
+	
+	if(!defined($form)) {
+		die __PACKAGE__."#setCacheFilter: arg[1] is not defined. (第1引数が指定されていません)\n";
+	} elsif(ref($form) eq 'HASH') {
+		$form = $TL->newForm($form);
+	} elsif(ref($form) ne 'Tripletail::Form') {
+		die __PACKAGE__."#setCacheFilter: arg[1] is not instance of Tripletail::Form or HASH. (第1引数がFormオブジェクトではありません)\n";
+	}
+	if(ref($charset)) {
+		die __PACKAGE__."#setCacheFilter: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+	}
+	
+	$charset = 'Shift_JIS' if(!defined($charset));
+
+	$this->{memcache_form} = $form;
+	$this->{memcache_charset} = $charset;
+}
+
 sub printCacheUnlessModified {
 	my $this = shift;
 	my $key = shift;
-	my $flag = shift;
-	my $param = shift; # always HASH ref
-	my $charset = shift;
+	my $status = shift;
 
 	if(!defined($key)) {
 		die __PACKAGE__."#printCacheUnlessModified: arg[1] is not defined. (第1引数が指定されていません)\n";
 	} elsif(ref($key)) {
 		die __PACKAGE__."#printCacheUnlessModified: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
-
-	$flag = 'on' if(!defined($flag));
-	$charset = 'Shift_JIS' if(!defined($charset));
+	
+	if(!defined($status)) {
+		$status = 304;
+	} elsif(ref($status)) {
+		die __PACKAGE__."#printCacheUnlessModified: arg[2] is a Ref. [$key] (第2引数がリファレンスです)\n";
+	} elsif($status ne '200' && $status ne '304') {
+		die __PACKAGE__."#printCacheUnlessModified: arg[2] is not 200 or 304. [$key] (第2引数は200か304のみ指定できます)\n";
+	}
 
 	my $cachedata = $TL->newMemCached->get($key);
 	return 1 if(!defined($cachedata));
 	if($cachedata =~ s/^(\d+),//) {
 		my $cachetime = $1;
-		if(defined($ENV{HTTP_IF_MODIFIED_SINCE}) && $flag eq 'on' && $TL->newDateTime($ENV{HTTP_IF_MODIFIED_SINCE})->getEpoch >= $cachetime) {
-			$TL->setContentFilter('Tripletail::Filter::HeaderOnly');
-			$TL->getContentFilter->setHeader('Status' => '304');
-			$TL->getContentFilter->setHeader('Last-Modified' => $TL->newDateTime->setEpoch($cachetime)->toStr('rfc822'));
-			return undef;
-		} else {
-			$TL->setContentFilter('Tripletail::Filter::MemCached',key => $key, mode => 'read');
-			if(defined($param)) {
-				foreach my $key2 ($param->getKeys){
-					my $val = $TL->charconv($param->get($key2), 'UTF-8' => $charset);
-					$cachedata =~ s/$key2/$val/g;
+		if($status eq '304') {
+			my $http_if_modified_since = $ENV{HTTP_IF_MODIFIED_SINCE};
+			if(defined($http_if_modified_since)) {
+				#;より後ろのデータは日付ではないので落とす
+				$http_if_modified_since =~ s/;.+//;
+				if($TL->newDateTime($http_if_modified_since)->getEpoch >= $cachetime) {
+					$TL->setContentFilter('Tripletail::Filter::HeaderOnly');
+					$TL->getContentFilter->setHeader('Status' => '304');
+					$TL->getContentFilter->setHeader('Last-Modified' => $TL->newDateTime->setEpoch($cachetime)->toStr('rfc822'));
+					return undef;
 				}
 			}
-			$TL->print($cachedata);
-			return undef;
 		}
+		if(exists($this->{memcache_form}) && defined($this->{memcache_form})) {
+			$this->{memcache_charset} = 'Shift_JIS' if(!exists($this->{memcache_charset}) || !defined($this->{memcache_charset}));
+			foreach my $key2 ($this->{memcache_form}->getKeys){
+				my $val = $TL->charconv($this->{memcache_form}->get($key2), 'UTF-8' => $this->{memcache_charset});
+				$cachedata =~ s/$key2/$val/g;
+			}
+		}
+		$TL->setContentFilter('Tripletail::Filter::MemCached',key => $key, mode => 'pass-through', cachedata => $cachedata);
+		return undef;
 	}
 	1;
 }
@@ -1930,8 +1961,6 @@ sub printCacheUnlessModified {
 sub setCache {
 	my $this = shift;
 	my $key = shift;
-	my $param = shift;
-	my $charset = shift;
 	my $priority = shift;
 
 	if(!defined($key)) {
@@ -1939,13 +1968,17 @@ sub setCache {
 	} elsif(ref($key)) {
 		die __PACKAGE__."#setCache: arg[1] is a Ref. [$key] (第1引数がリファレンスです)\n";
 	}
+	if(ref($priority)) {
+		die __PACKAGE__."#setCache: arg[2] is a Ref. (第2引数がリファレンスです)\n";
+	}
 
 	$priority = 1500 if(!defined($priority));
-	
-	if(defined($charset)) {
-		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, mode => 'write', param => $param,  charset => $charset);
+	$this->{memcache_charset} = 'Shift_JIS' if(!exists($this->{memcache_charset}) || !defined($this->{memcache_charset}));
+
+	if(exists($this->{memcache_form}) && defined($this->{memcache_form})) {
+		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, mode => 'write', form => $this->{memcache_form},  formcharset => $this->{memcache_charset});
 	} else {
-		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, mode => 'write', param => $param);
+		$TL->setContentFilter(['Tripletail::Filter::MemCached',$priority],key => $key, mode => 'write');
 	}
 }
 
@@ -2077,7 +2110,7 @@ sub __dispError {
 	if (length $errortemplate) {
 		my $t = $TL->newTemplate($errortemplate);
 		my $errortemplatecharset = $this->INI->get(TL => 'errortemplatecharset', 'UTF-8');
-		$html = $TL->charconv($html, 'UTF-8', $errortemplatecharset);
+		$html = $TL->charconv($t->toStr, 'UTF-8', $errortemplatecharset);
 		$html = "Content-Type: text/html; charset=$errortemplatecharset\n\n" . $html;
 	} else {
 		my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
@@ -2108,32 +2141,48 @@ sub __executeCgi {
 	$this->__executeHook('initRequest');
 	
 	# ここで$CGIを作り、constにする。
-	$this->{CGIORIG} = $this->__decodeCgi->const;
-	$this->{CGI} = $this->{CGIORIG}->clone->_trace;
-	our $CGI = $this->{CGI};
-	$this->{outputbuff} = '';
-
-	# $CGI の export
-	my $callpkg = caller(2);
-	{
-		no strict "refs";
-		*{"$callpkg\::CGI"} = *{"Tripletail::CGI"};
+	$this->{CGIORIG} = eval { $this->__decodeCgi->const };
+	if ($@) {
+		die $@ if not (
+			ref($@)
+				and
+			UNIVERSAL::isa($@, "Tripletail::Error")
+				and
+			(
+				($@->message =~ /we got IO error while reading from stdin/)
+					or
+				($@->message =~ /we got EOF while reading from stdin/)
+			)
+		);
+		print "Content-Type: text/plain\r\n\r\nI/O Error\r\n";
 	}
+	else {
+		$this->{CGI} = $this->{CGIORIG}->clone->_trace;
+		our $CGI = $this->{CGI};
+		$this->{outputbuff} = '';
 
-	$this->__executeHook('preRequest');
-	$this->_saveContentFilter;
+		# $CGI の export
+		my $callpkg = caller(2);
+		{
+			no strict "refs";
+			*{"$callpkg\::CGI"} = *{"Tripletail::CGI"};
+		}
 
-	eval {
-		$mainfunc->();
-	};
-	if($@) {
-		$this->__dispError($@);
-	} else {
-		$this->__flushContentFilter;
+		$this->__executeHook('preRequest');
+		$this->_saveContentFilter;
+
+		eval {
+			$mainfunc->();
+		};
+		if($@) {
+			$this->__dispError($@);
+		} else {
+			$this->__flushContentFilter;
+		}
+
+		$this->_restoreContentFilter;
+		$this->__executeHook('postRequest');
 	}
-
-	$this->_restoreContentFilter;
-	$this->__executeHook('postRequest');
 
 	# $CGIを消す。
 	$this->{CGI} = undef;
@@ -2327,6 +2376,46 @@ L<Ini|Tripletail::Ini> ファイルの位置を指定しようとした場合は
   [TL]
   logdir = /home/tl/logs
 
+
+=head2 携帯向け設定
+
+以下のように、L<Tripletail::InputFilter::MobileHTML> 入力フィルタと
+L<Tripletail::Filter::MobileHTML> 出力フィルタを利用することで、
+携帯絵文字を含めて扱うことができる。
+
+  use Tripletail qw(tl.ini);
+  
+  # startCgi前に入力フィルタを設定する
+  $TL->setInputFilter('Tripletail::InputFilter::MobileHTML');
+  $TL->startCgi(
+      -main => \&main,
+  );
+  
+  sub main {
+      # mainの最初で出力フィルタを設定する
+      $TL->setContentFilter('Tripletail::Filter::MobileHTML');
+      my $t = $TL->newTemplate('index.html');
+      
+      $t->flush;
+  }
+
+入力された絵文字は、Unicode のプライベート領域にマップされる。
+この文字は、UTF-8 で4バイトの長さとなるため、DBに保存する場合などには
+注意が必要となる。BLOB型など、バイナリ形式で保存すると安全である。
+
+絵文字は出力時に各端末にあわせて変換される。
+同じ携帯キャリアであれば元の絵文字に戻され、
+他のキャリアであれば Unicode::Japanese の変換マップに従い変換されて出力される。
+
+変換マップで該当する絵文字が無い場合や、PC向けに出力した場合は「?」に変換される。
+
+テンプレートファイルで絵文字を使う場合は、絵文字コードをバイナリで
+埋め込む必要がある。
+バイナリで埋め込まれた絵文字は Unicode::Japanese で自動判別される。
+sjis-imode (DoCoMo)、sjis-jsky (Softbank)、sjis-au (AU) などが利用できるが、
+複数の携帯キャリアの絵文字を混在させることはできない。
+
+
 =head2 キャッシュの利用
 
 Cache::Memcachedがインストールされ、memcachedサーバがある場合に、キャッシュが利用可能となる。
@@ -2367,8 +2456,8 @@ servers = localhost:11211
   #クッキーデータの取得、クッキーに固有の情報を入れておくと高速に動作出来る
   #（DB等から読み込みTripletail::Formクラスにセットしても可）
   my $cookiedata = $TL->getCookie->get('TLTEST');
-  $cookiedata->set('#NAME' => $name) if(!$cookiedata->exists('name'));
-  $cookiedata->set('#POINT' => $point) if(!$cookiedata->exists('point'));
+  $cookiedata->set('<#NAME>' => $name) if(!$cookiedata->exists('name'));
+  $cookiedata->set('<#POINT>' => $point) if(!$cookiedata->exists('point'));
 
   #まず、画面毎にキーを設定する。例のケースではtopという名称を付けている。
   #固有情報が変更された場合、ブラウザ側のキャッシュ情報をクリアしないと情報が変わらない為、
@@ -2376,18 +2465,24 @@ servers = localhost:11211
   #
   #固有の情報を置換するための情報をセットすると、キーがそのまま置換される。
   #その他の条件はページ全体をキャッシュする場合と同様。
-  return if(!defined($TL->printCacheUnlessModified('top','off',$cookiedata)));
-  #キャッシュすることを宣言する。その際、固有の情報を置換するための情報をセットする。
-  $TL->setCache('top',$cookiedata);
+  $TL->setCacheFilter($cookiedata);
+  return if(!defined($TL->printCacheUnlessModified('top','200')));
+  #キャッシュすることを宣言する。
+  $TL->setCache('top');
 
   #実際のスクリプトを記述し、出力を行う
   #この際、固有の情報の部分に関しては、特殊タグ（文字列）に置換する。特殊タグはどのような形でもかまわないが、
   #出力文字列中の全ての同様の特殊タグが変換対象になるため、ユーザーや管理者が任意に変更出来る部分に注意する。
   #（エスケープする、その特殊タグが入力された場合エラーにするetc）
   
+  $t->setAttr(
+    NAME => 'raw',
+    POINT => 'raw',
+  );
+  
   $t->expand(
-    NAME => '#NAME',
-    POINT => '#POINT',
+    NAME => '<#NAME>',
+    POINT => '<#POINT>',
   );
 
   
@@ -2398,7 +2493,7 @@ servers = localhost:11211
   #書き込みを行った場合、そのデータを表示する可能性があるキャッシュを全て削除する
   #削除漏れがあると、キャッシュしている内容が必要な為注意が必要。
   #必要があれば、固有の文字列を出力用にクッキーなどに書き出したりする。
-  $TL->getCookie->set(TLTEST => $TL->newForm('#NAME' => $CGI->get('name'),'#POINT' => 1000));
+  $TL->getCookie->set(TLTEST => $TL->newForm('<#NAME>' => $CGI->get('name'),'<#POINT>' => 1000));
 
   $TL->deleteCache('top');
   $TL->deleteCache('top2');
@@ -2483,6 +2578,7 @@ L</"trapError"> 利用時は L</"postRequest"> フックの前に呼び出され
 
 L</"startCgi"> 利用時は、フォームをデコードした後、L</"Main関数"> が呼ばれる前に呼ばれる。
 リクエストごとに呼び出される。
+ただし、フォームのデコード処理に失敗した場合、L<"/preRequest"> は実行されずにリクエスト処理が終了する。
 
 L</"trapError"> 利用時は L</"initRequest"> フックの後、L</"Main関数"> が呼ばれる前に呼ばれる。
 
@@ -2490,6 +2586,7 @@ L</"trapError"> 利用時は L</"initRequest"> フックの後、L</"Main関数"
 
 L</"startCgi"> 利用時は、L</"Main関数"> の処理を終えた後、コンテンツの出力を行ってから呼び出される。
 リクエストごとに呼び出される。
+ただし、フォームのデコード処理に失敗した場合、L</"postRequest"> は実行されずにリクエスト処理が終了する。
 
 L</"trapError"> 利用時は L</"Main関数"> が呼ばれた後に呼び出される。
 
@@ -2975,21 +3072,20 @@ C<$coding> が省略された場合、utf8として扱う。
 第3引数で、リファレンスをどのくらいの深さまで追うかを指定することが出来る。
 指定しなければ全て表示される。
 
-=head4 C<< printCacheUnlessModified >>
+=head4 C<< setCacheFilter >>
 
-  $bool = $TL->printCacheUnlessModified($key, $flag, $param, $charset)
+  $TL->setCacheFilter($form)
+  $TL->setCacheFilter($form, $charset)
+  $TL->setCacheFilter($hashref)
+  $TL->setCacheFilter($hashref, $charset)
 
-第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
-利用するには、memcached が必須となる。
+L</printCacheUnlessModified> と L</setCache> を利用する際に使用する。
+第1引数で渡された L<Tripletail::Form> オブジェクトのキーが出力文字列中に存在している場合、値に置換する。
 
-第2引数がonの場合、304レスポンスを送る動作を行う。offの場合、動作を行わない。省略可能。
+L<Tripletail::Form>オブジェクトの代わりにハッシュのリファレンスを渡すことも出来る。
+ハッシュのリファレンスを渡した場合は、$TL->newForm($hashref) した結果のフォームオブジェクトを追加する。
 
-デフォルトはon。
-
-第3引数では、L<Tripletail::Form> クラスのインスタンスを指定する。
-Formクラスのキーが出力文字列中に存在している場合、値に置換する。省略可能。
-
-第4引数では、第3引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
+第2引数は、第1引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
 省略可能。
 
 使用可能なコードは次の通り。
@@ -2997,8 +3093,20 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 デフォルトはShift_JIS。
 
+=head4 C<< printCacheUnlessModified >>
+
+  $bool = $TL->printCacheUnlessModified($key, $status)
+
+第1引数で割り当てられたキーがメモリ上にキャッシュされているかを調べる。
+利用するには、memcached が必須となる。
+
+第2引数が304の場合、304レスポンスを送る動作を行う。200の場合、200レスポンスを送る動作を行う。
+省略可能。
+
+デフォルトは304。
+
 この関数は次のような動作を行っている。
-	
+
 1.memcachedからキーに割り当てられたキャッシュデータを読み込む。
 データが無ければ、1を返す。
 
@@ -3006,13 +3114,13 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 キャッシュデータが新しければキャッシュデータを出力し、undefを返す。
 
 3.アクセスされた時間が新しければ、304レスポンスを出力し、undefを返す。
-（第2引数がonの場合のみ、offの場合はキャッシュデータを出力する）
+（第2引数が304の場合。200の場合はキャッシュデータを出力する）
 
 この関数からundefを返された場合、以後出力を行う操作を行ってはならない。
 
 =head4 C<< setCache >>
 
-  $TL->setCache($key, $param, $charset, $priority)
+  $TL->setCache($key, $priority)
 
 
 第1引数で割り当てられたキーに対して出力される内容をメモリ上にキャッシュする。
@@ -3020,18 +3128,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 printCacheUnlessModifiedより後で実行する必要がある。
 利用するには、memcached が必須となる。
 
-第2引数では、L<Tripletail::Form> クラスのインスタンスを指定する。
-Formクラスのキーが出力文字列中に存在している場合、値に置換する。省略可能。
-
-第3引数では、第2引数で指定した文字列をUTF-8から変換する際の文字コードを指定する。
-省略可能。
-
-使用可能なコードは次の通り。
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
-
-デフォルトはShift_JIS。
-
-第4引数には、L<Tripletail::Filter::MemCached>への優先度を記述する。省略可能。
+第2引数には、L<Tripletail::Filter::MemCached>への優先度を記述する。省略可能。
 デフォルトは1500。
 
 Tripletail::Filter::MemCachedは必ず最後に実行する必要性があるため、

@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-mysql.t,v 1.5 2007/09/06 05:46:18 mikage Exp $
+# $Id: db-mysql.t,v 1.7 2007/09/14 05:50:08 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -26,6 +26,7 @@ use lib '.';
 use t::make_ini {
 	ini => {
 		TL => {
+			trap => 'none',
 		},
 		DB => {
 			type       => 'mysql',
@@ -44,7 +45,17 @@ if( !$has_DBD_mysql )
 }
 if( !$DBINFO{dbname} )
 {
-	plan skip_all => "no MSSQL_DBNAME";
+	plan skip_all => "no MYSQL_DBNAME";
+}
+eval {
+	local($SIG{__DIE__}) = sub{ die $@ };
+	$TL->trapError(
+		-DB   => 'DB',
+		-main => sub {},
+	);
+};
+if ($@) {
+	plan skip_all => "Failed to connect to database: $@";
 }
 
 # -----------------------------------------------------------------------------

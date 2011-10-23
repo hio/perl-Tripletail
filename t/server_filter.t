@@ -8,10 +8,10 @@ use lib '.';
 use t::test_server;
 
 &setup;
-plan tests => 4 + 4 + 1 + 1 + 6 + 1 + 2 + 10;
+plan tests => 4 + 4 + 2 + 1 + 6 + 1 + 2 + 10;
 &test_01_html;              #4.
 &test_02_mobile_html;       #4.
-&test_03_csv;               #1.
+&test_03_csv;               #2.
 &test_04_binary;            #1.
 &test_05_input_filter;      #6.
 &test_06_seo_filter;        #1.
@@ -214,6 +214,26 @@ sub test_03_csv
 					'Tripletail::Filter::CSV',
 					charset  => 'UTF-8',
 					filename => 'foo.csv',
+				);
+				$TL->startCgi(
+					-main => \&main,
+				);
+				sub main {
+					$TL->print(['aaa', 'bb', 'cc,c']);
+					$TL->print('AAA,BB,"CC,C"'."\r\n");
+				}
+			},
+		);
+		is $res->content, qq{aaa,bb,"cc,c"\r\nAAA,BB,"CC,C"\r\n}, '[csv]';
+		
+		$res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->setContentFilter(
+					'Tripletail::Filter::CSV',
+					charset  => 'UTF-8',
+					filename => 'foo.csv',
+					linebreak => "\n",
 				);
 				$TL->startCgi(
 					-main => \&main,

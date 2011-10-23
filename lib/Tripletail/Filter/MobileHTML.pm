@@ -234,14 +234,6 @@ CCC による文字コード判別を行います。
 
 =over 4
 
-=item contenttype
-
-  $TL->setContentFilter('Tripletail::Filter::MobileHTML', contenttype => 'text/html; charset=Shift_JIS');
-
-Content-Typeを指定する。省略可能。
-
-デフォルトはtext/html; charset=Shift_JIS。
-
 =item type
 
   $TL->setContentFilter('Tripletail::Filter::MobileHTML', type => 'xhtml');

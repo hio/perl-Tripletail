@@ -394,8 +394,9 @@ install(
 			my $t = $TL->newTemplate;
 			$t->setTemplate(q{<&DATA>})->setAttr(DATA => 'raw')->expand(DATA => qq{aadata <&TEST> <&TEST2>});
 
-			return if(!defined($TL->printCacheUnlessModified('TLTEST','off',$TL->newForm('<&TEST>' => 'test', '<&TEST2>' => 'test2'),'Shift_JIS')));
-			$TL->setCache('TLTEST',$TL->newForm('<&TEST>' => 'test', '<&TEST2>' => 'test2'),'Shift_JIS',20000);
+			$TL->setCacheFilter($TL->newForm('<&TEST>' => 'test', '<&TEST2>' => 'test2'),'Shift_JIS');
+			return if(!defined($TL->printCacheUnlessModified('TLTEST','200')));
+			$TL->setCache('TLTEST',20000);
 
 			$t->flush;
 		}
@@ -413,16 +414,15 @@ install(
 			my $t = $TL->newTemplate;
 			$t->setTemplate(q{<&DATA>})->setAttr(DATA => 'raw')->expand(DATA => qq{testdata <&TEST> <&TEST2>});
 
-			return if(!defined($TL->printCacheUnlessModified('TLTEST','off',$TL->newForm('<&TEST>' => 'test', '<&TEST2>' => 'test2'))));
-			$TL->setCache('TLTEST',$TL->newForm('<&TEST>' => 'test', '<&TEST2>' => 'test2'));
+			$TL->setCacheFilter($TL->newForm('<&TEST>' => 'test', '<&TEST2>' => 'test2'));
+			return if(!defined($TL->printCacheUnlessModified('TLTEST','200')));
+			$TL->setCache('TLTEST');
 
 			$t->flush;
 		}
 	},
 );
 is(rget->content, 'aadata test test2', 'Tripletail::Memcache');
-
-
 
 # ------------------------------
 # stop

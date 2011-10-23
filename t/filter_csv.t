@@ -6,7 +6,7 @@
 #
 # Copyright 2006 YAMASHINA Hio
 # -----------------------------------------------------------------------------
-# $Id: filter_csv.t,v 1.2 2007/03/08 07:27:08 hio Exp $
+# $Id: filter_csv.t,v 1.3 2007/09/13 05:37:32 mikage Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -124,25 +124,25 @@ sub test_001
 	
 	is(run_cgi(sub{
 		_set_csv_filter();
-	  $TL->print( 'aaa,"b,b,b",ccc,ddd' . "\n");
-	}),qq/aaa,"b,b,b",ccc,ddd\n/, "print with string");
+	  $TL->print( 'aaa,"b,b,b",ccc,ddd' . "\r\n");
+	}),qq/aaa,"b,b,b",ccc,ddd\r\n/, "print with string");
 	
 	is(run_cgi(sub{
 		_set_csv_filter();
 	  $TL->print( ['aaa', 'b,b,b', 'ccc', 'ddd'] );
-	}),qq/aaa,"b,b,b",ccc,ddd\n/, "print with arrayref");
+	}),qq/aaa,"b,b,b",ccc,ddd\r\n/, "print with arrayref");
 	
 	is(run_cgi(sub{
 		_set_csv_filter();
 	  $TL->print( ['aaa', '"b,b,b"', 'ccc', 'ddd'] );
-	}),qq/aaa,"""b,b,b""",ccc,ddd\n/, "print with arrayref with escape");
+	}),qq/aaa,"""b,b,b""",ccc,ddd\r\n/, "print with arrayref with escape");
 	
 	is(run_cgi(sub{
 		_set_csv_filter();
 	  $TL->print( 'aaa,"b,b,b",' );
 	  $TL->print( 'CCC,DDD' );
-	  $TL->print( "\n" );
-	}), qq/aaa,"b,b,b",CCC,DDD\n/, "print as some strings");
+	  $TL->print( "\r\n" );
+	}), qq/aaa,"b,b,b",CCC,DDD\r\n/, "print as some strings");
 }
 
 # -----------------------------------------------------------------------------

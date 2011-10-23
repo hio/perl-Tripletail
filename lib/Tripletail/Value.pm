@@ -29,8 +29,8 @@ my $mobilemailexp = qr{^
 	([\w\-]+(?:\.[\w\-]+)+) # Domain-part
 \z}x;
 
-my $re_hira = qr/\xe3(?:\x81[\x81-\xbf]|\x82[\x80-\x93])/; # xa-mi,mu-n
-my $re_kata = qr/\xe3(?:\x82[\xa1-\xbf]|\x83[\x80-\xb3])/; # xa-ta,da-n
+my $re_hira = qr/\xe3(?:\x81[\x81-\xbf]|\x82[\x80-\x93]|\x83\xbc)/; # xa-mi,mu-n,ー
+my $re_kata = qr/\xe3(?:\x82[\xa1-\xbf]|\x83[\x80-\xb3]|\x83\xbc)/; # xa-ta,da-n,ー
 my $re_char = qr/[\x00-\x7f]|[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xf7][\x80-\xbf]{3}|[\xf8-\xfb][\x80-\xbf]{4}|[\xfc-\xfd][\x80-\xbf]{5}/;
 my $re_widenum = qr/\xef\xbc[\x90-\x99]/;
 

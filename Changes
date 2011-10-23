@@ -1,5 +1,27 @@
 Revision history for Tripletail
 
+0.34 Fri Sep 14 14:38:19 JST 2007
+	- [[重要:非互換な仕様変更]]
+	　- Value#isHira, isKata で判定をする際、「ー」があると偽を
+	　　返していたが、真を返すように修正。
+	　- Tripletail::Filter::CSV に配列のリファレンスを渡した場合に、
+	　　出力時の改行コードを "\n" から "\r\n" に変更した。
+	　- startCgi内で、不完全なリクエスト
+	　　(POST時にbodyがContent-Lengthよりも短いもの等)
+	　　の場合は、途中で接続が切れたものとして扱い、
+	　　その時はinitRequestのみ実行され、
+	　　pre/postRequestフック及びmainは実行されずに、
+	　　ダミーのコンテンツを返すようにした
+	　　(これはエラー扱いではないので、エラーログ及びエラー通知メールは
+	　　 送られない)
+	　- Tripletail::Filter::MemCachedのmodeオプションのreadが、
+	　　pass-throughに変更されました。
+	　- Tripletail#printCacheUnlessModified, Tripletail#setCacheの、
+	　　引数を変更し、Tripletaik#setCacheFilterを追加した。
+	- errortemplateを指定した場合に正常に機能しない問題を修正した。
+	- Tripletail::Filter::CSV に配列のリファレンスを渡した場合に
+	　どのような改行コードを利用するか指定するオプションを追加。
+
 0.33 Mon Sep 10 16:26:55 JST 2007
 	- [[重要:非互換な仕様変更]]
 	　- DateTimeクラスのtai64フォーマットの処理に問題があり、修正が

@@ -11,11 +11,11 @@ our @ISA = qw(Tripletail::Filter);
 # このフィルタは必ず最後に呼び出されなければならない。
 # オプション一覧:
 # * key     => MemCachedから読み込む際のキー
-# * mode     => MemCachedへの書き込み(write)か、MemCachedからの出力(read)か。
-# * param    => 書き込み時に埋め込むデータ。Tripletail::Fromクラスの形で渡す。
-# * charset     => 書き込み時に埋め込むデータを変換するための、出力の文字コード。(UTF-8から変換される)
-#                  Encode.pmが利用可能なら利用する。(UniJP一部互換エンコード名、sjis絵文字使用不可)
+# * mode    => MemCachedへの書き込み(write)か、MemCachedからの出力(pass-through)か。
+# * form    => 書き込み時に埋め込むデータ。Tripletail::Fromクラスの形で渡す。
+# * formcharset => 書き込み時に埋め込むデータを変換するための、出力の文字コード。(UTF-8から変換される)
 #                  デフォルト: Shift_JIS
+# * cachedata   => メモリーにキャッシュされていたデータを渡す。
 
 
 1;
@@ -26,29 +26,35 @@ sub _new {
 
 	# デフォルト値を埋める。
 	my $defaults = [
-		[charset => 'Shift_JIS'],
+		[formcharset => 'Shift_JIS'],
 		[key     => undef],
 		[mode    => 'in'],
-		[param   => undef],
+		[form    => undef],
+		[cachedata   => undef],
 	];
 	$this->_fill_option_defaults($defaults);
 
 	# オプションのチェック
 	my $check = {
-		charset     => [qw(defined no_empty scalar)],
-		key     => [qw(defined no_empty scalar)],
+		formcharset     => [qw(defined no_empty scalar)],
+		key      => [qw(defined no_empty scalar)],
 		mode     => [qw(defined no_empty scalar)],
-		param     => [qw(no_empty)],
+		form     => [qw(no_empty)],
+		cachedata       => [qw(no_empty scalar)],
 	};
 	$this->_check_options($check);
 
-	if($this->{option}{mode} ne 'write' && $this->{option}{mode} ne 'read') {
+	if($this->{option}{mode} ne 'write' && $this->{option}{mode} ne 'pass-through') {
 		die "TL#setContentFilter: option [mode] for [Tripletail::Filter::MemCache] ".
-			"must be 'write' or 'read' instead of [$this->{option}{mode}].".
-			" (modeはwriteかreadのいずれかを指定してください)\n";
+			"must be 'write' or 'pass-through' instead of [$this->{option}{mode}].".
+			" (modeはwriteかpass-throughのいずれかを指定してください)\n";
 	}
-
-	$this->{buffer} = '';
+	
+	if($this->{option}{mode} eq 'pass-through' && defined($this->{option}{cachedata})) {
+		$this->{buffer} = $this->{option}{cachedata};
+	} else {
+		$this->{buffer} = '';
+	}
 
 	$this;
 }
@@ -85,9 +91,9 @@ sub flush {
 		$output = q{Last-Modified: } . $TL->newDateTime->setEpoch($nowtime)->toStr('rfc822') . qq{\r\n} . $this->{buffer};
 		my $value = $nowtime . q{,} . $output;
 		$TL->newMemCached->set($this->{option}{key},$value);
-		if(defined($this->{option}{param})) {
-			foreach my $key2 ($this->{option}{param}->getKeys){
-				my $val = $TL->charconv($this->{option}{param}->get($key2), 'UTF-8' => $this->{option}{charset});
+		if(defined($this->{option}{form})) {
+			foreach my $key2 ($this->{option}{form}->getKeys){
+				my $val = $TL->charconv($this->{option}{form}->get($key2), 'UTF-8' => $this->{option}{formcharset});
 				$output =~ s/$key2/$val/g;
 			}
 		}
@@ -121,7 +127,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 
 =head1 SYNOPSIS
 
-  $TL->setContentFilter('Tripletail::Filter::MemCached',key => 'key', mode => 'read', param => $param,  charset => 'Shift_JIS');
+  $TL->setContentFilter('Tripletail::Filter::MemCached',key => 'key', mode => 'pass-through', form => $form,  formcharset => 'Shift_JIS',  cachedata => $cachedata);
 
 =head1 DESCRIPTION
 
@@ -154,23 +160,29 @@ MemCachedで使用するkeyを設定する。
 
 MemCachedへの書き込みか、MemCachedからの読み込みかを選択する。
 
-writeで書き込み、readで読み込み。省略可能。
+writeで書き込み、pass-throughで読み込み。省略可能。
 
 デフォルトはwrite。
 
-=item param
+=item form
 
 inで書き込みをする際に、出力文字列中に最後に埋め込みを行う情報をL<Tripletail::Form> クラスのインスタンスで指定する。
 L<Tripletail::Form>クラスのキーが出力文字列中に存在している場合、値に置換する。省略可能。
 
-=item charset
+=item formcharset
 
-paramの値をUTF-8から変換する際の文字コードを指定する。省略可能。
+formの値をUTF-8から変換する際の文字コードを指定する。省略可能。
 
 使用可能なコードは次の通り。
 UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 デフォルトはShift_JIS。
+
+=item cachedata
+
+pass-through時のみに使用される。
+出力するMemCachedのデータを渡す。
+直接出力されるため、ヘッダや文字コードに注意する必要がある。
 
 =back
 

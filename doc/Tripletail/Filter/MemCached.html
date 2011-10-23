@@ -85,7 +85,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 
 </span></a></h1>
 
-<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MemCached',key =&gt; 'key', mode =&gt; 'read', param =&gt; $param,  charset =&gt; 'Shift_JIS');</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MemCached',key =&gt; 'key', mode =&gt; 'pass-through', form =&gt; $form,  formcharset =&gt; 'Shift_JIS',  cachedata =&gt; $cachedata);</code></pre>
 
 
 <hr />
@@ -159,7 +159,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 </p>
 
 <p>
-<span class="pod_lang">writeで書き込み、readで読み込み。省略可能。
+<span class="pod_lang">writeで書き込み、pass-throughで読み込み。省略可能。
 
 </span>
 </p>
@@ -171,7 +171,7 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 </p>
 
 </dd>
-<dt><a id="param"><span class="pod_lang">param
+<dt><a id="form"><span class="pod_lang">form
 
 </span></a></dt>
 <dd>
@@ -183,12 +183,12 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 </p>
 
 </dd>
-<dt><a id="charset"><span class="pod_lang">charset
+<dt><a id="formcharset"><span class="pod_lang">formcharset
 
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">paramの値をUTF-8から変換する際の文字コードを指定する。省略可能。
+<span class="pod_lang">formの値をUTF-8から変換する際の文字コードを指定する。省略可能。
 
 </span>
 </p>
@@ -202,6 +202,19 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 
 <p>
 <span class="pod_lang">デフォルトはShift_JIS。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="cachedata"><span class="pod_lang">cachedata
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">pass-through時のみに使用される。
+出力するMemCachedのデータを渡す。
+直接出力されるため、ヘッダや文字コードに注意する必要がある。
 
 </span>
 </p>
@@ -296,11 +309,12 @@ Tripletail::Filter::MemCached - MemCachedを使用するときに使用するフ
 <li><a href="#X_">Tripletail</a></li>
 <li><a href="#X__00">Tripletail::Filter</a></li>
 <li><a href="#X__01">Tripletail::MemCached</a></li>
-<li><a href="#charset">charset</a></li>
+<li><a href="#cachedata">cachedata</a></li>
 <li><a href="#flush">flush</a></li>
+<li><a href="#form">form</a></li>
+<li><a href="#formcharset">formcharset</a></li>
 <li><a href="#key">key</a></li>
 <li><a href="#mode">mode</a></li>
-<li><a href="#param">param</a></li>
 <li><a href="#print">print</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">フィルタパラメータ</a></li>
 </ul>

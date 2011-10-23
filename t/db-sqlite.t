@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.10 2007/09/06 05:46:18 mikage Exp $
+# $Id: db-sqlite.t,v 1.11 2007/09/14 05:50:08 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -26,6 +26,7 @@ use lib '.';
 use t::make_ini {
 	ini => {
 		TL => {
+			trap => 'none',
 		},
 		DB => {
 			type       => 'sqlite',
@@ -46,6 +47,15 @@ if( !$has_DBD_SQLite )
 if( !$DBINFO{dbname} )
 {
 	plan skip_all => "no MSSQL_DBNAME";
+}
+eval {
+	$TL->trapError(
+		-DB   => 'DB',
+		-main => sub {},
+	);
+};
+if ($@) {
+	plan skip_all => "Failed to connect to database: $@";
 }
 
 # -----------------------------------------------------------------------------

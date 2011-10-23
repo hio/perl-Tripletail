@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: make_ini.pm,v 1.5 2007/08/22 09:22:04 hio Exp $
+# $Id: make_ini.pm,v 1.6 2007/09/13 06:39:18 hio Exp $
 # -----------------------------------------------------------------------------
 package t::make_ini;
 use strict;
@@ -190,7 +190,7 @@ sub tltest
 			$| = 1;
 			eval "{package $caller; use Tripletail qw($INI_FILE);1;}";
 			$@ and die "load: $@";
-			alarm(1);$SIG{ALRM} = sub{ print "ALRM\n";exit 1;};
+			alarm(15);$SIG{ALRM} = sub{ print "ALRM\n";exit 1;};
 			$opts->{sub}->();
 		};
 		$@ and print $chl_w $@;
