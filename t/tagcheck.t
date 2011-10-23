@@ -1,4 +1,4 @@
-use Test::More tests => 25;
+use Test::More tests => 32;
 use Test::Exception;
 use strict;
 use warnings;
@@ -116,4 +116,14 @@ is($tc->check($src), $dst_3, 'check (3)');
 
 ok(my $info = Tripletail::TagCheck::TagInfo->new('A'), 'TagInfo new');
 is($info->isAllowedAttribute(''), 1 ,'isAllowedAttribute');
+
+$tc = $TL->newTagCheck;
+$tc->setAllowTag(':BR;X;Y;Z');
+is($tc->check(q{<br><BR>}), q{<br><BR>}, 'check :tag');
+is($tc->check(q{<br/><BR/><br /><BR />}), q{<br /><BR /><br /><BR />}, 'check :tag');
+is($tc->check(q{<x><y><Z></Z></y></x>}), q{<x><y><Z></Z></y></x>}, 'check ;tag');
+is($tc->check(q{<x><y><Z>}), q{<x><y><Z></Z></y></x>}, 'check ;tag');
+is($tc->check(q{<x><y><Z/>}), q{<x><y><Z /></y></x>}, 'check ;tag');
+is($tc->check(q{<x><y><Z></Z>}), q{<x><y><Z></Z></y></x>}, 'check ;tag');
+is($tc->check(q{<x><y><Z></y></x>}), q{<x><y><Z></y></x></Z>}, 'check ;tag');
 

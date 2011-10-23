@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: test_server.pm,v 1.2 2006/11/16 07:32:56 hio Exp $
+# $Id: test_server.pm,v 1.3 2007/08/31 02:20:28 hio Exp $
 # -----------------------------------------------------------------------------
 package t::test_server;
 use strict;
@@ -16,13 +16,32 @@ our $HTTP_PORT = 8967;
 our $SERVER_PID;
 our $KEY;
 our $UserAgent;
+our @cleanup;
 
-END{
+END
+{
 	local($?);
-	$SERVER_PID && &stop_server;
+	if( $SERVER_PID )
+	{
+		&stop_server;
+		
+		foreach my $sub (reverse @cleanup)
+		{
+			$sub->();
+		}
+	}
 }
 
 1;
+
+# -----------------------------------------------------------------------------
+# add_cleanup(\&sub);
+#  add cleanup routine.
+#
+sub add_cleanup
+{
+	push(@cleanup, shift);
+}
 
 # -----------------------------------------------------------------------------
 # check_requires.
@@ -290,6 +309,7 @@ sub stop_server ()
 #  request => 'GET','POST' (required)
 #  db      => $db,\@db
 #  session => $sess,\@sess
+#  cleanup => \&cleanup.
 #
 #  コード片を startCgi の main で実行してその復帰値を返す. 
 #  指定しなかったパラメータは前のが残る(子プロセスで消してないから).
@@ -382,6 +402,7 @@ sub request
 #  env    => $env.
 #  method => 'GET','POST' (required)
 #  params => \%params,\@params, to user-agent get/post request.
+#  cleanup => \&cleanup.
 #
 #  script で渡したコードをそのまま実行する.
 #  指定しなかったパラメータは前のが残る(子プロセスで消してないから).
@@ -448,6 +469,17 @@ sub raw_request
 	if( !$res->is_success )
 	{
 		die $res->as_string;
+	}
+	
+	if( $opts->{cleanup} )
+	{
+		local($@);
+		eval{ $opts->{cleanup}->() };
+		if( my $err = $@ )
+		{
+			$err =~ s/^(?!\z)/# /mg;
+			print STDERR $err;
+		}
 	}
 	
 	$res;

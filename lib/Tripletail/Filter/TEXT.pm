@@ -10,8 +10,8 @@ our @ISA = qw(Tripletail::Filter);
 
 # オプション一覧:
 # * charset     => 出力の文字コード。(UTF-8から変換される)
-#                  Encode.pmが利用可能なら利用する。(UniJP一部互換エンコード名、sjis絵文字使用不可)
-#                  デフォルト: sjis
+#                  (絵文字使用不可)
+#                  デフォルト: Shift_JIS
 # * contenttype => デフォルト: text/plain; charset=(CHARSET)
 
 1;
@@ -27,18 +27,10 @@ sub _new {
 
 	# デフォルト値を埋める。
 		my $defaults = [
-		[charset     => 'sjis'],
+		[charset     => 'Shift_JIS'],
 		[contenttype => sub {
 			# 動的に決まるのでCODE Refを渡す。引数は取らない。
-			require Tripletail::CharConv;
-			my $cc = Tripletail::CharConv->_getInstance;
-			my $table = $cc->__getEncodeAliases;
-
-			if($_ = $table->{$this->{option}{charset}}) {
-				sprintf 'text/plain; charset=%s', $_;
-			} else {
-				sprintf 'text/plain; charset=%s', $this->{option}{charset};
-			}
+			sprintf 'text/plain; charset=%s', $this->{option}{charset};
 		}],
 	];
 	$this->_fill_option_defaults($defaults);

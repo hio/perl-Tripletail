@@ -43,6 +43,11 @@ Tripletail::Template - テンプレート
 
 </span></a>
 </li>
+<li><a href="#Xe5X88Xa9Xe7X94Xa8Xe4Xb8X8aXe3X81XaeXe6Xb3Xa8Xe6X84X8f">
+<span class="pod_lang">利用上の注意
+
+</span></a>
+</li>
 <li><a href="#METHODS">
 <span class="pod_lang">METHODS
 
@@ -251,6 +256,68 @@ loadTemplate が呼ばれていない場合は、カレントディレクトリ�
 </dd>
 </dl>
 
+<h2><a id="Xe5X88Xa9Xe7X94Xa8Xe4Xb8X8aXe3X81XaeXe6Xb3Xa8Xe6X84X8f">
+<span class="pod_lang">利用上の注意
+
+</span></a></h2>
+
+<p>
+<span class="pod_lang">テンプレートクラスには、単純に展開処理を行う系統のメソッドと、
+HTMLの内容を解釈して処理を行う系統のメソッドがあります。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">展開タグやブロックを扱う expand/add メソッドはどのような
+テキストデータに対しても処理を行うことができますので、
+これらのメソッドを呼び出すときに正しいHTML形式ではなくても
+動作します。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">たとえば、以下のようなHTMLに対し、expand/addメソッドは
+正常に利用できます。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> &lt;select name=&quot;type&quot;&gt;
+   &lt;!begin:item&gt;
+     &lt;option value=&quot;&lt;&amp;ID&gt;&quot; &lt;&amp;SELECTED&gt;&gt;&lt;&amp;NAME&gt;&lt;/option&gt;
+   &lt;!end:item&gt;
+ &lt;/select&gt;</code></pre>
+
+<p>
+<span class="pod_lang">expand/addメソッドを使って、上記のHTMLを正常な形に加工した後であれば、
+HTMLの内容を解釈して処理を行う系統のメソッド（setFormやaddHiddenFormなど）を利用できます。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">たとえば、以下のようなHTMLに加工後に、setFormやaddHiddenFormを
+呼ぶことは問題がありません。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> &lt;select name=&quot;type&quot;&gt;
+     &lt;option value=&quot;1&quot; SELECTED&gt;いちご&lt;/option&gt;
+     &lt;option value=&quot;2&quot; &gt;もも&lt;/option&gt;
+     &lt;option value=&quot;3&quot; &gt;なし&lt;/option&gt;
+ &lt;/select&gt;</code></pre>
+
+<p>
+<span class="pod_lang">しかし、expand/addメソッドによる加工を行う前のHTMLに対して、
+setFormやaddHiddenFormなどを利用すると、正しいHTML形式ではないため、
+内容の解釈が正しく行えず、意図しない結果となることがあります。
+
+</span>
+</p>
+
 <h2><a id="METHODS">
 <span class="pod_lang">METHODS
 
@@ -263,8 +330,7 @@ loadTemplate が呼ばれていない場合は、カレントディレクトリ�
 <dd>
 <pre class="pod_verbatim"><code>  $t = $TL-&gt;newTemplate
   $t = $TL-&gt;newTemplate($filepath)
-  $t = $TL-&gt;newTemplate($filepath, $icode)
-  $t = $TL-&gt;newTemplate($filepath, $icode, $prefer_encode)</code></pre>
+  $t = $TL-&gt;newTemplate($filepath, $icode)</code></pre>
 
 <p>
 <span class="pod_lang">Tripletail::Template オブジェクトを作成。
@@ -279,8 +345,7 @@ loadTemplate が呼ばれていない場合は、カレントディレクトリ�
 </span></a></dt>
 <dd>
 <pre class="pod_verbatim"><code>  $t-&gt;loadTemplate($filepath)
-  $t-&gt;loadTemplate($filepath, $icode)
-  $t-&gt;loadTemplate($filepath, $icode, $prefer_encode)</code></pre>
+  $t-&gt;loadTemplate($filepath, $icode)</code></pre>
 
 <p>
 <span class="pod_lang">指定されたファイルをテンプレートとして読み込む。
@@ -305,12 +370,6 @@ loadTemplate が呼ばれていない場合は、カレントディレクトリ�
 <p>
 <span class="pod_lang">自動判別はUTF-8よりShift_JISを優先するので、テンプレートファイルは
 Shift_JISコードで作成することを推奨する。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">$prefer_encode を真にすると Encode が利用可能な場合は Encode で変換する。
 
 </span>
 </p>
@@ -1051,6 +1110,7 @@ Tripletail::Template - テンプレート
 <li><a href="#Xe3X82XbdXe3X83XbcXe3X82Xb9Xe3X82Xb3Xe3X83XbcXe3X83X89">ソースコード</a></li>
 <li><a href="#Xe3X83X86Xe3X83Xb3Xe3X83X97Xe3X83XacXe3X83XbcXe3X83X88Xe6X9bXb8Xe5XbcX8f">テンプレート書式</a></li>
 <li><a href="#Xe3X83X96Xe3X83XadXe3X83X83Xe3X82XafXe3X82XbfXe3X82Xb0">ブロックタグ</a></li>
+<li><a href="#Xe5X88Xa9Xe7X94Xa8Xe4Xb8X8aXe3X81XaeXe6Xb3Xa8Xe6X84X8f">利用上の注意</a></li>
 <li><a href="#Xe5XaeX9fXe8Xa1X8cXe7Xb5X90Xe6X9eX9c">実行結果</a></li>
 <li><a href="#Xe5Xb1X95Xe9X96X8bXe3X82XbfXe3X82Xb0">展開タグ</a></li>
 </ul>

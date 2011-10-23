@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 131 + 6*4+7;
+use Test::More tests => 155 + 6*4+7;
 
 #---------------------------------- 一般
 my $v;
@@ -180,6 +180,9 @@ is($v->set('あえいおう')->forceMaxUtf8Len(5)->get, 'あ', 'forceMaxUtf8Len'
 is($v->set('あえいおう')->forceMaxSjisLen(5)->get, 'あえ', 'forceMaxSjisLen');
 is($v->set('あえいおう')->forceMaxCharLen(4)->get, 'あえいお', 'forceMaxCharLen');
 
+is($v->set(Unicode::Japanese->new("1\xED\x402", 'sjis')->utf8)->forcePortable->get, '12', 'forcePortable');
+is($v->set(Unicode::Japanese->new("\x00\x0f\xf0\x10", 'ucs4')->utf8)->forcePcPortable->get, '', 'forcePcPortable');
+
 #---------------------------------- その他
 
 is($v->set(' A ')->trimWhitespace->get, 'A', 'trimWhitespace');
@@ -187,7 +190,13 @@ is($v->set('　A　')->trimWhitespace->get, 'A', 'trimWhitespace');
 is($v->set("\t\tA\t\t")->trimWhitespace->get, 'A', 'trimWhitespace');
 is($v->set("\t\t 　\tA  A\t 　　\t")->trimWhitespace->get, 'A  A', 'trimWhitespace');
 ok(! $v->set(Unicode::Japanese->new("\xED\x40", 'sjis')->utf8)->isPortable, 'isPortable');
+ok(! $v->set(Unicode::Japanese->new("\x00\x00\xf0\x10", 'ucs4')->utf8)->isPortable, 'isPortable');
+ok(! $v->set(Unicode::Japanese->new("\x00\x0f\x10\x10", 'ucs4')->utf8)->isPortable, 'isPortable');
 ok($v->set('あ')->isPortable, 'isPortable');
+ok($v->set(Unicode::Japanese->new("\xED\x40", 'sjis')->utf8)->isPcPortable, 'isPcPortable');
+ok($v->set(Unicode::Japanese->new("\x00\x00\xf0\x10", 'ucs4')->utf8)->isPcPortable, 'isPcPortable');
+ok(! $v->set(Unicode::Japanese->new("\x00\x0f\xf0\x10", 'ucs4')->utf8)->isPcPortable, 'isPcPortable');
+ok($v->set('あ')->isPortable, 'isPcPortable');
 is($v->set("あああ　えええ")->countWords, 2, 'countWords');
 
 my @str;
@@ -198,6 +207,28 @@ is($str[1],'bい','strCut');
 is($str[2],'うえ','strCut');
 is($str[3],'cd','strCut');
 is($str[4],'お','strCut');
+
+ok(@str = $v->set('あabいうえcお')->strCutSjis(2), 'strCutSjis');
+
+is($str[0],'あ','strCut');
+is($str[1],'ab','strCut');
+is($str[2],'い','strCut');
+is($str[3],'う','strCut');
+is($str[4],'え','strCut');
+is($str[5],'c','strCut');
+is($str[6],'お','strCut');
+
+ok(@str = $v->set('あabいうえcお')->strCutUtf8(3), 'strCutUtf8');
+
+is($str[0],'あ','strCut');
+is($str[1],'ab','strCut');
+is($str[2],'い','strCut');
+is($str[3],'う','strCut');
+is($str[4],'え','strCut');
+is($str[5],'c','strCut');
+is($str[6],'お','strCut');
+
+
 
 foreach my $iter (
 	['default', 10, undef,                   qr/^[a-zA-Z2-8]+$/],

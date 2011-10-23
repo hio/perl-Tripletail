@@ -106,25 +106,29 @@ Tripletail::InputFilter::MobileHTML - 携帯電話向けHTML用CGIクエリ読�
 </p>
 
 <dl>
-<dt><a id="Xe6X96X87Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5X88Xa4Xe5X88Xa5"><span class="pod_lang">文字コード判別
+<dt><a id="Xe7Xb5Xb5Xe6X96X87Xe5XadX97Xe5Xa4X89Xe6X8fX9b"><span class="pod_lang">絵文字変換
 
 </span></a></dt>
 <dd>
 <p>
 <span class="pod_lang">携帯電話の機種毎の絵文字の違いに対応する為に、<code class="pod_iseq_C">User-Agent</code> を見て
-機種を判別する。
+機種を判別し、常に Unicode::Japanese を利用して文字コード変換を行う。
 
 </span>
 </p>
 
-</dd>
-<dt><a id="Xe6X96X87Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5Xa4X89Xe6X8fX9b"><span class="pod_lang">文字コード変換
-
-</span></a></dt>
-<dd>
 <p>
-<span class="pod_lang">Encodeは絵文字に対応していない為、文字コード変換には常に Unicode::Japanese
-が用いられる。
+<span class="pod_lang">絵文字は Unicode のプライベート領域にマップされる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">プライベート領域の文字は、UTF-8 にしたときは１文字４バイトとなるので、
+DB 等に格納する際はサイズに注意する必要がある。
+また、DB の Unicode 対応の範囲外となっている場合、文字化け等することが
+あるので、UTF-8 文字列をバイナリとして DB に保存することを推奨する。
+（MySQL であれば、tinyblob/blob/mediumblob/longblob 型を利用する。）
 
 </span>
 </p>
@@ -251,8 +255,7 @@ Tripletail::InputFilter::MobileHTML - 携帯電話向けHTML用CGIクエリ読�
 <li><a href="#X__02">Tripletail::InputFilter::HTML</a></li>
 <li><a href="#decodeCgi">decodeCgi</a></li>
 <li><a href="#X_">セッション</a></li>
-<li><a href="#Xe6X96X87Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5X88Xa4Xe5X88Xa5">文字コード判別</a></li>
-<li><a href="#Xe6X96X87Xe5XadX97Xe3X82Xb3Xe3X83XbcXe3X83X89Xe5Xa4X89Xe6X8fX9b">文字コード変換</a></li>
+<li><a href="#Xe7Xb5Xb5Xe6X96X87Xe5XadX97Xe5Xa4X89Xe6X8fX9b">絵文字変換</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

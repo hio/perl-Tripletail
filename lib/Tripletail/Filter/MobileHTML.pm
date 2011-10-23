@@ -19,7 +19,6 @@ our @ISA = qw(Tripletail::Filter::HTML);
 # オプション一覧:
 # * charset     => 出力の文字コード。(UTF-8から変換される)
 #                  常にUniJPを用いて変換される。
-#                  デフォルト: Shift_JIS
 # * contenttype => デフォルト: text/html; charset=(CHARSET)
 
 1;
@@ -27,7 +26,40 @@ our @ISA = qw(Tripletail::Filter::HTML);
 sub _new {
 	my $class = shift;
 	my $this = $class->SUPER::_new(@_);
+	
+	$this;
+}
 
+sub _setCode {
+	my $this = shift;
+	
+	my $ocode = 'sjis';
+	if(my $agent = $ENV{HTTP_USER_AGENT}) {
+		if($agent =~ m/^DoCoMo/i) {
+			$ocode = 'sjis-imode';
+		} elsif($agent =~ m/^ASTEL/i) {
+			$ocode = 'sjis-doti';
+		} elsif($agent =~ m/^(Vodafone|SoftBank|MOT-)/i) {
+			$ocode = 'utf8-jsky';
+		} elsif($agent =~ m/^(J-PHONE)/i) {
+			$ocode = 'sjis-jsky';
+		} elsif($agent =~ m/UP\.Browser/i) {
+			# Softbank端末かつUP.Browserを含むものもあるのでSoftbankの後に判別すること
+			$ocode = 'sjis-au';
+		}
+	}
+	
+	$this->{option}{charset} = $ocode;
+	if($ocode =~ m/^sjis/) {
+		$this->{option}{contenttype} = 'text/html; charset=Shift_JIS';
+	} elsif($ocode =~ m/^utf8/) {
+		$this->{option}{contenttype} = 'text/html; charset=UTF-8';
+	} else {
+		die "internal errlr.\n";
+	}
+	
+	$this->setHeader('Content-Type' => $this->{option}{contenttype});
+	
 	$this;
 }
 
@@ -35,11 +67,10 @@ sub print {
 	my $this = shift;
 	my $data = shift;
 
-	if(ref($data)) {
-		die __PACKAGE__."#print, ARG[1] was a Ref. [$data]\n";
-	}
-
 	if(!$this->{content_printed}) {
+		
+		$this->_setCode;
+		
 		if(defined(&Tripletail::Session::_getInstance)) {
 			# Tripletail::Sessionが有効になっているので、データが有れば、それを$this->{save}に加える。
 			foreach my $group (Tripletail::Session->_getInstanceGroups) {
@@ -51,10 +82,22 @@ sub print {
 	$this->SUPER::print($data);
 }
 
-
 sub _make_header {
-	# Tripletail::Filter::HTMLがクッキーを出力するのをやめさせる。
-	return {};
+	my $this = shift;
+	
+	# クッキーの出力は行わない
+	
+	my %opts = ();
+	if(defined $this->{locationurl}) {
+		if(!$TL->getDebug->{location_debug}) {
+			# relinkした上でLocationを生成。
+			%opts = (Location => $this->_relink(url => $this->{locationurl}));
+		}
+	}
+	
+	return {
+		%opts,
+	};
 }
 
 __END__
@@ -67,7 +110,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 
 =head1 SYNOPSIS
 
-  $TL->setContentFilter('Tripletail::Filter::MobileHTML', charset => 'Shift_JIS');
+  $TL->setContentFilter('Tripletail::Filter::MobileHTML');
   
   $TL->print($TL->readTextFile('foo.html'));
 
@@ -79,7 +122,7 @@ HTMLに対して以下の処理を行う。
 
 =item *
 
-漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）
+絵文字対応の漢字コード変換
 
 =item *
 
@@ -98,10 +141,6 @@ E<lt>form action=""E<gt> が空欄の場合、自分自身のCGI名を埋める
 L<Tripletail::Filter::HTML> との違いは以下の通り。
 
 =over 4
-
-=item *
-
-文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。
 
 =item *
 
@@ -161,28 +200,42 @@ C<EXT="1"> が付与されているフォームに関しては、セッション
 セッション情報は、http領域用のセッション情報は C<"SID + セッショングループ名">、
 https領域用のセッション情報は C<"SIDS + セッショングループ名"> という名称で保存する。
 
+=head2 絵文字変換
+
+USER_AGENT文字列を元に、DoCoMo、Softbank（Vodafone、J-PHONE）、AU、ASTEL を自動判別し、
+それぞれの端末用に出力します。
+文字コードは Softbank 3G 以外は Shift_JIS ＋ 各キャリアの絵文字コード、
+Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとなります。
+
+それ以外の端末（WillcomやPC）の場合は、Shift_JIS コードで出力します。
+
+携帯から送信されたフォームデータは、DoCoMo、Softbank 2G 以前（J-PHONE）、AU、ASTEL の場合は
+Shift_JIS ＋ 各キャリアの絵文字コード、Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとして
+解析します。
+
+それ以外の端末（WillcomやPC）の場合は、L<Tripletail::InputFilter::HTML> と同様に
+CCC による文字コード判別を行います。
+
+
+絵文字は、入力時に UTF-8 のプライベート領域にマップされ、出力時に絵文字に戻されます。
+
+入力時と出力時で携帯キャリアが異なる場合は、Unicode::Japanese の絵文字変換マップに
+従って変換され、出力されます。
+
+この変換マップは、携帯キャリアが公式に提供している絵文字変換マップとは
+異なる部分があります。
+
 =head2 フィルタパラメータ
 
 =over 4
 
-=item charset
-
-  $TL->setContentFilter('Tripletail::Filter::MobileHTML', charset => 'Shift_JIS');
-
-出力文字コードを指定する。省略可能。
-
-使用可能なコードは次の通り。
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
-	
-デフォルトはShift_JIS。
-
 =item contenttype
 
-  $TL->setContentFilter('Tripletail::Filter::MobileHTML', contenttype => 'text/html; charset=sjis');
+  $TL->setContentFilter('Tripletail::Filter::MobileHTML', contenttype => 'text/html; charset=Shift_JIS');
 
 Content-Typeを指定する。省略可能。
 
-デフォルトはtext/html; charset=（charasetで指定された文字コード）。
+デフォルトはtext/html; charset=Shift_JIS。
 
 =item type
 
@@ -208,38 +261,6 @@ XHTMLを出力する際に、このパラメータをhtmlのままにした場�
 
 出力フィルタが所持している保存すべきデータが入った、
 L<Form|Tripletail::Form> オブジェクトを返す。
-
-=item setDecideLink
-
-  $TL->getContentFilter->setDecideLink(\&func);
-
-リンク種別を決定する関数を設定する。
-値を渡さないとデフォルトの判別処理に戻す。
-
-関数の戻り値が1であれば、同じTLライブラリで作成された環境へのリンクとして、リンクの書き換えを行う。
-関数の戻り値が0であれば、リンクの書き換えは行わない。 
-
-デフォルトの判別処理は以下の関数で行っている。
-
-  sub defaultDecideLink {
-    my (%param) = @_;
-
-    if($param{'link'} =~ m/^https?/) {
-      return 0;
-    }
-    elsif($param{'link'} =~ m/^javascript/i) {
-      return 0;
-    }
-    elsif($param{'link'} =~ m/^(?:mailto|ftp):/) {
-      return 0;
-    }
-    elsif(not length $param{'link'}) {
-      return 0;
-    }
-    else {
-      return 1;
-    }
-  }
 
 =item setHeader
 

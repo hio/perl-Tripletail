@@ -11,7 +11,7 @@ my $requires = {
     'IO::Scalar'          => 0, # IO-stringy
     'MIME::Tools'         => 5.411,
     'PadWalker'           => '1.0',
-    'Unicode::Japanese'   => 0,
+    'Unicode::Japanese'   => '0.41',
     'Text::CSV_XS'        => 0, # optional
 };
 

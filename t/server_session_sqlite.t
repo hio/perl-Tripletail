@@ -40,9 +40,9 @@ sub setup
 		plan skip_all => $failmsg;
 	}
 	
-	eval{ require DBD::mysql; };
-	$@ and plan skip_all => "no DBD::mysql";
-	diag "DBD::mysql ".DBD::mysql->VERSION;
+	eval{ require DBD::SQLite; };
+	$@ and plan skip_all => "no DBD::SQLite";
+	diag "DBD::SQLite ".DBD::SQLite->VERSION;
 	
 	&start_server;
 	
@@ -50,13 +50,13 @@ sub setup
 	my ($name) = getpwuid($<);
 	my $ini = {
 		DB => {
-			type    => 'mysql',
+			type    => 'sqlite',
 			defaultset  => 'SET_Default',
 			SET_Default => 'DBRW1',
 		},
 		DBRW1 => {
 			host     => $ENV{TEST_DBHOST} || 'localhost',
-			dbname   => $ENV{TEST_DBNAME} || 'test',
+			dbname   => $ENV{TEST_DBNAME} || 'test.session.sqlite',
 			user     => $ENV{TEST_DBUSER} || $name,
 			password => $ENV{TEST_DBPASS},
 		},
@@ -68,6 +68,10 @@ sub setup
 			csrfkey      => 'TripletaiL_Key',
 		},
 	};
+	t::test_server::add_cleanup(sub{
+		unlink('test.session.sqlite');
+	});
+
 	
 	# check db connection.
 	my $ver = eval
@@ -76,7 +80,7 @@ sub setup
 			ini     => $ini,
 			db      => 'DB', 
 			session => 'Session',
-			script  => q{ $TL->getDB()->selectRowArray('SELECT version()'); },
+			script  => q{ $TL->getDB()->selectRowArray('SELECT sqlite_version()'); },
 		);
 	};
 	if( $@ )
@@ -250,10 +254,11 @@ sub test_03_form
 # 
 sub teardown
 {
+	# DROP TABLE IF EXISTS is implemented at sqlite-3.3.8.
 	is rget q{
 			my $DB = $TL->getDB();
 			$DB->execute(q{
-				DROP TABLE IF EXISTS TripletaiL_Session_Test
+				DROP TABLE TripletaiL_Session_Test
 			});
 			'ok';
     } => 'ok', '[teardown] drop table';

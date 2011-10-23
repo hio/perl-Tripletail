@@ -1148,6 +1148,13 @@ $value は大文字で始まらなければならない。
 </span>
 </p>
 
+<p>
+<span class="pod_lang">また、出力フィルタが <a href="././Tripletail/Filter/HTML.html">Tripletail::Filter::HTML</a> か <a href="././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a>
+の場合のみ利用できる。
+
+</span>
+</p>
+
 <h3><a id="Xe5Xa4X89Xe6X8fX9bXe5X87Xa6Xe7X90X86">
 <span class="pod_lang">変換処理
 
@@ -1262,32 +1269,14 @@ $value は大文字で始まらなければならない。
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $str = $TL-&gt;charconv($str, $from, $to, $prefer_encode);
-  $str = $TL-&gt;charconv($str, [$from1, $from2, ...], $to, $prefer_encode);
+<pre class="pod_verbatim"><code>  $str = $TL-&gt;charconv($str, $from, $to);
   
-  $str = $TL-&gt;charconv($str, 'auto' =&gt; 'UTF-8');
-  $str = $TL-&gt;charconv($str, ['EUC-JP', 'Shift_JIS'] =&gt; 'UTF-8');</code></pre>
+  $str = $TL-&gt;charconv($str, 'auto' =&gt; 'UTF-8');</code></pre>
 
 <p>
-<span class="pod_lang">文字コード変換を行う。 <a href="././Encode.html">Encode</a> が利用可能、且つ <code class="pod_iseq_C">$prefer_encode</code> が
-真である場合は、 <a href="././Encode.html">Encode</a> が用いられる。そうでない場合は
-<a href="././Unicode/Japanese.html">Unicode::Japanese</a> が用いられる。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang"><a href="././Encode.html">Encode</a> 使用時、変換元文字コードに <code class="pod_iseq_C">'auto'</code> を指定すると、
-<a href="././Unicode/Japanese.html">Unicode::Japanese</a> の <a href="././Unicode/Japanese.html#getcode">getcode()</a>
-と同じ優先順位で文字コードを自動判別する。また、エンコード名の候補を
-配列で指定すると、指定された優先順位で自動判別する。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang"><a href="././Unicode/Japanese.html">Unicode::Japanese</a> 使用時に配列で候補を指定した場合は、その配列が無視され、
-<code class="pod_iseq_C">'auto'</code> が指定されたものと見做される。
+<span class="pod_lang">文字コード変換を行う。
+基本的に <a href="././Unicode/Japanese.html">Unicode::Japanese</a> を利用するが、サポートしていない
+文字コードの場合は <a href="././Encode.html">Encode</a> を使用する。
 
 </span>
 </p>
@@ -1300,8 +1289,8 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang">確実に指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP である。
-それ以外の場合は、<a href="././Encode.html">Encode</a> と <a href="././Unicode/Japanese.html">Unicode::Japanese</a> のどちらが使用されるかにより使用できるものが異なる。
+<span class="pod_lang">指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
+<a href="././Unicode/Japanese.html">Unicode::Japanese</a>、<a href="././Encode.html">Encode</a> がサポートしているものが使用できる。
 
 </span>
 </p>
@@ -1868,7 +1857,7 @@ $value は大文字で始まらなければならない。
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $data = $TL-&gt;readTextFile($fpath, $coding, $prefer_encode);</code></pre>
+<pre class="pod_verbatim"><code>  $data = $TL-&gt;readTextFile($fpath, $coding);</code></pre>
 
 <p>
 <span class="pod_lang">ファイルを読み込み、UTF-8に変換する。
@@ -1878,8 +1867,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合は <code class="pod_iseq_C">'auto'</code> となる。<code class="pod_iseq_C">$prefer_encode</code> を真
-にすると <a href="././Encode.html">Encode</a> が利用可能な場合は <a href="././Encode.html">Encode</a> で変換する。
+<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合は <code class="pod_iseq_C">'auto'</code> となる。
 
 </span>
 </p>
@@ -1916,7 +1904,7 @@ $value は大文字で始まらなければならない。
 
 </span></a></h4>
 
-<pre class="pod_verbatim"><code>  $TL-&gt;writeTextFile($fpath, $fdata, $fmode, $coding, $prefer_encode);</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;writeTextFile($fpath, $fdata, $fmode, $coding);</code></pre>
 
 <p>
 <span class="pod_lang">ファイルにデータを書き込む。<code class="pod_iseq_C">$fdata</code> をUTF-8と見なし、指定された文字コードへ変換を行う。
@@ -1939,8 +1927,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合、utf8として扱う。<code class="pod_iseq_C">$prefer_encode</code> を真にする
-と <a href="././Encode.html">Encode</a> が利用可能な場合は <a href="././Encode.html">Encode</a> で変換する。
+<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合、utf8として扱う。
 
 </span>
 </p>

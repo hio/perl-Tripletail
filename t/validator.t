@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 141;
+use Test::More tests => 148;
 
 use t::make_ini {
 	ini => {
@@ -407,11 +407,38 @@ sub toHash {
   ok($validator->addFilter({
       true  => 'Portable',
       false  => 'Portable',
+      false2  => 'Portable',
+      force  => 'ForcePortable',
   }), 'addFilter');
-  $form->set(true => 'I', false => 'Ⅰ');
-  $error = $validator->check($form);
+  $form->set(true => 'I',
+	false => 'Ⅰ', 
+	false2 => Unicode::Japanese->new("\x00\x0f\xf0\x10", 'ucs4')->utf8,
+	force => Unicode::Japanese->new("\x00\x0f\xf0\x10", 'ucs4')->utf8,
+  );
+  $error = $validator->correct($form);
   is($error->{true}, undef, 'check');
   is($error->{false}, 'Portable', 'check');
+  is($error->{false2}, 'Portable', 'check');
+  is($form->get('force'), '', 'check force');
+
+#---PcPortable
+  ok($validator->addFilter({
+      true  => 'PcPortable',
+      true2 => 'PcPortable',
+      false => 'PcPortable',
+      force => 'ForcePcPortable',
+  }), 'addFilter');
+  $form->set(true => 'I',
+	true2 => 'Ⅰ', 
+	false => Unicode::Japanese->new("\x00\x0f\xf0\x10", 'ucs4')->utf8,
+	force => Unicode::Japanese->new("\x00\x0f\xf0\x10", 'ucs4')->utf8,
+  );
+  $error = $validator->correct($form);
+  is($error->{true}, undef, 'check');
+  is($error->{true2}, undef, 'check');
+  is($error->{false}, 'PcPortable', 'check');
+  is($form->get('force'), '', 'check force');
+  $validator = $TL->newValidator;
 
 #---IpAddress
   ok($validator->addFilter({

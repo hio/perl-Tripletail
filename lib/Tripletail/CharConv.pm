@@ -23,13 +23,26 @@ our %MAP_ENCODE_TO_UNIJP = (
 	'UTF-32BE' => 'utf32-be',
 	'UTF-32LE' => 'utf32-le',
    );
-our @GUESS_TABLE = (
-	'7bit-jis',
-	'euc-jp',
-	'cp932',
-	'utf8',
-	'ascii',
-   );
+our %UNICODE_JAPANESE_CODE;
+our @UNICODE_JAPANESE_CODE = qw(
+	auto
+	utf8 ucs2 ucs4 utf16-be utf16-le utf16 utf32-be utf32-le utf32
+	jis euc euc-jp sjis cp932
+	sjis-imode sjis-imode1 sjis-imode2
+	sjis-doti sjis-doti1
+	sjis-jsky sjis-jsky1 sjis-jsky2
+	jis-jsky jis-jsky1 jis-jsky2
+	utf8-jsky utf8-jsky1 utf8-jsky2
+	jis-au jis-au1 jis-au2
+	sjis-au sjis-au1 sjis-au2
+	sjis-icon-au sjis-icon-au1 sjis-icon-au2
+	euc-icon-au euc-icon-au1 euc-icon-au2
+	jis-icon-au jis-icon-au1 jis-icon-au2
+	utf8-icon-au utf8-icon-au1 utf8-icon-au2
+	ascii
+	binary
+);
+
 
 1;
 
@@ -38,6 +51,9 @@ sub _getInstance {
 
 	if (!$INSTANCE) {
 		$INSTANCE = $class->__new(@_);
+		foreach my $code (@UNICODE_JAPANESE_CODE) {
+			$UNICODE_JAPANESE_CODE{$code} = 1;
+		}
 	}
 
 	$INSTANCE;
@@ -48,20 +64,19 @@ sub _charconv {
 	my $str = shift;
 	my $from = shift;
 	my $to = shift;
-	my $prefer_encode = shift;
 
 	local($_);
 
 	if(!defined($str)) {
 		die "TL#charconv, ARG[1] was undef.\n";
 	} elsif(ref($str)) {
-		die "TL#charconv, ARG[2] was a Ref. [$str]\n";
+		die "TL#charconv, ARG[1] was a Ref. [$str]\n";
 	}
 
 	if(!defined($from)) {
 		$from = 'auto';
-	} elsif(ref($from) && ref($from) ne 'ARRAY') {
-		die "TL#charconv, ARG[3] was neither SCALAR nor ARRAY Ref. [$from]\n";
+	} elsif(ref($from)) {
+		die "TL#charconv, ARG[2] was Ref. [$from]\n";
 	}
 
 	if(!defined($to)) {
@@ -70,82 +85,27 @@ sub _charconv {
 		die "TL#charconv, ARG[3] was a Ref. [$to]\n";
 	}
 
-	if(ref($prefer_encode)) {
-		die "TL#charconv, ARG[4] was a Ref. [$prefer_encode]\n";
-	}
-
-	if(!($prefer_encode) && $this->_encodeAvailable) {
-		# Encodeでコード変換。
-		$from = 'cp932' if($from eq 'Shift_JIS');
-		$to = 'cp932' if($to eq 'Shift_JIS');
-
-		if ($from eq 'auto') {
-			# デフォルトの推測表を使う
-			$from = \@GUESS_TABLE;
-		}
-		
-		my $encoding;
-		if( $str eq '' )
-		{
-			$encoding = Encode::find_encoding('ascii');
-		}elsif(ref($from)) {
-			# Encode::Guessを利用して自動判別。
-			foreach my $enc (@$from) {
-				$enc = 'cp932' if($enc eq 'Shift_JIS');
-			}
-
-			my $guessed = Encode::Guess::guess_encoding($str, @$from);
-
-			if(ref($guessed)) {
-				# 判別成功
-				$encoding = $guessed;
-			} else {
-				# "エンコード名 or エンコード名 or ..." になっている。
-				my $candidates = {
-					map { $_ => 1 } split /\s+or\s+/, $guessed,
-				};
-
-				foreach my $cand (@$from) {
-					if($candidates->{$cand}) {
-						# 見付かった
-						$encoding = Encode::find_encoding($cand);
-						last;
-					}
-				}
-
-				if(!$encoding) {
-					# 見付からなかった
-					$encoding = Encode::find_encoding('binary');
-
-					if(!$encoding) {
-						$encoding = Encode::find_encoding('null');
-					}
-				}
-			}
-		} else {
-			$encoding = Encode::find_encoding($from);
-		}
-
-		my $utf8 = $encoding->decode($str);
+	my $fromuj = $MAP_ENCODE_TO_UNIJP{$from} ? $MAP_ENCODE_TO_UNIJP{$from} : $from;
+	my $touj = $MAP_ENCODE_TO_UNIJP{$to} ? $MAP_ENCODE_TO_UNIJP{$to} : $to;
+	
+	if($UNICODE_JAPANESE_CODE{$fromuj} and $UNICODE_JAPANESE_CODE{$touj}) {
+		# 両方ともUniJPのサポート内ならUniJPで変換
+		Unicode::Japanese->new($str, $fromuj)->conv($touj);
+	} elsif($UNICODE_JAPANESE_CODE{$fromuj}) {
+		# 片方サポートなのでutf8経由で変換
+		$this->_encodeAvailable or die "TL#charconv, Can't use Encode module.\n";
+		my $utf8 = Unicode::Japanese->new($str, $fromuj)->utf8;
 		Encode::find_encoding($to)->encode($utf8);
+	} elsif($UNICODE_JAPANESE_CODE{$touj}) {
+		# 片方サポートなのでutf8経由で変換
+		$this->_encodeAvailable or die "TL#charconv, Can't use Encode module.\n";
+		my $utf8 = Encode::find_encoding($from)->decode($str);
+		Unicode::Japanese->new($str, 'utf8')->conv($touj);
 	} else {
-		require Unicode::Japanese;
-		# UniJPでコード変換。
-
-		if (ref $from) {
-			# 配列が指定されても'auto'と見做す。
-			$from = 'auto';
-		}
-
-		if ($_ = $MAP_ENCODE_TO_UNIJP{$from}) {
-			$from = $_;
-		}
-		
-		if ($_ = $MAP_ENCODE_TO_UNIJP{$to}) {
-			$to = $_;
-		}
-
-		Unicode::Japanese->new($str, $from)->conv($to);
+		# 両方ともサポート外
+		$this->_encodeAvailable or die "TL#charconv, Can't use Encode module.\n";
+		my $utf8 = Encode::find_encoding($from)->decode($str);
+		Encode::find_encoding($to)->encode($utf8);
 	}
 }
 
@@ -175,41 +135,6 @@ sub __new {
 	$this;
 }
 
-sub __getEncodeAliases {
-    # UniJPエンコード名 => 一般エンコード名(Encode.pm互換)のHASH Refを作って返す。
-    # オプション:
-    #   sjis_is_cp932 => 真ならsjisをCP932に。偽ならShift_JISに。
-    my $this = shift;
-    my $option = { @_ };
-
-    my $sjis = $option->{sjis_is_cp932} ? 'CP932' : 'Shift_JIS';
-    
-    my $alias = {
-		utf8  => 'UTF-8',
-		jis   => 'ISO-2022-JP',
-		sjis  => $sjis,
-		euc   => 'EUC-JP',
-		ucs2  => 'UCS-2',
-	
-		# Encodeにはucs4に直接対応するエンコード名が存在しない為、
-		# 代わりにUTF-32を用いる。(Unicodeの範囲内ではどちらも同じ？)
-		ucs4  => 'UTF-32',
-	
-		utf16 => 'UTF-16',
-		'utf16-be' => 'UTF-16BE',
-		'utf16-le' => 'UTF-16LE',
-		utf32 => 'UTF-32',
-		'utf32-be' => 'UTF-32BE',
-		'utf32-le' => 'UTF-32LE',
-		
-		# sjis絵文字は変換出来ないので普通のsjisにフォールバック
-		'sjis-imode' => $sjis,
-		'sjis-doti'  => $sjis,
-		'sjis-jsky'  => $sjis,
-    };
-
-    $alias;
-}
 
 __END__
 

@@ -382,6 +382,40 @@ Includeタグはネストして使用可能ですが、自分自身を読み込�
 
 =back
 
+=head2 利用上の注意
+
+テンプレートクラスには、単純に展開処理を行う系統のメソッドと、
+HTMLの内容を解釈して処理を行う系統のメソッドがあります。
+
+展開タグやブロックを扱う expand/add メソッドはどのような
+テキストデータに対しても処理を行うことができますので、
+これらのメソッドを呼び出すときに正しいHTML形式ではなくても
+動作します。
+
+たとえば、以下のようなHTMLに対し、expand/addメソッドは
+正常に利用できます。
+
+ <select name="type">
+   <!begin:item>
+     <option value="<&ID>" <&SELECTED>><&NAME></option>
+   <!end:item>
+ </select>
+
+expand/addメソッドを使って、上記のHTMLを正常な形に加工した後であれば、
+HTMLの内容を解釈して処理を行う系統のメソッド（setFormやaddHiddenFormなど）を利用できます。
+
+たとえば、以下のようなHTMLに加工後に、setFormやaddHiddenFormを
+呼ぶことは問題がありません。
+
+ <select name="type">
+     <option value="1" SELECTED>いちご</option>
+     <option value="2" >もも</option>
+     <option value="3" >なし</option>
+ </select>
+
+しかし、expand/addメソッドによる加工を行う前のHTMLに対して、
+setFormやaddHiddenFormなどを利用すると、正しいHTML形式ではないため、
+内容の解釈が正しく行えず、意図しない結果となることがあります。
 
 =head2 METHODS
 
@@ -392,7 +426,6 @@ Includeタグはネストして使用可能ですが、自分自身を読み込�
   $t = $TL->newTemplate
   $t = $TL->newTemplate($filepath)
   $t = $TL->newTemplate($filepath, $icode)
-  $t = $TL->newTemplate($filepath, $icode, $prefer_encode)
 
 Tripletail::Template オブジェクトを作成。
 引数があれば、その引数で loadTemplate が実行される。
@@ -401,7 +434,6 @@ Tripletail::Template オブジェクトを作成。
 
   $t->loadTemplate($filepath)
   $t->loadTemplate($filepath, $icode)
-  $t->loadTemplate($filepath, $icode, $prefer_encode)
 
 指定されたファイルをテンプレートとして読み込む。
 
@@ -413,8 +445,6 @@ $icode が省略された場合は 'auto' 文字コード自動判別となる�
 
 自動判別はUTF-8よりShift_JISを優先するので、テンプレートファイルは
 Shift_JISコードで作成することを推奨する。
-
-$prefer_encode を真にすると Encode が利用可能な場合は Encode で変換する。
 
 =item setTemplate
 

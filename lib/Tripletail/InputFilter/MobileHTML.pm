@@ -57,8 +57,13 @@ sub _getIncode {
 			return 'sjis-imode';
 		} elsif($agent =~ m/^ASTEL/i) {
 			return 'sjis-doti';
+		} elsif($agent =~ m/^(Vodafone|SoftBank|MOT-)/i) {
+			return 'utf8-jsky';
 		} elsif($agent =~ m/^J-PHONE/i) {
 			return 'sjis-jsky';
+		} elsif($agent =~ m/UP\.Browser/i) {
+			# Softbank端末かつUP.Browserを含むものもあるのでSoftbankの後に判別すること
+			return 'sjis-au';
 		}
 	}
 
@@ -106,15 +111,19 @@ Tripletail::InputFilter::MobileHTML - 携帯電話向けHTML用CGIクエリ読�
 
 =over 4
 
-=item 文字コード判別
+=item 絵文字変換
 
 携帯電話の機種毎の絵文字の違いに対応する為に、C<< User-Agent >> を見て
-機種を判別する。
+機種を判別し、常に Unicode::Japanese を利用して文字コード変換を行う。
 
-=item 文字コード変換
+絵文字は Unicode のプライベート領域にマップされる。
 
-Encodeは絵文字に対応していない為、文字コード変換には常に Unicode::Japanese
-が用いられる。
+プライベート領域の文字は、UTF-8 にしたときは１文字４バイトとなるので、
+DB 等に格納する際はサイズに注意する必要がある。
+また、DB の Unicode 対応の範囲外となっている場合、文字化け等することが
+あるので、UTF-8 文字列をバイナリとして DB に保存することを推奨する。
+（MySQL であれば、tinyblob/blob/mediumblob/longblob 型を利用する。）
+
 
 =item L<セッション|Tripletail::Session>
 

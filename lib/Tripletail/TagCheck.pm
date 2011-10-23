@@ -173,8 +173,8 @@ sub check {
 			# 自動リンクが有効になっているなら自動リンク実行。
 			if($this->{autolink}) {
 				if(@$open_stack
-				&& $this->{allowed}{$open_stack->[-1]->name}
-				&& !$this->{allowed}{$open_stack->[-1]->name}->isAllowedChild('a')) {
+				&& $this->{allowed}{lc($open_stack->[-1]->name)}
+				&& !$this->{allowed}{lc($open_stack->[-1]->name)}->isAllowedChild('a')) {
 					# 親タグがAタグの存在を許していないので、自動リンクしない。
 				} else {
 					$elem->str($this->__autoLink($elem->str));
@@ -183,25 +183,25 @@ sub check {
 
 			# 親タグがテキストの存在を許していなければ、これを消す。
 			if(@$open_stack
-			&& $this->{allowed}{$open_stack->[-1]->name}
-			&& !$this->{allowed}{$open_stack->[-1]->name}->textIsAllowed) {
+			&& $this->{allowed}{lc($open_stack->[-1]->name)}
+			&& !$this->{allowed}{lc($open_stack->[-1]->name)}->textIsAllowed) {
 				$context->delete;
 			}
 		} elsif($elem->isElement) {
 			$elem->name =~ m!^(/?)(.+)$!;
 			my $close = $1;
-			my $name = $2;
+			my $name = lc($2);
 			my $taginfo = $this->{allowed}{$name};
 
 			my $forbidden;
 			if(!$taginfo) {
 				# このタグはそもそも許されていない。
 				$forbidden = 1;
-			} elsif($close && @$open_stack && $open_stack->[-1]->name eq $name) {
+			} elsif($close && @$open_stack && lc($open_stack->[-1]->name) eq $name) {
 				# 自分の閉じタグ
 			} elsif(@$open_stack
-			&& $this->{allowed}{$open_stack->[-1]->name}
-			&& !$this->{allowed}{$open_stack->[-1]->name}->isAllowedChild($name)) {
+			&& $this->{allowed}{lc($open_stack->[-1]->name)}
+			&& !$this->{allowed}{lc($open_stack->[-1]->name)}->isAllowedChild($name)) {
 				# 親タグがこのタグを許していない。
 				$forbidden = 1;
 			}
@@ -212,7 +212,7 @@ sub check {
 					$context->delete;
 					$this->__close($name => $open_stack);
 					next;
-				} elsif(!grep {$_->name eq $name} @$open_stack) {
+				} elsif(!grep {lc($_->name) eq $name} @$open_stack) {
 					# 対応する開始タグが存在しない。
 					$forbidden = 1;
 				} else {
@@ -227,8 +227,8 @@ sub check {
 				$context->delete;
 
 				if(@$open_stack
-				&& $this->{allowed}{$open_stack->[-1]->name}
-				&& !$this->{allowed}{$open_stack->[-1]->name}->textIsAllowed) {
+				&& $this->{allowed}{lc($open_stack->[-1]->name)}
+				&& !$this->{allowed}{lc($open_stack->[-1]->name)}->textIsAllowed) {
 					# 許していない
 				} else {
 					$context->add($TL->escapeTag($elem->toStr));
@@ -248,17 +248,20 @@ sub check {
 				}
 
 				# Aタグの場合の特別処理。target指定があればそれを設定する。
-				if($elem->name eq 'a' && defined($this->{target})) {
+				if(lc($elem->name) eq 'a' && defined($this->{target})) {
 					$elem->attr(target => $this->{target});
 				}
 
-				# スタックにプッシュ
-				push @$open_stack, $elem;
+				# 閉じるべきタグならスタックにプッシュ
+				if(!$taginfo->mustBeEmpty and !($elem->end and $elem->end eq '/')) {
+					push @$open_stack, $elem;
+				}
 			}
 		}
 	}
+	my $endtag = $this->__break(['block', 'line'] => $open_stack);
 
-	$filter->toStr;
+	$filter->toStr . $endtag;
 }
 
 sub __close {
@@ -267,7 +270,7 @@ sub __close {
 	my $stack = shift;
 
 	for(my $i = @$stack-1; $i >= 0; $i--) {
-		if($stack->[$i]->name eq $name) {
+		if(lc($stack->[$i]->name) eq $name) {
 			splice @$stack, $i, 1;
 			last;
 		}
@@ -281,7 +284,7 @@ sub __break {
 	my $result = '';
 
 	for(my $i = @$stack-1; $i >= 0; $i--) {
-		my $taginfo = $this->{allowed}{$stack->[$i]->name};
+		my $taginfo = $this->{allowed}{lc($stack->[$i]->name)};
 		my $tagbreak = $taginfo ? $taginfo->tagbreak : undef;
 		if(!$tagbreak) {
 			$tagbreak = $this->{tagbreak};
@@ -289,7 +292,7 @@ sub __break {
 
 		if(grep {$_ eq $tagbreak} @$types) {
 			# 実際に閉じる
-			$result = sprintf '</%s>%s', $stack->[$i]->name, $result;
+			$result = sprintf '%s</%s>', $result, $stack->[$i]->name;
 			splice @$stack, $i, 1;
 		}
 	}
@@ -462,11 +465,11 @@ Tripletail::TagCheck オブジェクトを作成。
 
 =item line
 
-行末で閉じる。
+行末、または文字列の末尾で閉じる。
 
 =item block
 
-改行が二つ続いた位置で閉じる。
+改行が二つ続いた位置、または文字列の末尾で閉じる。
 
 =back
 

@@ -46,10 +46,6 @@ sub _new {
 	my $class = shift;
 	my $this = $class->SUPER::_new(@_);
 
-	$this->{header_skipped} = undef; # HTTPヘッダ部を通過した後であれば1
-	$this->{rebased} = undef; # base要素を書換え、若しくは追加した後であれば1
-	$this->{order} = []; # 出力順の指定
-
 	my $defaults = [
 		[charset     => 'Shift_JIS'],
 		[hide_extension => 1],
@@ -61,6 +57,8 @@ sub _new {
 		hide_extension => [qw(scalar)],
 	};
 	$this->_check_options($check);
+	
+	$this->_reset;
 
 	$this;
 }
@@ -123,9 +121,9 @@ sub toLink {
 
 sub _reset {
 	my $this = shift;
-	$this->{header_skipped} = undef;
-	$this->{rebased} = undef;
-	$this->{order} = [];
+	$this->{header_skipped} = undef; # HTTPヘッダ部を通過した後であれば1
+	$this->{rebased} = undef; # base要素を書換え、若しくは追加した後であれば1
+	$this->{order} = []; # 出力順の指定
 
 	$this;
 }

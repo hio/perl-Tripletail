@@ -1,5 +1,55 @@
 Revision history for Tripletail
 
+0.32	Fri Aug 31 18:22:56 JST 2007
+	- [[重要:非互換な仕様変更]]
+	　- 出力フィルタとしてMobileHTMLを利用しているときに$TL->locationを利用すると
+	　　セッションが正しく維持されない問題を修正。
+	　　また、この修正に伴い、Tripletail::Filter::Redirectは廃止とし、
+	　　$TL->locationは出力フィルタがHTML、MobileHTML、SEOの
+	　　場合のみ利用できる仕様に変更。
+	　　RedirectフィルタをsetContentFilterで使用したり、出力フィルタとして
+	　　CSV、TEXT、Binary、を利用している場合はエラーとなる。
+	　- 入力フィルタのMobileHTML、出力フィルタのMobileHTMLの仕様を変更し、
+	　　携帯絵文字に対応しました。
+	　　DoCoMo、AU、Softbank、ASTELのそれぞれの端末の絵文字を扱えるように
+	　　なりました。
+	　- 文字コード変換をする部分で、prefer_encode オプションを指定できる
+	　　メソッドが複数ありましたが、実際の動作が反対になっていました。
+	　　Unicode::Japanese は utf8 フラグ付きの文字列でも受け付けますが、
+	　　Encode は受け付けません。
+	　　そのまま修正すると互換性の問題が多く生じる可能性があるため、
+	　　prefer_encode オプション自体を廃止することにしました。
+	　　prefer_encode は指定されても無視されますが、将来的に
+	　　別の引数が追加される可能性があるため、prefer_encode を
+	　　指定しているコードは、修正するようにお願いします。
+	　- $TL->charconv は Unicode::Japanese を常に優先する仕様に変更。
+	　　Unicode::Japanese で変換できない文字コードの場合は、
+	　　Encode を使って変換を行うように修正。
+	　- Tripletail::Filter::Text の charset は、Unicode::Japanese の
+	　　省略形を指定できなくなりました。
+	　　sjis, euc, jis, utf8 はそれぞれ Shift_JIS, EUC-JP, ISO-2022-JP, UTF-8
+	　　へ修正してください。
+	　- $TL->charconv($str, ['EUC-JP', 'Shift_JIS'] => 'UTF-8');
+	　　のように推測する文字コードを一覧で指定する方法を廃止。
+	- Sessionクラスの管理ログはデフォルトで出力されなくなった。
+	　iniパラメータで指定したときのみ出力を行う。
+	- Sessionクラスのsqlite DMLのバグ修正(0.30-)。
+	　iniパラメータで指定したときのみ出力を行う。
+	- TagCheckクラスで、:BR などの指定をした時に自動で閉じタグが付いてしまう
+	　バグを修正。
+	- TagCheckクラスで、自動で閉じタグを追加する際に、追加する順序が逆で
+	　あったため、正しい入れ子関係にならないバグを修正。
+	- TagCheckクラスで、大文字小文字の同一視が正しく行われていなかった
+	　バグを修正。
+	- TagCheckクラスで、行末に開業がない場合でも、line/blockでタグを閉じるように変更。
+	- TagCheckクラスで、xhtmlで <a /> のような形式にした場合に正しく判定
+	　できていなかったバグを修正。
+	- ValueクラスにisPcPortableメソッドを追加。
+	　isPortableメソッドの判定ロジックを一部変更。
+	　forcePortable、forcePcPortableメソッドを追加。 
+	　strCutSjis、strCutUtf8メソッドを追加。
+	- ValidatorクラスにPcPortable、ForcePortable、ForcePcPortableフィルタを追加。
+
 0.31	Tue Aug 28 16:36:03 JST 2007
 	- セッション関係のドキュメントが古かったため、修正．
 	- PagerクラスのSQLに関する記述が古かったため、修正．

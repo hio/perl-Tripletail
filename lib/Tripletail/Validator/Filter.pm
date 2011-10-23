@@ -14,7 +14,9 @@ my @correctFilterNames = (
 	'ConvKanaNarrow','ConvKanaWide','ConvComma','ConvLF','ConvBR',
 	'ForceHira','ForceKata','ForceNumber','ForceMin($max,$val)',
 	'ForceMax($max,$val)','ForceMaxLen($max)','ForceMaxUtf8Len($max)',
-	'ForceMaxSjisLen($max)','ForceMaxCharLen($max)','TrimWhitespace'
+	'ForceMaxSjisLen($max)','ForceMaxCharLen($max)',
+	'ForcePortable','ForcePcPortable',
+	'TrimWhitespace'
 	);
 
 
@@ -532,6 +534,21 @@ sub doFilter {
 	my $values = shift;
 
 	return grep { !$TL->newValue($_)->isPortable() } @$values;
+}
+
+# -----------------------------------------------------------------------------
+# Tripletail::Validator::Filter::PcPortable - PcPortableフィルタ
+# -----------------------------------------------------------------------------
+package Tripletail::Validator::Filter::PcPortable;
+use Tripletail;
+
+use base qw{Tripletail::Validator::Filter};
+
+sub doFilter {
+	my $this   = shift;
+	my $values = shift;
+
+	return grep { !$TL->newValue($_)->isPcPortable() } @$values;
 }
 
 # -----------------------------------------------------------------------------

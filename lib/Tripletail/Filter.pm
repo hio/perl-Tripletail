@@ -290,11 +290,6 @@ L<< $TL->print|Tripletail/"print" >> 、 L<< $template->flush|Tripletail::Templa
 
 =item L<Tripletail::Filter::SEO> - SEO出力フィルタ
 
-=item L<Tripletail::Filter::Redirect> - リダイレクト
-
-L<< $TL->location|Tripletail/"location" >> で使用されるフィルタ。
-L<< $TL->location|Tripletail/"location" >> を使用した際は、出力フィルタが L<Tripletail::Filter::Redirect> に切り替わる。
-
 =back
 
 

@@ -533,16 +533,9 @@ sub isPortable {
 	}
 
 	my $unijp = Unicode::Japanese->new;
-
-	# XXXX 一旦eucへ変換して１文字ずつに区切りを入れる
-	my $str_euc = $unijp->set($str)->euc;
-
-	my $ascii = '[\x00-\x7F]';
-	my $twoBytes = '[\x8E\xA1-\xFE][\xA1-\xFE]';
-	my $threeBytes = '\x8F[\xA1-\xFE][\xA1-\xFE]';
-
-	my @str_euc = split(/($ascii|$twoBytes|$threeBytes)/o, $str_euc);
-
+	
+	my @chars = grep {defined && length} split /($re_char)/, $this->{value};
+	
 	# 機種依存文字
 	my $dep_regex 
 		= '\xED[\x40-\xFF]|\xEE[\x00-\xFC]'              # NEC選定IBM拡張文字(89-92区)
@@ -550,15 +543,44 @@ sub isPortable {
 		. '|[\x85-\x87][\x40-\xFF]|\x88[\x40-\x9E]'    # 特殊文字エリア
 		. '|[\xF0-\xF8][\x40-\xFF]|\xF9[\x40-\xFC]'    # JIS外字エリア
 		. '|\xEA[\xA5-\xFF]|[\xEB-\xFB][\x40-\xFF]|\xFC[\x40-\xFC]' # MAC外字及び縦組用
-		. '|\x81[\xBE\xBF\xDA\xDB\xDF\xE0\xE3\xE6\xE7]'; # 13区の記号は一部2区と重複している
-
+		. '|\x81[\xBE\xBF\xDA\xDB\xDF\xE0\xE3\xE6\xE7]'; # JIS領域外の13区の記号
+	
 	# SJIS
-	foreach my $str (@str_euc) {
-		next if(!defined($str) || ($str eq ''));
-		my $str_sjis = $unijp->set($str, 'euc')->sjis . '';
+	foreach my $str (@chars) {
+		my $str_sjis = $unijp->set($str, 'utf8')->sjis;
 		return undef if($str_sjis =~ m/\A(?:$dep_regex)\z/o);
 	}
+	
+	# Unicodeのプライベート領域判定（U+E000～U+F8FF、U+F0000～U+10FFFF）
+	foreach my $str (@chars) {
+		my $str_ucs4 = $unijp->set($str, 'utf8')->ucs4;
+		return undef if($str_ucs4 =~ m/\A\x00\x00[\xe0-\xf8][\x00-\xff]\z/o);
+		return undef if($str_ucs4 =~ m/\A\x00[\x0f-\x10][\x00-\xff][\x00-\xff]\z/o);
+	}
+	
+	return 1;
+}
 
+sub isPcPortable {
+	# 携帯絵文字を含んでいないなら1
+	my $this = shift;
+	my $str  = $this->{value};
+
+	if(!defined($this->{value})) {
+		return undef;
+	}
+
+	my $unijp = Unicode::Japanese->new;
+	
+	my @chars = grep {defined && length} split /($re_char)/, $this->{value};
+	
+	# Unicodeのプライベート領域判定（U+FF000～U+FFFFF）
+	foreach my $str (@chars) {
+		my $str_ucs4 = $unijp->set($str, 'utf8')->ucs4;
+		return undef if($str_ucs4 =~ m/\A\x00\x0f[\xf0-\xff][\x00-\xff]\z/o);
+	}
+	
+	
 	return 1;
 }
 
@@ -924,6 +946,47 @@ sub forceMaxCharLen {
 	$this;
 }
 
+sub forcePortable {
+	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
+	
+	my $v = $TL->newValue;
+	my $newval = '';
+	my @chars = grep {defined && length} split /($re_char)/, $this->{value};
+	foreach my $ch (@chars) {
+		if($v->set($ch)->isPortable) {
+			$newval .= $ch;
+		}
+	}
+	
+	$this->{value} = $newval;
+	$this;
+}
+
+sub forcePcPortable {
+	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
+	
+	my $v = $TL->newValue;
+	my $newval = '';
+	my @chars = grep {defined && length} split /($re_char)/, $this->{value};
+	foreach my $ch (@chars) {
+		if($v->set($ch)->isPcPortable) {
+			$newval .= $ch;
+		}
+	}
+	
+	$this->{value} = $newval;
+	$this;
+}
+
+
 #---------------------------------- その他
 
 sub trimWhitespace {
@@ -963,6 +1026,52 @@ sub strCut {
 	while(length($value)) {
 		$v->{value} = $value;
 		my $temp = $v->forceMaxCharLen($charanum)->get;
+		$value = substr($value,length($temp));
+		push(@output,$temp);
+	}
+
+	@output;
+}
+
+sub strCutSjis {
+	my $this = shift;
+	my $charanum = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
+	my $v = $TL->newValue;
+	
+	my $value = $this->{value};
+	my @output;
+
+	while(length($value)) {
+		$v->{value} = $value;
+		my $temp = $v->forceMaxSjisLen($charanum)->get;
+		$value = substr($value,length($temp));
+		push(@output,$temp);
+	}
+
+	@output;
+}
+
+sub strCutUtf8 {
+	my $this = shift;
+	my $charanum = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
+	my $v = $TL->newValue;
+	
+	my $value = $this->{value};
+	my @output;
+
+	while(length($value)) {
+		$v->{value} = $value;
+		my $temp = $v->forceMaxUtf8Len($charanum)->get;
 		$value = substr($value,length($temp));
 		push(@output,$temp);
 	}
@@ -1466,6 +1575,24 @@ Shift-Jisでのバイト数の範囲が指定値以内かチェックする。$m
 
 値が0文字やundefの場合は1を返す。
 
+機種依存文字は、以下の文字を指す。
+
+Shift_JISコード上でのNEC選定IBM拡張文字(89-92区)、IBM拡張文字(115-119区)、特殊文字エリア、JIS外字エリア、MAC外字及び縦組用、
+JIS領域外の13区の記号。
+Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF）。
+
+携帯絵文字も機種依存文字に含まれる。（文字コード変換によってUnicode上でのプライベート領域にマップされる）
+
+=item isPcPortable
+
+  $bool = $val->isPcPortable
+
+携帯絵文字以外で構成されていれば1。
+そうでなければ（携帯絵文字を含んでいれば）undefを返す。
+
+携帯絵文字は、文字コード変換によって Unicode上のプライベート領域（U+FF000～U+FFFFF）に
+マップされます。この領域の文字があるかで判定を行います。
+
 =item isIpAddress
 
   $bool = $val->isIpAddress($checkmask)
@@ -1607,6 +1734,21 @@ SJISの文字単位でカットする。
 
 最大文字数を指定。超える場合はその文字数以下までカットする。
 
+=item forcePortable
+
+  $val->forcePortable
+
+機種依存文字以外を削除。
+
+詳しい判定条件は L</isPortable> メソッドを参照。
+
+=item forcePcPortable
+
+  $val->forcePcPortable
+
+携帯絵文字文字以外を削除。
+
+詳しい判定条件は L</isPcPortable> メソッドを参照。
 
 =back
 
@@ -1630,6 +1772,20 @@ SJISの文字単位でカットする。
   @str = $val->strCut($charanum)
 
 指定された文字数で文字列を区切り、配列に格納する。
+
+=item strCutSjis
+
+  @str = $val->strCutSjis($charanum)
+
+Shift_JISコードに変換した際に、指定されたバイト数以下になるように
+文字列を区切り、配列に格納する。
+
+=item strCutUtf8
+
+  @str = $val->strCutUtf8($charanum)
+
+UTF-8コードに変換した際に、指定されたバイト数以下になるように
+文字列を区切り、配列に格納する。
 
 =item genRandomString
 

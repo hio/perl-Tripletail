@@ -43,6 +43,11 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 
 </span></a>
 </li>
+<li><a href="#Xe7Xb5Xb5Xe6X96X87Xe5XadX97Xe5Xa4X89Xe6X8fX9b">
+<span class="pod_lang">絵文字変換
+
+</span></a>
+</li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">フィルタパラメータ
 
@@ -90,7 +95,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 
 </span></a></h1>
 
-<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML', charset =&gt; 'Shift_JIS');
+<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML');
   
   $TL-&gt;print($TL-&gt;readTextFile('foo.html'));</code></pre>
 
@@ -110,7 +115,7 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <ul>
 <li>
 <p>
-<span class="pod_lang">漢字コード変換（デフォルトShift_JIS、常にUnicode::Japaneseを使う）
+<span class="pod_lang">絵文字対応の漢字コード変換
 
 </span>
 </p>
@@ -149,14 +154,6 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 </p>
 
 <ul>
-<li>
-<p>
-<span class="pod_lang">文字コード変換にEncodeを使わず、常にUnicode::Japaneseを使用。
-
-</span>
-</p>
-
-</li>
 <li>
 <p>
 <span class="pod_lang">セッション用のデータを全てのリンクに追記し、クッキーでの出力はしない。
@@ -261,43 +258,72 @@ https領域用のセッション情報は <code class="pod_iseq_C">&quot;SIDS + 
 </span>
 </p>
 
+<h2><a id="Xe7Xb5Xb5Xe6X96X87Xe5XadX97Xe5Xa4X89Xe6X8fX9b">
+<span class="pod_lang">絵文字変換
+
+</span></a></h2>
+
+<p>
+<span class="pod_lang">USER_AGENT文字列を元に、DoCoMo、Softbank（Vodafone、J-PHONE）、AU、ASTEL を自動判別し、
+それぞれの端末用に出力します。
+文字コードは Softbank 3G 以外は Shift_JIS ＋ 各キャリアの絵文字コード、
+Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとなります。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">それ以外の端末（WillcomやPC）の場合は、Shift_JIS コードで出力します。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">携帯から送信されたフォームデータは、DoCoMo、Softbank 2G 以前（J-PHONE）、AU、ASTEL の場合は
+Shift_JIS ＋ 各キャリアの絵文字コード、Softbank 3G の場合は UTF-8 ＋ Softbank絵文字コードとして
+解析します。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">それ以外の端末（WillcomやPC）の場合は、<a href="../.././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a> と同様に
+CCC による文字コード判別を行います。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">絵文字は、入力時に UTF-8 のプライベート領域にマップされ、出力時に絵文字に戻されます。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">入力時と出力時で携帯キャリアが異なる場合は、Unicode::Japanese の絵文字変換マップに
+従って変換され、出力されます。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">この変換マップは、携帯キャリアが公式に提供している絵文字変換マップとは
+異なる部分があります。
+
+</span>
+</p>
+
 <h2><a id="Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
 <span class="pod_lang">フィルタパラメータ
 
 </span></a></h2>
 
 <dl>
-<dt><a id="charset"><span class="pod_lang">charset
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML', charset =&gt; 'Shift_JIS');</code></pre>
-
-<p>
-<span class="pod_lang">出力文字コードを指定する。省略可能。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">使用可能なコードは次の通り。
-UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
-	
-</span>
-</p>
-
-<p>
-<span class="pod_lang">デフォルトはShift_JIS。
-
-</span>
-</p>
-
-</dd>
 <dt><a id="contenttype"><span class="pod_lang">contenttype
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML', contenttype =&gt; 'text/html; charset=sjis');</code></pre>
+<pre class="pod_verbatim"><code>  $TL-&gt;setContentFilter('Tripletail::Filter::MobileHTML', contenttype =&gt; 'text/html; charset=Shift_JIS');</code></pre>
 
 <p>
 <span class="pod_lang">Content-Typeを指定する。省略可能。
@@ -306,7 +332,7 @@ UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP
 </p>
 
 <p>
-<span class="pod_lang">デフォルトはtext/html; charset=（charasetで指定された文字コード）。
+<span class="pod_lang">デフォルトはtext/html; charset=Shift_JIS。
 
 </span>
 </p>
@@ -359,53 +385,6 @@ XHTMLを出力する際に、このパラメータをhtmlのままにした場�
 
 </span>
 </p>
-
-</dd>
-<dt><a id="setDecideLink"><span class="pod_lang">setDecideLink
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $TL-&gt;getContentFilter-&gt;setDecideLink(\&amp;func);</code></pre>
-
-<p>
-<span class="pod_lang">リンク種別を決定する関数を設定する。
-値を渡さないとデフォルトの判別処理に戻す。
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">関数の戻り値が1であれば、同じTLライブラリで作成された環境へのリンクとして、リンクの書き換えを行う。
-関数の戻り値が0であれば、リンクの書き換えは行わない。 
-
-</span>
-</p>
-
-<p>
-<span class="pod_lang">デフォルトの判別処理は以下の関数で行っている。
-
-</span>
-</p>
-
-<pre class="pod_verbatim"><code>  sub defaultDecideLink {
-    my (%param) = @_;
-
-    if($param{'link'} =~ m/^https?/) {
-      return 0;
-    }
-    elsif($param{'link'} =~ m/^javascript/i) {
-      return 0;
-    }
-    elsif($param{'link'} =~ m/^(?:mailto|ftp):/) {
-      return 0;
-    }
-    elsif(not length $param{'link'}) {
-      return 0;
-    }
-    else {
-      return 1;
-    }
-  }</code></pre>
 
 </dd>
 <dt><a id="setHeader"><span class="pod_lang">setHeader
@@ -553,15 +532,14 @@ Tripletail::Filter::MobileHTML - 携帯電話向けHTML出力用フィルタ
 <li><a href="#X__01">Tripletail::Filter::HTML</a></li>
 <li><a href="#X__02">Tripletail::Form</a></li>
 <li><a href="#addHeader">addHeader</a></li>
-<li><a href="#charset">charset</a></li>
 <li><a href="#contenttype">contenttype</a></li>
 <li><a href="#getSaveForm">getSaveForm</a></li>
 <li><a href="#print">print</a></li>
-<li><a href="#setDecideLink">setDecideLink</a></li>
 <li><a href="#setHeader">setHeader</a></li>
 <li><a href="#type">type</a></li>
 <li><a href="#Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3">セッション</a></li>
 <li><a href="#Xe3X83X95Xe3X82Xa3Xe3X83XabXe3X82XbfXe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">フィルタパラメータ</a></li>
+<li><a href="#Xe7Xb5Xb5Xe6X96X87Xe5XadX97Xe5Xa4X89Xe6X8fX9b">絵文字変換</a></li>
 </ul>
 </div>
 <!-- End INDEX -->

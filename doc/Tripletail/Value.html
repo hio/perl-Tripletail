@@ -741,6 +741,47 @@ $min、$secは省略でき、省略時は0が使用される。
 </span>
 </p>
 
+<p>
+<span class="pod_lang">機種依存文字は、以下の文字を指す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">Shift_JISコード上でのNEC選定IBM拡張文字(89-92区)、IBM拡張文字(115-119区)、特殊文字エリア、JIS外字エリア、MAC外字及び縦組用、
+JIS領域外の13区の記号。
+Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF）。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">携帯絵文字も機種依存文字に含まれる。（文字コード変換によってUnicode上でのプライベート領域にマップされる）
+
+</span>
+</p>
+
+</dd>
+<dt><a id="isPcPortable"><span class="pod_lang">isPcPortable
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPcPortable</code></pre>
+
+<p>
+<span class="pod_lang">携帯絵文字以外で構成されていれば1。
+そうでなければ（携帯絵文字を含んでいれば）undefを返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">携帯絵文字は、文字コード変換によって Unicode上のプライベート領域（U+FF000～U+FFFFF）に
+マップされます。この領域の文字があるかで判定を行います。
+
+</span>
+</p>
+
 </dd>
 <dt><a id="isIpAddress"><span class="pod_lang">isIpAddress
 
@@ -1033,6 +1074,44 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
+<dt><a id="forcePortable"><span class="pod_lang">forcePortable
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forcePortable</code></pre>
+
+<p>
+<span class="pod_lang">機種依存文字以外を削除。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">詳しい判定条件は <a href="#isPortable">&quot;isPortable&quot;</a> メソッドを参照。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="forcePcPortable"><span class="pod_lang">forcePcPortable
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forcePcPortable</code></pre>
+
+<p>
+<span class="pod_lang">携帯絵文字文字以外を削除。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">詳しい判定条件は <a href="#isPcPortable">&quot;isPcPortable&quot;</a> メソッドを参照。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96">
@@ -1073,6 +1152,34 @@ SJISの文字単位でカットする。
 
 <p>
 <span class="pod_lang">指定された文字数で文字列を区切り、配列に格納する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="strCutSjis"><span class="pod_lang">strCutSjis
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  @str = $val-&gt;strCutSjis($charanum)</code></pre>
+
+<p>
+<span class="pod_lang">Shift_JISコードに変換した際に、指定されたバイト数以下になるように
+文字列を区切り、配列に格納する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="strCutUtf8"><span class="pod_lang">strCutUtf8
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  @str = $val-&gt;strCutUtf8($charanum)</code></pre>
+
+<p>
+<span class="pod_lang">UTF-8コードに変換した際に、指定されたバイト数以下になるように
+文字列を区切り、配列に格納する。
 
 </span>
 </p>
@@ -1201,6 +1308,8 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#forceMaxUtf8Len($max)">forceMaxUtf8Len($max)</a></li>
 <li><a href="#forceMin($max,$val)">forceMin($max,$val)</a></li>
 <li><a href="#forceNumber">forceNumber</a></li>
+<li><a href="#forcePcPortable">forcePcPortable</a></li>
+<li><a href="#forcePortable">forcePortable</a></li>
 <li><a href="#forceXe7Xb3Xbb">force系</a></li>
 <li><a href="#genRandomString">genRandomString</a></li>
 <li><a href="#get">get</a></li>
@@ -1226,6 +1335,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#isLen($min,$max)">isLen($min,$max)</a></li>
 <li><a href="#isMobileEmail">isMobileEmail</a></li>
 <li><a href="#isPassword">isPassword</a></li>
+<li><a href="#isPcPortable">isPcPortable</a></li>
 <li><a href="#isPng">isPng</a></li>
 <li><a href="#isPortable">isPortable</a></li>
 <li><a href="#isPrintableAscii">isPrintableAscii</a></li>
@@ -1242,6 +1352,8 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#setTime">setTime</a></li>
 <li><a href="#setXe7Xb3Xbb">set系</a></li>
 <li><a href="#strCut">strCut</a></li>
+<li><a href="#strCutSjis">strCutSjis</a></li>
+<li><a href="#strCutUtf8">strCutUtf8</a></li>
 <li><a href="#trimWhitespace">trimWhitespace</a></li>
 <li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">その他</a></li>
 <li><a href="#Xe4Xb8X80Xe8X88Xac">一般</a></li>

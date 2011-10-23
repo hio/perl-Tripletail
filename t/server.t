@@ -7,12 +7,13 @@ use Data::Dumper;
 use t::test_server;
 
 &setup;
-plan tests => 10;
+plan tests => 12;
 
-&test_01_location;   #2.
-&test_02_template;   #4.
-&test_03_raw_cookie; #2.
-&test_04_cookie;     #2.
+&test_01_location;         #2.
+&test_01_location_mobile;  #2.
+&test_02_template;         #4.
+&test_03_raw_cookie;       #2.
+&test_04_cookie;           #2.
 
 # -----------------------------------------------------------------------------
 # shortcut.
@@ -48,6 +49,32 @@ sub test_01_location
 			);
 			sub main
 			{
+				$TL->location('http://www.example.org/');
+			}
+		},
+	);
+	isa_ok( $res, 'HTTP::Response', '[location] request succeeded');
+	is( $res->header('Location'), 'http://www.example.org/', '[location] Location header');
+}
+
+## -----------------------------------------------------------------------------
+# location. (mobile)
+# 
+sub test_01_location_mobile
+{
+	my $res = raw_request(
+		method => 'GET',
+		script => q{
+			$TL->setInputFilter('Tripletail::InputFilter::MobileHTML');
+			$TL->startCgi(
+				-main => \&main,
+			);
+			sub main
+			{
+				$TL->setContentFilter(
+					'Tripletail::Filter::MobileHTML',
+					charset => 'Shift_JIS',
+				);
 				$TL->location('http://www.example.org/');
 			}
 		},

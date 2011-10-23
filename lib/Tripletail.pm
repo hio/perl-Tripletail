@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm,v 1.205 2007/08/28 07:36:47 hio Exp $
+# $Id: Tripletail.pm,v 1.211 2007/08/31 05:40:40 mikage Exp $
 package Tripletail;
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use File::Spec;
 use Data::Dumper;
 use Cwd ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -1269,30 +1269,13 @@ sub print {
 sub location {
 	my $this = shift;
 	my $url = shift;
-
+	
 	if(exists($this->{printflag})) {
 		die __PACKAGE__."#location, location called after print.\n";
 	}
-
-	# 以前のContentFilterがFilter::HTMLまたはFilter::MobileHTMLだった場合は
-	# SaveFormも引き継がなくてはならない。
-	my $old = $this->getContentFilter;
-	my $save;
-	if ($old) {
-		if ($old->can('getSaveForm')) {
-			$save = $old->getSaveForm;
-		}
-	}
-
-	$this->setContentFilter(
-		'Tripletail::Filter::Redirect',
-		location => $url,
-	);
-
-	if($save) {
-		$this->getContentFilter->getSaveForm->addForm($save);
-	}
-
+	
+	$this->getContentFilter->_location($url);
+	
 	$this;
 }
 
@@ -1761,7 +1744,6 @@ sub readTextFile {
 	my $this = shift;
 	my $fpath = shift;
 	my $coding = shift;
-	my $prefer_encode = shift;
 
 	my $cache = $this->_fetchFileCache($fpath);
 	if( !defined($cache->{text}) )
@@ -1770,7 +1752,6 @@ sub readTextFile {
 			$this->readFile($fpath),
 			$coding,
 			'utf8',
-			$prefer_encode,
 		);
 		if( $cache->{cache_size} )
 		{
@@ -1822,7 +1803,6 @@ sub writeTextFile {
 	my $fdata = shift;
 	my $fmode = shift;
 	my $coding = shift;
-	my $prefer_encode = shift;
 
 	if(!defined($coding)) {
 		$coding = 'utf8';
@@ -1835,7 +1815,6 @@ sub writeTextFile {
 		$this->writeFile($fpath,$fdata,$fmode),
 		'utf8',
 		$coding,
-		$prefer_encode,
 	);
 }
 
@@ -2551,6 +2530,9 @@ onerrorが設定されていた場合、関数が存在しなければ onerror�
 CGIモードの時、指定されたURLへリダイレクトする。
 このメソッドはあらゆる出力の前に呼ばなくてはならない。 
 
+また、出力フィルタが L<Tripletail::Filter::HTML> か L<Tripletail::Filter::MobileHTML>
+の場合のみ利用できる。
+
 =head3 変換処理
 
 =head4 C<< escapeTag >>
@@ -2603,29 +2585,19 @@ URLエンコードを解除し元に戻した文字列を返す。
 
 =head4 C<< charconv >>
 
-  $str = $TL->charconv($str, $from, $to, $prefer_encode);
-  $str = $TL->charconv($str, [$from1, $from2, ...], $to, $prefer_encode);
+  $str = $TL->charconv($str, $from, $to);
   
   $str = $TL->charconv($str, 'auto' => 'UTF-8');
-  $str = $TL->charconv($str, ['EUC-JP', 'Shift_JIS'] => 'UTF-8');
 
-文字コード変換を行う。 L<Encode> が利用可能、且つ C<$prefer_encode> が
-真である場合は、 L<Encode> が用いられる。そうでない場合は
-L<Unicode::Japanese> が用いられる。
-
-L<Encode> 使用時、変換元文字コードに C<'auto'> を指定すると、
-L<Unicode::Japanese> の L<getcode()|Unicode::Japanese/"getcode">
-と同じ優先順位で文字コードを自動判別する。また、エンコード名の候補を
-配列で指定すると、指定された優先順位で自動判別する。
-
-L<Unicode::Japanese> 使用時に配列で候補を指定した場合は、その配列が無視され、
-C<'auto'> が指定されたものと見做される。
+文字コード変換を行う。
+基本的に L<Unicode::Japanese> を利用するが、サポートしていない
+文字コードの場合は L<Encode> を使用する。
 
 C<$from> が省略された場合は C<'auto'> に、
 C<$to> が省略された場合は C<'UTF-8'> になる。
 
-確実に指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP である。
-それ以外の場合は、L<Encode> と L<Unicode::Japanese> のどちらが使用されるかにより使用できるものが異なる。
+指定できる文字コードは、UTF-8，Shift_JIS，EUC-JP，ISO-2022-JP のほか、
+L<Unicode::Japanese>、L<Encode> がサポートしているものが使用できる。
 
 =head4 C<< parsePeriod >>
 
@@ -2879,13 +2851,12 @@ L<ini|Tripletail::Ini> で指定されたアドレスにエラーメールを送
 
 =head4 C<< readTextFile >>
 
-  $data = $TL->readTextFile($fpath, $coding, $prefer_encode);
+  $data = $TL->readTextFile($fpath, $coding);
 
 ファイルを読み込み、UTF-8に変換する。
 ファイルロック処理は行わないので、使用の際には注意が必要。
 
-C<$coding> が省略された場合は C<'auto'> となる。C<$prefer_encode> を真
-にすると L<Encode> が利用可能な場合は L<Encode> で変換する。
+C<$coding> が省略された場合は C<'auto'> となる。
 
 =head4 C<< writeFile >>
 
@@ -2901,7 +2872,7 @@ C<$fmode> が1ならば、追加モード。
 
 =head4 C<< writeTextFile >>
 
-  $TL->writeTextFile($fpath, $fdata, $fmode, $coding, $prefer_encode);
+  $TL->writeTextFile($fpath, $fdata, $fmode, $coding);
 
 ファイルにデータを書き込む。C<$fdata> をUTF-8と見なし、指定された文字コードへ変換を行う。
 ファイルロック処理は行わないので、使用の際には注意が必要。
@@ -2911,8 +2882,7 @@ C<$fmode> が1ならば、追加モード。
 
 省略された場合は上書きモードとなる。
 
-C<$coding> が省略された場合、utf8として扱う。C<$prefer_encode> を真にする
-と L<Encode> が利用可能な場合は L<Encode> で変換する。
+C<$coding> が省略された場合、utf8として扱う。
 
 =head4 C<< watch >>
 

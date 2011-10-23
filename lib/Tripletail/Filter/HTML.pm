@@ -37,31 +37,23 @@ sub _new {
 	my $class = shift;
 	my $this = $class->SUPER::_new(@_);
 
-	# Contentが1バイトでも出力されたかどうか
-	$this->{content_printed} = undef;
-
-	# 保存するフォームオブジェクト
-	$this->{save} = $TL->newForm->set(
-		CCC => '愛',
-	);
-
 	# デフォルト値を埋める。
 	my $defaults = [
-		[charset     => 'Shift_JIS'],
-		[contenttype => sub {
+		[charset      => 'Shift_JIS'],
+		[contenttype  => sub {
 			# 動的に決まるのでCODE Refを渡す。引数は取らない。
 			require Tripletail::CharConv;
 			sprintf 'text/html; charset=%s', $this->{option}{charset};
 		}],
-		[type        => 'html'],
+		[type         => 'html'],
 	];
 	$this->_fill_option_defaults($defaults);
 
 	# オプションのチェック
 	my $check = {
-		charset     => [qw(defined no_empty scalar)],
-		contenttype => [qw(defined no_empty scalar)],
-		type        => [qw(no_empty scalar)],
+		charset      => [qw(defined no_empty scalar)],
+		contenttype  => [qw(defined no_empty scalar)],
+		type         => [qw(no_empty scalar)],
 	};
 	$this->_check_options($check);
 
@@ -70,9 +62,8 @@ sub _new {
 			"must be 'html' or 'xhtml' instead of [$this->{option}{type}].\n";
 	}
 
-	$this->setHeader('Content-Type' => $this->{option}{contenttype});
-
-	$this->{buffer} = '';
+	# 状態の初期化。
+	$this->_reset;
 
 	$this;
 }
@@ -85,10 +76,14 @@ sub getSaveForm {
 sub print {
 	my $this = shift;
 	my $data = shift;
-	my $output = $this->_flush_header;
-
+	
+	return '' if($data eq '' and $this->{buffer} eq '');
+	
 	if(ref($data)) {
 		die __PACKAGE__."#print, ARG[1] was a Ref. [$data]\n";
+	}
+	if(defined $this->{locationurl}) {
+		die __PACKAGE__."#print, print called after location.\n";
 	}
 
 	$data = $this->{buffer} . $data;
@@ -103,6 +98,7 @@ sub print {
 		$this->{content_printed} = 1;
 	}
 
+	my $output = $this->_flush_header;
 	$output .= $TL->charconv($data, 'UTF-8' => $this->{option}{charset});
 
 	$output;
@@ -110,25 +106,50 @@ sub print {
 
 sub flush {
 	my $this = shift;
+	
+	my $output;
+	
+	if(defined $this->{locationurl}) {
+		my $data = $this->_flush_header;
+		if($TL->getDebug->{location_debug}) {
+			my $link = $this->_relink(url => $this->{locationurl});
+			$data .= q{<html><head><title>redirect</title></head><body><a href="}
+				. $TL->escapeTag($link)
+				. q{">}
+				. $TL->escapeTag($link)
+				. q{</a></body></html>};
+		}
+		$output = $data;
+		
+	} else {
+		my $data = $this->{buffer};
+		$this->{buffer} = '';
 
-	my $data = $this->{buffer};
-	$this->{buffer} = '';
+		$data = $this->_relink_html(html => $data);
 
-	$data = $this->_relink_html(html => $data);
+		if(length($data)) {
+			$this->{content_printed} = 1;
+		}
 
-	if(length($data)) {
-		$this->{content_printed} = 1;
-	}
+		$output = $TL->charconv($data, 'UTF-8' => $this->{option}{charset});
 
-	my $output = $TL->charconv($data, 'UTF-8' => $this->{option}{charset});
-
-	if(!$this->{content_printed}) {
-		die __PACKAGE__."#flush, We printed no content during this request.\n";
+		if(!$this->{content_printed}) {
+			die __PACKAGE__."#flush, We printed no content during this request.\n";
+		}
 	}
 
 	$this->_reset;
 
 	$output;
+}
+
+sub _location {
+	my $this = shift;
+	my $url = shift;
+	
+	$this->{locationurl} = $url;
+	
+	$this;
 }
 
 sub _make_header {
@@ -144,7 +165,16 @@ sub _make_header {
 	require Tripletail::RawCookie;
 	require Tripletail::Cookie;
 
+	my %opts = ();
+	if(defined $this->{locationurl}) {
+		if(!$TL->getDebug->{location_debug}) {
+			# relinkした上でLocationを生成。
+			%opts = (Location => $this->_relink(url => $this->{locationurl}));
+		}
+	}
+	
 	return {
+		%opts,
 		'Set-Cookie' => [
 			Tripletail::Cookie->_makeSetCookies,
 			Tripletail::RawCookie->_makeSetCookies,
@@ -370,13 +400,17 @@ sub _reset {
 	my $this = shift;
 	$this->SUPER::_reset;
 
+	# Contentが1バイトでも出力されたかどうか
 	$this->{content_printed} = undef;
+	
+	# 保存するフォームオブジェクト
 	$this->{save} = $TL->newForm->set(
 		CCC => '愛',
 	);
 	$this->setHeader('Content-Type' => $this->{option}{contenttype});
 
 	$this->{buffer} = '';
+	$this->{locationurl} = undef;
 
 	$this;
 }
@@ -403,7 +437,7 @@ HTMLに対して以下の処理を行う。
 
 =item *
 
-漢字コード変換（デフォルトShift_JIS、Encode優先）
+漢字コード変換（デフォルトShift_JIS）
 
 =item *
 

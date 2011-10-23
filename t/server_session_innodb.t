@@ -65,6 +65,7 @@ sub setup
 			dbgroup      => 'DB',
 			dbset        => 'SET_Default',
 			sessiontable => 'TripletaiL_Session_Test',
+			mysqlsessiontabletype => 'InnoDB',
 			csrfkey      => 'TripletaiL_Key',
 		},
 	};

@@ -158,7 +158,9 @@ sub __createSid {
 	}
 
 	if($sid) {
-		$TL->log(__PACKAGE__, "Created new session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		if($TL->INI->get($this->{group} => 'logging', '0')) {
+			$TL->log(__PACKAGE__, "Created new session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		}
 	} else {
 		die __PACKAGE__."#__createSid, cannot create sid.\n";
 	}
@@ -196,8 +198,10 @@ sub __removeSid {
 		die __PACKAGE__."#__removeSid, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
 	}
 
-	$TL->log(__PACKAGE__, "Remove session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
-
+	if($TL->INI->get($this->{group} => 'logging', '0')) {
+		$TL->log(__PACKAGE__, "Remove session sid [$sid] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+	}
+	
 	$sid;
 }
 
@@ -242,17 +246,25 @@ sub __prepareSessionTable {
 						checkvalssl   BLOB NOT NULL,
 						data          BLOB,
 						updatetime    TIMESTAMP NOT NULL,
-						PRIMARY KEY (sid),
-						INDEX (updatetime)
+						PRIMARY KEY (sid)
 					)
 				});
 			};
 			$@ and die "CREATE TABLE failed: $@";
+			eval {
+				$DB->execute(\$this->{dbset} => qq{
+					CREATE INDEX $this->{sessiontable}_idx
+						ON $this->{sessiontable} (updatetime)
+					)
+				});
+			};
 		} else {
 			die __PACKAGE__."#__prepareSessionTable, the type of DB [$this->{dbgroup}] is [$type], which is not supported.\n";
 		}
 
-		$TL->log(__PACKAGE__, "Created table [$this->{sessiontable}] on the DB [$this->{dbgroup}].");
+		if($TL->INI->get($this->{group} => 'logging', '0')) {
+			$TL->log(__PACKAGE__, "Created table [$this->{sessiontable}] on the DB [$this->{dbgroup}].");
+		}
 	}
 
 	$this;
@@ -531,11 +543,17 @@ sub __setSession {
 			}, $sid, $checkval);
 
 			if(!scalar(@$sessiondata)) {
-				$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
 			}elsif( $sessiondata->[0][2] eq 'x' || $sessiondata->[0][3] eq 'x' ) {
-				$TL->log(__PACKAGE__, "Invalid session. session has deletion mark. sid [$sid] checkval [$$sessiondata->[0][2]] checkvalssl [$$sessiondata->[0][3]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "Invalid session. session has deletion mark. sid [$sid] checkval [$$sessiondata->[0][2]] checkvalssl [$$sessiondata->[0][3]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
 			} elsif(time - $sessiondata->[0][1] > $this->{timeout_period}) {
-				$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
 			} else {
 				$this->{sid} = $sid;
 				$this->{data} = $sessiondata->[0][0];
@@ -555,9 +573,13 @@ sub __setSession {
 			my $updatetime = $sessiondata && @$sessiondata && $TL->newDateTime($sessiondata->[0][1])->getEpoch();
 			my $now = time;
 			if(!scalar(@$sessiondata)) {
-				$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "Invalid session. session is not found. sid [$sid] checkval [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+				}
 			} elsif($now - $updatetime > $this->{timeout_period}) {
-				$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]=$updatetime] on the DB [$this->{dbgroup}][$this->{sessiontable}], now=[$now], timeout=[$this->{timeout_period}].");
+				if($TL->INI->get($this->{group} => 'logging', '0')) {
+					$TL->log(__PACKAGE__, "Invalid session. session is timeout. sid [$sid] checkval [$checkval] updatetime [$sessiondata->[0][1]=$updatetime] on the DB [$this->{dbgroup}][$this->{sessiontable}], now=[$now], timeout=[$this->{timeout_period}].");
+				}
 			} else {
 				$this->{sid} = $sid;
 				$this->{data} = $sessiondata->[0][0];
@@ -572,9 +594,13 @@ sub __setSession {
 
 	if(defined $this->{sid}) {
 		my $datalog = (defined($this->{data}) ? $this->{data} : '(undef)');
-		$TL->log(__PACKAGE__, "Valid session data read. secure [$opts{secure}] sid [$this->{sid}] checkval [$this->{checkval}] checkvalssl [$this->{checkvalssl}] data [$datalog] updatetime [$this->{updatetime}] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		if($TL->INI->get($this->{group} => 'logging', '0')) {
+			$TL->log(__PACKAGE__, "Valid session data read. secure [$opts{secure}] sid [$this->{sid}] checkval [$this->{checkval}] checkvalssl [$this->{checkvalssl}] data [$datalog] updatetime [$this->{updatetime}] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		}
 	} else {
-		$TL->log(__PACKAGE__, "Valid session data didn't read. secure [$opts{secure}] sid [$sid] $colname [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		if($TL->INI->get($this->{group} => 'logging', '0')) {
+			$TL->log(__PACKAGE__, "Valid session data didn't read. secure [$opts{secure}] sid [$sid] $colname [$checkval] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+		}
 	}
 
 	$this;
@@ -618,7 +644,9 @@ sub __updateSession {
 	$this->{updatetime} = time;
 
 	my $datalog = (defined($this->{data}) ? $this->{data} : '(undef)');
-	$TL->log(__PACKAGE__, "Update session. sid [$this->{sid}] data [$datalog] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+	if($TL->INI->get($this->{group} => 'logging', '0')) {
+		$TL->log(__PACKAGE__, "Update session. sid [$this->{sid}] data [$datalog] on the DB [$this->{dbgroup}][$this->{sessiontable}].");
+	}
 
 	$this;
 }
@@ -987,6 +1015,14 @@ TripletaiL のセッションテーブルは Fixed 型となるため、
 
 addSessionCheck及びhaveSessionCheckで使用するキー。
 サイト毎に値を変更する必要性がある。
+
+=item logging
+
+  logging = 1
+
+セッション管理のログを出力するかを指定する。
+1 を指定するとセッション管理情報をログに出力する。0 なら出力しない。
+デフォルトは 0。
 
 =back
 

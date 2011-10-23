@@ -672,7 +672,24 @@ Tripletail::Validator - 値の検証の一括処理
 </span></a></dt>
 <dd>
 <p>
-<span class="pod_lang">機種依存文字以外を含んでいないかチェックする。
+<span class="pod_lang">機種依存文字を含んでいないかチェックする。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">値が空（存在しないか0文字）なら検証OKとなる。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="PcPortable"><span class="pod_lang">PcPortable
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">携帯絵文字を含んでいないかチェックする。
 
 </span>
 </p>
@@ -990,6 +1007,28 @@ SJISの文字単位でカットする。
 </p>
 
 </dd>
+<dt><a id="ForcePortable"><span class="pod_lang">ForcePortable
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">機種依存文字以外を削除。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="ForcePcPortable"><span class="pod_lang">ForcePcPortable
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">携帯絵文字以外を削除。
+
+</span>
+</p>
+
+</dd>
 <dt><a id="TrimWhitespace"><span class="pod_lang">TrimWhitespace
 
 </span></a></dt>
@@ -1251,6 +1290,8 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#ForceMaxUtf8Len($max)">ForceMaxUtf8Len($max)</a></li>
 <li><a href="#ForceMin($max,$val)">ForceMin($max,$val)</a></li>
 <li><a href="#ForceNumber">ForceNumber</a></li>
+<li><a href="#ForcePcPortable">ForcePcPortable</a></li>
+<li><a href="#ForcePortable">ForcePortable</a></li>
 <li><a href="#Gif">Gif</a></li>
 <li><a href="#Hira">Hira</a></li>
 <li><a href="#HttpUrl($mode)">HttpUrl($mode)</a></li>
@@ -1269,6 +1310,7 @@ Tripletail::Validator - 値の検証の一括処理
 <li><a href="#NotWhitespace">NotWhitespace</a></li>
 <li><a href="#Or($filter1X7c$filter2X7c$filter3)">Or($filter1|$filter2|$filter3)</a></li>
 <li><a href="#Password">Password</a></li>
+<li><a href="#PcPortable">PcPortable</a></li>
 <li><a href="#Png">Png</a></li>
 <li><a href="#Portable">Portable</a></li>
 <li><a href="#PrintableAscii">PrintableAscii</a></li>

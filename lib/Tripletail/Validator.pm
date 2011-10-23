@@ -389,7 +389,13 @@ Shift-Jisでのバイト数の範囲が指定値以内かチェックする。�
 
 =item Portable
 
-機種依存文字以外を含んでいないかチェックする。
+機種依存文字を含んでいないかチェックする。
+
+値が空（存在しないか0文字）なら検証OKとなる。
+
+=item PcPortable
+
+携帯絵文字を含んでいないかチェックする。
 
 値が空（存在しないか0文字）なら検証OKとなる。
 
@@ -524,6 +530,14 @@ L<Tripletail::Value/forceMaxSjisLen($max)>。
 
 最大文字数を指定。超える場合はその文字数以下までカットする。
 L<Tripletail::Value/forceMaxCharLen($max)>。
+
+=item ForcePortable
+
+機種依存文字以外を削除。
+
+=item ForcePcPortable
+
+携帯絵文字以外を削除。
 
 =item TrimWhitespace
 
