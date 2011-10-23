@@ -2051,7 +2051,7 @@ $value は大文字で始まらなければならない。
 </p>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合、utf8として扱う。
+<span class="pod_lang"><code class="pod_iseq_C">$coding</code> が省略された場合、UTF-8として扱う。
 
 </span>
 </p>
@@ -2694,6 +2694,19 @@ inigroupが省略されると <code class="pod_iseq_C">'Sendmail'</code> が使�
 </p>
 
 </dd>
+<dt><a id="allow_modifying_const_form"><span class="pod_lang">allow_modifying_const_form
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  allow_modifying_const_form = 1</code></pre>
+
+<p>
+<span class="pod_lang"><a href="././Tripletail/Form.html#const">Tripletail::Form#const</a> が呼び出されたフォームオブジェクトの書換を許す。デフォルトは0。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h2><a id="Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">
@@ -3304,6 +3317,7 @@ Tripletail - Tripletail, Framework for Japanese Web Application
 <li><a href="#X__16">Tripletail::Template</a></li>
 <li><a href="#X__19">Tripletail::Validator</a></li>
 <li><a href="#X__18">Tripletail::Value</a></li>
+<li><a href="#allow_modifying_const_form">allow_modifying_const_form</a></li>
 <li><a href="#charconv">charconv</a></li>
 <li><a href="#decodeURL">decodeURL</a></li>
 <li><a href="#deleteCache">deleteCache</a></li>

@@ -39,14 +39,17 @@ sub _new {
 
 sub setTimeout {
 	# デフォルトの実装では何もしない
+    shift;
 }
 
 sub connect {
 	# デフォルトの実装では何もしない
+    shift;
 }
 
 sub disconnect {
 	# デフォルトの実装では何もしない
+    shift;
 }
 
 sub send {
@@ -58,6 +61,7 @@ sub _setLogging {
 	# デフォルトの実装では何もしない
 	# TL内部でのエラー処理用に、ログ保存のオプションを変更したいときに呼び出される。
 	# iniファイルのloggingよりこちらの指定を優先しなければならない。
+    shift;
 }
 
 sub _getoptSend {

@@ -20,9 +20,15 @@ sub _new {
 
 	local($_);
 
+    if (my $queuedir = $TL->INI->get($group => 'queuedir')) {
+        $queuedir =~ s!/+$!!; # 末尾の / を消す
+        $this->{queuedir} = $queuedir;
+    }
+    else {
+        die __PACKAGE__."#new: queuedir is not defined for the INI group [$group]. (queuedirが指定されていません)\n";
+    }
+    
 	$this->{group} = $group;
-	$this->{queuedir} = $TL->INI->get($group => 'queuedir');
-	$this->{queuedir} or die __PACKAGE__."#new: queuedir is not defined for the INI group [$group]. (queuedirが指定されていません)\n";
 	$this->{smtp} = Tripletail::Sendmail::Smtp->_new($group);
 	$this->{erroraddr} = $TL->INI->get($group => 'erroraddr');
 	$this->{errorlog} = $TL->INI->get($group => 'errorlog');

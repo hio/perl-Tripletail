@@ -821,6 +821,22 @@ Unicode上でのプライベート領域（U+E000～U+F8FF、U+F0000～U+10FFFF�
 </p>
 
 </dd>
+<dt><a id="isDateString"><span class="pod_lang">isDateString
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isDateString('%Y/%m/%d')</code></pre>
+
+<p>
+<span class="pod_lang">日付フォーマット文字列で指定された形式に沿っていれば1。そうでなければundef。
+フォーマット文字列は
+<a href=".././Tripletail/DateTime.html#strFormat">Tripletail::DateTime#strFormat</a>
+のものと同一である。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h3><a id="convXe7Xb3Xbb">
@@ -1262,7 +1278,6 @@ undef を返す。
 
 </span></a></h1>
 
-<ul>
 <p>
 <span class="pod_lang">Copyright 2006 YMIRLINK Inc. All Rights Reserved.
 
@@ -1292,8 +1307,6 @@ undef を返す。
 
 </span>
 </p>
-
-</ul>
 
 <!-- End CONTENT -->
 
@@ -1350,6 +1363,7 @@ Tripletail::Value - 値の検証や変換
 <li><a href="#getXe7Xb3Xbb">get系</a></li>
 <li><a href="#isBlank">isBlank</a></li>
 <li><a href="#isCharLen($min,$max)">isCharLen($min,$max)</a></li>
+<li><a href="#isDateString">isDateString</a></li>
 <li><a href="#isDomainName">isDomainName</a></li>
 <li><a href="#isEmail">isEmail</a></li>
 <li><a href="#isEmpty">isEmpty</a></li>

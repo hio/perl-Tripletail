@@ -134,7 +134,7 @@ sub test05_upload
 				#maxrequestsize => 1,
 				maxfilesize => 1,
 				fault_handler => '::_test5_fault_handler',
-				logdir => 'logs',
+				#logdir => 'logs',
 			},
 			Debug => {
 				enable_debug    => 1,

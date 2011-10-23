@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: test_server.pm 4217 2007-08-31 02:20:28Z hio $
+# $Id: test_server.pm 4932 2007-11-22 10:29:03Z hio $
 # -----------------------------------------------------------------------------
 package t::test_server;
 use strict;
@@ -162,10 +162,7 @@ sub _prepare_script
 	# パラメータは関係ない通信が紛れてこないように適当に暗号化
 	# されているので, 取り出す時に復号..
 	
-	my $cipher = Crypt::CBC->new({
-		key    => $KEY,
-		cipher => 'Rijndael',
-	});
+	my $cipher = _get_cipher();
 	
 	if (defined($_ = $uri->query_param('ini')))
 	{
@@ -212,7 +209,7 @@ sub _run_script
 			print $fh $heap->{ini};
 		}
 	};
-	
+
 	# その子プロセスでスクリプトをevalする。
 	
 	pipe my $p_read, my $c_write;
@@ -267,9 +264,18 @@ sub _run_script
 	unlink "tmp$$.ini";
 	
 	# 結果をHTTPからパースしてhttpdへ渡す。
-	
+
 	my $msg = HTTP::Message->parse($received_data);
-	my $retval = $msg->headers->header('Status') || 200;
+	my $retval = do {
+        my $st = $msg->headers->header('Status');
+        if (defined $st) {
+            $st =~ m/^(\d+)/;
+            $1;
+        }
+        else {
+            200;
+        }
+    };
 	$resp->code($retval);
 	$resp->message(status_message($resp->code));
 	
@@ -351,6 +357,7 @@ sub request
 				$dd->Useqq(1);
 				$dd->Terse(1);
 				$TL->print( 'REPLYMARK'.$dd->Dump() );
+				#$TL->print( 'REPLYMARK'.t::test_server::_get_cipher()->encrypt($dd->Dump()) );
 			},
 		);
 		sub _main {
@@ -387,8 +394,11 @@ sub request
 		}
 		die "invalid data: [$pack]";
 	}
-	my $data = eval $pack;
-	$@ and die "parsing result failed: $@";
+	#my $decrypted = _get_cipher()->decrypt($pack);
+	my $decrypted = $pack;
+	$decrypted = $decrypted=~/^(.*)\z/s && $1 or die "untaint";
+	my $data = eval $decrypted;
+	$@ and die "parsing result failed: $@ ";
 	
 	# 展開した結果を返す.
 	$data;
@@ -420,10 +430,7 @@ sub raw_request
 		die "method is required at request";
 	}
 	
-	my $cipher = Crypt::CBC->new({
-		key    => $KEY,
-		cipher => 'Rijndael',
-	});
+	my $cipher = _get_cipher();
 	
 	if( ref($ini) )
 	{
@@ -466,10 +473,6 @@ sub raw_request
 	my $params = $opts->{params} || [];
 	ref($params) eq 'HASH' and $params = [%$params];
 	$res = $UserAgent->$meth("http://localhost:$HTTP_PORT/", @$params);
-	if( !$res->is_success )
-	{
-		die $res->as_string;
-	}
 	
 	if( $opts->{cleanup} )
 	{
@@ -483,6 +486,18 @@ sub raw_request
 	}
 	
 	$res;
+}
+
+sub _get_cipher
+{
+	# Rijndael requires untainted salt.
+	my $salt = Crypt::CBC->can('_get_random_bytes') && Crypt::CBC->_get_random_bytes(8)=~/^(.*)\z/s && $1;
+	my $cipher = Crypt::CBC->new({
+		key    => $KEY,
+		cipher => 'Rijndael',
+		salt   => $salt,
+	});
+	$cipher;
 }
 
 # -----------------------------------------------------------------------------

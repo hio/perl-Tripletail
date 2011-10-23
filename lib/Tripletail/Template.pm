@@ -23,7 +23,7 @@ sub _new {
 	my $class = shift;
 	my $this = bless {} => $class;
 
-	$this->{root} = Tripletail::Template::Node->_new;
+	$this->{root} = Tripletail::Template::Node->_new(undef,undef,undef,$TL->INI->get('Template' => 'allow_unexpanded_tags','false'));
 
 	$this->{basepath} = $TL->INI->get('Template' => 'basepath', '.');
 	if( !File::Spec::Functions::file_name_is_absolute($this->{basepath}) )
@@ -711,6 +711,20 @@ Templateの場合、全体を出力する。
 
 デフォルトは "/"。
 すなわち全ファイルをテンプレートとして使用許可。
+
+=item allow_unexpanded_tags
+
+  allow_unexpanded_tags = true
+
+非推奨オプション。tureを指定した場合、
+getForm, setForm, extForm, addHiddenForm, addSessionCheckを
+実行する場合に、テンプレートに未置換の <&タグ> が、
+<foo <&tag>> のように HTML タグの内部に存在していても、
+エラーにならないようになる。
+
+このオプションを有効にした場合、<foo <&tag>> のようなタグが
+テンプレート中に存在していた場合、タグが正常に展開されず、
+破壊される恐れがある為、使用する際は注意して下さい。
 
 =back
 

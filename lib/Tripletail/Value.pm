@@ -73,9 +73,11 @@ my $re_domain = do {
     # RFC ではラベルの先頭に数字が来る事を禁止しているが、実際にはそのようなドメ
     # インが存在する。
     my $label = qr{
-        ${letter_digit}
-        ${letter_digit_hyphen}*
-        ${letter_digit}
+        ${letter_digit} # RFC としてはここは ${letter} が正しい。
+        (?:
+            ${letter_digit_hyphen} {0,61} # ラベルは1文字以上63文字以内。
+            ${letter_digit}
+        )?
     }x;
     
     my $domain = qr{^
@@ -635,7 +637,9 @@ sub isDomainName {
     my $this = shift;
 
     if (defined $this->{value}) {
-        return $this->{value} =~ m/$re_domain/o;
+        return
+          length($this->{value}) <= 255 &&
+          $this->{value} =~ m/$re_domain/o;
     }
     else {
         return;
@@ -695,6 +699,32 @@ sub isIpAddress {
 		# どれにもマッチしなかった。
 		return undef;
 	}
+}
+
+sub isDateString {
+    my $this   = shift;
+    my $format = shift;
+
+    if (!defined $this->{value}) {
+        return;
+    }
+
+    eval {
+        local $SIG{__DIE__} = 'DEFAULT';
+        $TL->newDateTime->parseFormat($format, $this->{value});
+    };
+    if (my $err = $@) {
+        # 良くないが、他に方法が無い。
+        if ($err =~ m/does not match to/) {
+            return;
+        }
+        else {
+            die $@;
+        }
+    }
+    else {
+        return 1;
+    }
 }
 
 
@@ -1681,6 +1711,15 @@ $checkmaskは空白で区切って複数個指定する事が可能。
 
 例：'10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1'。
 
+=item isDateString
+
+  $bool = $val->isDateString('%Y/%m/%d')
+
+日付フォーマット文字列で指定された形式に沿っていれば1。そうでなければundef。
+フォーマット文字列は
+L<Tripletail::DateTime#strFormat|Tripletail::DateTime/"strFormat">
+のものと同一である。
+
 =back
 
 
@@ -1897,8 +1936,6 @@ L<Tripletail>
 
 =head1 AUTHOR INFORMATION
 
-=over 4
-
 Copyright 2006 YMIRLINK Inc. All Rights Reserved.
 
 This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
@@ -1908,7 +1945,5 @@ This framework is free software; you can redistribute it and/or modify it under 
 Address bug reports and comments to: tl@tripletail.jp
 
 HP : http://tripletail.jp/
-
-=back
 
 =cut

@@ -8,13 +8,14 @@ use lib '.';
 use t::test_server;
 
 &setup;
-plan tests => 12;
+plan tests => 14;
 
 &test_01_location;         #2.
 &test_01_location_mobile;  #2.
 &test_02_template;         #4.
 &test_03_raw_cookie;       #2.
 &test_04_cookie;           #2.
+&test_05_form;             #2.
 
 # -----------------------------------------------------------------------------
 # shortcut.
@@ -215,6 +216,48 @@ sub test_04_cookie
 			},
 		);
 		is($res->content, 'MONSTER', '[cookie] (get)');
+	}
+}
+
+# -----------------------------------------------------------------------------
+# form
+#
+sub test_05_form {
+    {
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				sub main {
+                    $TL->print($CGI->get('foo'));
+				}
+			},
+			env => {
+				QUERY_STRING => 'foo=bar',
+			},
+		);
+		is $res->content, 'bar', '[form] get';
+	}
+
+    {
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				sub main {
+                    $CGI->set(foo => 'baz');
+                    $TL->print($CGI->get('foo'));
+				}
+			},
+			env => {
+				QUERY_STRING => 'foo=bar',
+			},
+		);
+		is $res->status_line, '500 Internal Server Error', '[form] set';
 	}
 }
 

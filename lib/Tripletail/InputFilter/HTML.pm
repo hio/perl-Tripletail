@@ -279,6 +279,11 @@ sub __pairsFromMultipart {
 	};
 
 	my $tempdir = $TL->INI->get(TL => 'tempdir');
+	if( defined($tempdir) )
+	{
+		# trust TL.tempdir parameter.
+		$tempdir = $tempdir=~/^(.*)\z/ && $1 or die "untaint";
+	}
 	my $new_ih = sub {
 		if (defined $tempdir) {
 			if (!-d $tempdir) {

@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------------------
 package Tripletail::Form;
 use strict;
+use warnings;
 our $TL;
 
 1;
@@ -46,7 +47,9 @@ sub _trace {
 sub const {
 	my $this = shift;
 
-	$this->{const} = 1;
+    if (not $TL->INI->get(TL => 'allow_modifying_const_form')) {
+        $this->{const} = 1;
+    }
 
 	$this;
 }
@@ -949,7 +952,7 @@ Tripletail::Form オブジェクトを作成。
 
   $NewForm_obj = $form->clone
 
-フォームオブジェクトの複製を返す。
+フォームオブジェクトの複製を返す。複製されたフォームオブジェクトは const でない。
 
 =item addForm
 

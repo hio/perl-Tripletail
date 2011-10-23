@@ -5,7 +5,7 @@
  *
  * Copyright 2005 YAMASHINA Hio
  * ----------------------------------------------------------------------------
- * $Id: HtmlFilter.xs 4304 2007-09-19 07:52:33Z pho $
+ * $Id: HtmlFilter.xs 4923 2007-11-22 08:03:58Z hio $
  * ------------------------------------------------------------------------- */
 
 #include "EXTERN.h"
@@ -16,6 +16,9 @@
 
 #ifdef _MSC_VER /* Microsoft Visual C++ */
 #define strncasecmp(s1,s2,n) _strnicmp(s1,s2,n)
+#endif
+#ifndef PERL_MAGIC_taint
+#define PERL_MAGIC_taint 't'
 #endif
 
 static const int FILT_INTEREST       = 0;
@@ -351,6 +354,10 @@ _is_tainted_pv(SV* sv)
 	{
 		return FALSE;
 	}
+	if( !SvPOKp(sv) )
+	{
+		return FALSE;
+	}
 	mg = SvMAGIC(sv);
 	if( mg==NULL )
 	{
@@ -563,7 +570,7 @@ PPCODE:
 		  bool close;
 		  SV* nameonly;
 
-		  if (!SvPOK(elem_name) ) {
+		  if (!SvPOK(elem_name) && !_is_tainted_pv(elem_name) ) {
 			  croak("$elem->name returned non-string");
 		  }
 
@@ -628,7 +635,7 @@ PROTOTYPES: ENABLE
 void
 parse(SV* this_sv, SV* str_sv)
 CODE:
-  if( SvROK(this_sv) && str_sv!=&PL_sv_undef && SvPOK(str_sv) )
+  if( SvROK(this_sv) && str_sv!=&PL_sv_undef && (SvPOK(str_sv) || _is_tainted_pv(str_sv)) )
   {
     STRLEN len;
     const char* str = SvPV(str_sv,len);

@@ -48,6 +48,7 @@ sub _new {
 	my $parent = shift; # Tripletail::Template::Node または undef (rootの場合)
 	my $name = shift; # <!mark>の名前。rootならundef
 	my $html = shift; # template html
+	my $allow_unexpanded_tags = shift; # allow_unexpanded_tags
 
 	my $this = bless {} => $class;
 
@@ -55,6 +56,7 @@ sub _new {
 
 	$this->{parent} = $parent;
 	$this->{name} = lc $name;
+	$this->{allow_unexpanded_tags} = $allow_unexpanded_tags || 'false';
 
 	if(defined $html) {
 		$this->_setTemplate($html);
@@ -122,7 +124,7 @@ sub _setTemplate {
 		}
 
 		$this->{node}{$name} = Tripletail::Template::Node->_new(
-			$this, $name, $template
+			$this, $name, $template, $this->{allow_unexpanded_tags}
 		);
 		"<!mark:$name>";
 	}egs;
@@ -957,6 +959,9 @@ sub _dieIfAnyNestedTag {
     my $this   = shift;
     my $method = shift;
     my $html   = shift;
+
+	#互換性維持の為のオプション指定があった場合、処理をスキップする。
+	return if($this->{allow_unexpanded_tags} eq 'true');
 
     # 指定された HTML の中に、HTML タグの内部にある Template タグが存在したら、エ
     # ラーにする。

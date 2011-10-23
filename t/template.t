@@ -1,4 +1,4 @@
-use Test::More tests => 103;
+use Test::More tests => 105;
 use Test::Exception;
 use strict;
 use warnings;
@@ -435,3 +435,23 @@ EOF
 lives_ok {
     $t->setTemplate($TMPL13)->setForm({foo => 100});
 } 'setForm() with leaving an unexpanded template tag outside any HTML tags';
+
+
+my $TMPL14 = <<EOF;
+<a href="JavaScript:taglistOpen('<&url>');"></a>
+EOF
+is (trim $t->setTemplate($TMPL14)
+           ->setAttr(url => 'js')
+           ->expand(url => 'http://.../hoge.cgi')
+           ->toStr,
+    q{<a href="JavaScript:taglistOpen('http://.../hoge.cgi');"></a>},
+    'expanding tags in html tag');
+
+
+my $TMPL15 = '<&foo>';
+is (trim $t->setTemplate($TMPL15)
+           ->setAttr(foo => 'raw')
+           ->expand(foo => q{<a href="JavaScript:taglistOpen('http://.../hoge.cgi');"></a>})
+           ->toStr,
+    q{<a href="JavaScript:taglistOpen('http://.../hoge.cgi');"></a>},
+    'expanding tags in html tag');

@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 188;
+use Test::More tests => 192;
 
 #---------------------------------- 一般
 my $v;
@@ -129,6 +129,8 @@ ok(! $v->isCharLen(0, 2), 'isCharLen');
 
 ok $v->set('example.org')->isDomainName, 'example.org is a domain name';
 ok !$v->set('-example.org')->isDomainName, '-example.org is not a domain name';
+ok !$v->set('123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.jp')
+      ->isDomainName, '1234...............7890.jp is too long to be a domain name';
 
 is($v->set("192.168.0.1")->isIpAddress("10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1"), 1, 'isIpAddress');
 is($v->set("255.168.0.1")->isIpAddress("10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1"), undef, 'isIpAddress');
@@ -136,6 +138,12 @@ is($v->set("255.168.0.1")->isIpAddress, undef, 'isIpAddress error');
 is($v->set("255.168.0.1")->isIpAddress(\123), undef, 'isIpAddress error');
 is($v->set("fe80::1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1")->isIpAddress('192.168.0.1'), undef, 'isIpAddress error');
 is($v->set("255.168.0.1")->isIpAddress('fe80::1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1/10'), undef, 'isIpAddress error');
+
+is($v->set('2000/01/01')->isDateString('%Y/%m/%d'), 1    , 'isDateString [2000/01/01] [%Y/%m/%d]');
+is($v->set('2000/01/01')->isDateString('%Y-%m-%d'), undef, 'isDateString [2000/01/01] [%Y-%m-%d]');
+dies_ok {
+    $v->set('2000/01/01')->isDateString('foo bar');
+} 'isDateString [2000/01/01] [foo bar]';
 
 #---------------------------------- conv系
 

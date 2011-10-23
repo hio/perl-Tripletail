@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 4755 2007-10-04 09:10:50Z hio $
+# $Id: Tripletail.pm 4935 2007-11-23 03:18:08Z hio $
 package Tripletail;
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -133,7 +133,8 @@ sub __die_handler_for_startup
 	{
 		# die-with-print時かつevalの外であればは,
 		# エラーをヘッダと共に表示する.
-		print "Content-Type: text/plain\n\n$err";
+        print "Status: 500 Internal Server Error\r\n";
+		print "Content-Type: text/plain\r\n\r\n$err";
 	}
 
 	die $err;
@@ -755,9 +756,17 @@ sub dispatch {
 		}
 	} elsif(ref($name)) {
 		die __PACKAGE__."#dispatch: arg[1] is a reference. [$name] (第1引数がリファレンスです)\n";
-	} elsif( $name !~ /^[A-Z]/ )
-	{
-		die __PACKAGE__."#dispatch: arg[1] must start with upper case character. (第1引数は大文字から始まる必要があります)\n";
+	} elsif( $name !~ /^[A-Z]/ ) {
+		if(!defined($param->{'onerror'})) {
+			die __PACKAGE__."#dispatch: arg[1] must start with upper case character. (第1引数は大文字から始まる必要があります)\n";
+		} else {
+			eval {
+				$param->{'onerror'}();
+			};
+			if($@) {
+				die __PACKAGE__."#dispatch: onerror handler threw an error. [$@] (onerrorの関数でエラーが発生しました)\n";
+			}
+		}
 	}
 
 	# 呼ばれる関数のあるパッケージはcallerから得る。
@@ -854,6 +863,11 @@ sub _log {
 
 	if(!exists($this->{logdir})) {
 		$this->{logdir} = $this->INI->get(TL => 'logdir');
+		if( defined($this->{logdir}) )
+		{
+			# trust TL.logdir parameter.
+			$this->{logdir} = $this->{logdir}=~/^(.*)\z/ && $1 or die "untaint";
+		}
 	}
 	if(!defined($this->{logdir})) {
 		return $this;
@@ -878,7 +892,8 @@ sub _log {
 			mkpath($dir);
 		};
 		if ($@){
-			print "Content-Type: text/plain\n\n";
+            print "Status: 500 Internal Server Error\r\n";
+			print "Content-Type: text/plain\r\n\r\n";
 			print "Failed to create a directory [$path]\n";
 			warn "Failed to create a directory [$path] (logdirで指定されたログ用のディレクトリを作成できません)";
 			$this->sendError(
@@ -898,7 +913,8 @@ sub _log {
 		# hour is changed.
 		my $fh = $this->_gensym;
 		if(!open($fh, ">>$path")) {
-			print "Content-Type: text/plain\n\n";
+            print "Status: 500 Internal Server Error\r\n";
+			print "Content-Type: text/plain\r\n\r\n";
 			print "Failed to open [$path]\n";
 			warn "Failed to open [$path] (logdirで指定されたログ用のディレクトリにアクセスできません)";
 			$this->sendError(
@@ -1765,7 +1781,7 @@ sub readTextFile {
 		$cache->{text} = $this->charconv(
 			$this->readFile($fpath),
 			$coding,
-			'utf8',
+			'UTF-8',
 		);
 		if( $cache->{cache_size} )
 		{
@@ -1819,17 +1835,13 @@ sub writeTextFile {
 	my $coding = shift;
 
 	if(!defined($coding)) {
-		$coding = 'utf8';
+		$coding = 'UTF-8';
 	}
 	if(ref($coding)) {
 		die __PACKAGE__."#writeTextFile: arg[4] is a reference. (第4引数がリファレンスです)\n";
 	}
 
-	$this->charconv(
-		$this->writeFile($fpath,$fdata,$fmode),
-		'utf8',
-		$coding,
-	);
+	$this->writeFile($fpath,$this->charconv($fdata,'UTF-8',$coding,),$fmode);
 }
 
 # -----------------------------------------------------------------------------
@@ -2151,16 +2163,23 @@ sub __dispError {
 
 	my $errortemplate = $TL->INI->get(TL => 'errortemplate', '');
 	my $html;
-	if (length $errortemplate) {
+    if ($this->{printflag} and not $this->{outputbuffering}) {
+        $html = "<p>$err</p>";
+        $html =~ s!\n!<br />!g;
+    }
+	elsif (length $errortemplate) {
 		my $t = $TL->newTemplate($errortemplate);
 		my $errortemplatecharset = $this->INI->get(TL => 'errortemplatecharset', 'UTF-8');
 		$html = $TL->charconv($t->toStr, 'UTF-8', $errortemplatecharset);
-		$html = "Content-Type: text/html; charset=$errortemplatecharset\n\n" . $html;
-	} else {
+		$html = "Content-Type: text/html; charset=$errortemplatecharset\r\n\r\n" . $html;
+        $html = "Status: 500 Internal Server Error\r\n" . $html;
+	}
+    else {
 		my $popup = $Tripletail::Debug::_INSTANCE->_implant_disperror_popup;
 		$html = $err->toHtml;
 		$html =~ s|</html>$|$popup</html>|;
-		$html = "Content-Type: text/html; charset=UTF-8\n\n" . $html;
+		$html = "Content-Type: text/html; charset=UTF-8\r\n\r\n" . $html;
+        $html = "Status: 500 Internal Server Error\r\n" . $html
 	}
 
 	print $html;
@@ -2198,10 +2217,11 @@ sub __executeCgi {
 				($@->message =~ /we got EOF while reading from stdin/)
 			)
 		);
+        print "Status: 500 Internal Server Error\r\n";
 		print "Content-Type: text/plain\r\n\r\nI/O Error\r\n$@";
 	}
 	else {
-		$this->{CGI} = $this->{CGIORIG}->clone->_trace;
+		$this->{CGI} = $this->{CGIORIG}->clone->const->_trace;
 		our $CGI = $this->{CGI};
 		$this->{outputbuff} = '';
 
@@ -3093,7 +3113,7 @@ C<$fmode> が1ならば、追加モード。
 
 省略された場合は上書きモードとなる。
 
-C<$coding> が省略された場合、utf8として扱う。
+C<$coding> が省略された場合、UTF-8として扱う。
 
 =head4 C<< watch >>
 
@@ -3416,6 +3436,12 @@ startCgi メソッド中で出力をバッファリングする。デフォル�
 また、Content-Length ヘッダが付与される。
 
 L<Tripletail::Filter::MobileHTML> を利用した場合、outputbuffering は1にセットされる。
+
+=item allow_modifying_const_form
+
+  allow_modifying_const_form = 1
+
+L<Tripletail::Form#const|Tripletail::Form/const> が呼び出されたフォームオブジェクトの書換を許す。デフォルトは0。
 
 =back
 

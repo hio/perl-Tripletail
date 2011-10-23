@@ -1,5 +1,24 @@
 Revision history for Tripletail
 
+0.38 Fri Nov 23 12:15:01 JST 2007
+	- [[重要:非互換な仕様変更]]
+	　- $TL->CGI 及び $CGI は const 状態になっていなかったが、const 状態にするよ
+	　　うにした。
+	　- TL#dispatchで、第1引数が小文字ではじまる場合にエラーになるケースで、
+	　　onerrorが設定されている場合は、onerrorが呼び出されるようにした。
+	- Value#isDomainName() が正当でないドメイン名に対して 1 を返す場合があった
+	　問題を解決。
+	- Value#isDateTime() を追加。
+	- TL#writeTextFileの文字コード変換が正常に動作していなかった問題の修正。
+	- [TL]outputbuffering が 1 でない場合、$TL->print 等で何らかのデータを出力し
+	　た後にエラーが発生した時に表示が崩れる問題を解決。
+	- 0.35で導入された、Template#getForm, setForm, extForm, addHiddenForm,
+	　addSessionCheck において対象となるノードに未置換の <&タグ> がある場合、
+	　エラーになるように変更された修正を回避するオプションを追加した。
+	　互換性維持の為に使用されるオプションであり、非推奨オプションとなります。
+	- const 状態の Form オブジェクトを変更可能にするオプションを [TL] の ini に追
+	　加した。
+
 0.37 Thu Oct  4 18:09:30 JST 2007
 	- Win32 で動かなくなっていた箇所の修正.
 	- IIS/FastCGI/ActivePerlの対応.

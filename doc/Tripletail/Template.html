@@ -918,6 +918,31 @@ Templateの場合、全体を出力する。
 </p>
 
 </dd>
+<dt><a id="allow_unexpanded_tags"><span class="pod_lang">allow_unexpanded_tags
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  allow_unexpanded_tags = true</code></pre>
+
+<p>
+<span class="pod_lang">非推奨オプション。tureを指定した場合、
+getForm, setForm, extForm, addHiddenForm, addSessionCheckを
+実行する場合に、テンプレートに未置換の &lt;&amp;タグ&gt; が、
+&lt;foo &lt;&amp;tag&gt;&gt; のように HTML タグの内部に存在していても、
+エラーにならないようになる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このオプションを有効にした場合、&lt;foo &lt;&amp;tag&gt;&gt; のようなタグが
+テンプレート中に存在していた場合、タグが正常に展開されず、
+破壊される恐れがある為、使用する際は注意して下さい。
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h2><a id="flush_Xe3X82Xb5Xe3X83Xb3Xe3X83X97Xe3X83Xab">
@@ -1112,6 +1137,7 @@ Tripletail::Template - テンプレート
 <li><a href="#addHiddenForm">addHiddenForm</a></li>
 <li><a href="#addSessionCheck">addSessionCheck</a></li>
 <li><a href="#addXe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89Xe5X88Xa9Xe7X94Xa8Xe5X8fXafXe8X83Xbd">addメソッド利用可能</a></li>
+<li><a href="#allow_unexpanded_tags">allow_unexpanded_tags</a></li>
 <li><a href="#basepath">basepath</a></li>
 <li><a href="#br">br</a></li>
 <li><a href="#exists">exists</a></li>
