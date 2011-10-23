@@ -1,8 +1,9 @@
 # -----------------------------------------------------------------------------
 # TL - Tripletailメインクラス
 # -----------------------------------------------------------------------------
-# $Id: Tripletail.pm 5328 2008-01-25 01:59:50Z hio $
+# $Id: Tripletail.pm 5338 2008-01-28 03:29:02Z hio $
 package Tripletail;
+use 5.008_000;
 use strict;
 use warnings;
 BEGIN{ our $_CHKNONLAZY=$ENV{PERL_DL_NONLAZY} }
@@ -13,7 +14,7 @@ use Data::Dumper;
 use POSIX qw(:errno_h);
 use Cwd ();
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

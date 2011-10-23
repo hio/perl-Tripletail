@@ -1,5 +1,8 @@
 Revision history for Tripletail
 
+0.41 Mon Jan 28 12:27:55 JST 2008
+	- Makefile.PL がパラメータによって失敗することがあるのを修正.
+
 0.40 Fri Jan 25 10:59:21 JST 2008
 	- allow_mutable_input_cgi_object パラメータを追加.
 	- 新しい INI パラメータ [TL]fcgilog
