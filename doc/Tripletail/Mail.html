@@ -280,16 +280,31 @@ set メソッドの逆の操作。
 <pre class="pod_verbatim"><code>  $mail-&gt;attach(part =&gt; $TL-&gt;newMail-&gt;...);</code></pre>
 
 <p>
-<span class="pod_lang">それ以外の場合:
+<span class="pod_lang">バイナリデータを添付する場合:
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  my $html = $TL-&gt;readFile('attach.html');
+  $mail-&gt;attach(
+      type =&gt; 'text/html',
+      data =&gt; $html, # 添付するデータを指定
+      id =&gt; '&lt;00112233&gt;', # Content-ID, 省略可能
+      filename =&gt; 'attach.html', # 省略可能
+      encoding =&gt; 'base64', # 省略可能
+  );</code></pre>
+
+<p>
+<span class="pod_lang">ローカルのディスクにあるファイルを添付する場合:
 
 </span>
 </p>
 
 <pre class="pod_verbatim"><code>  $mail-&gt;attach(
       type =&gt; 'text/html',
-      data =&gt; $html,
+      path =&gt; 'attach.html', # 添付するファイルを指定
       id =&gt; '&lt;00112233&gt;', # Content-ID, 省略可能
-      filename =&gt; 'index.html', # 省略可能
+      filename =&gt; 'attach.html', # 省略可能
       encoding =&gt; 'base64', # 省略可能
   );</code></pre>
 

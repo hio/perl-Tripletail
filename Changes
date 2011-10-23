@@ -1,5 +1,12 @@
 Revision history for Tripletail
 
+0.29	----------------------------
+	- TagCheck で自動リンクを行う際に，リンクURLがescapeTagではなくencodeURL
+	　されているために，ブラウザが正常にリンクを認識できなくなるバグを修正．
+	- Mail#attach でファイルパスを渡して添付することを可能にした．
+	- Mail クラスでMIMEエンコードする際の処理を改善．
+	- Mail#attach で日本語ファイル名に関する処理の修正.
+
 0.28    Fri Jun 15 12:33:46 JST 2007
 	- FCGI動作中は、SIGTERMが流れた時にスタックダンプを出力しないようにする
 	- $TL->fork() を追加。FastCGI 環境で通常の fork を行うと正しく動作しないため。

@@ -16,6 +16,19 @@ our $MAIL_ID_COUNT = 0;
 our $BOUNDARY_COUNT = 0;
 our $HOSTNAME;
 
+our %STRUCTURE = map{lc($_)=>1} qw(
+  To Cc Bcc From Date Reply-To Sender
+  Resent-Date Resent-From Resent-Sender Resent-To Return-Path
+  list-help list-post list-unsubscribe Mailing-List
+  Received References Message-ID In-Reply-To
+  Content-Length Content-Type Content-Disposition
+  Delivered-To
+  Lines
+  MIME-Version
+  Precedence
+  Status
+);
+
 1;
 
 sub _new {
@@ -270,6 +283,11 @@ sub attach {
 	#     filename => 'foo.png',    # 省略可能
 	# );
 	# $mail->attach(
+	#     type     => 'image/png',
+	#     path     => 'data/foo.png',
+	#     filename => 'foo.png',    # 省略可能
+	# );
+	# $mail->attach(
 	#     part     => $TL->newMail,
 	# );
 	my $this = shift;
@@ -289,8 +307,8 @@ sub attach {
 			die __PACKAGE__."#attach, ARG[type] was undef.\n";
 		} elsif(ref($opts->{type})) {
 			die __PACKAGE__."#attach, ARG[type] was a Ref. [$opts->{type}]\n";
-		} elsif(!defined($opts->{data})) {
-			die __PACKAGE__."#attach, ARG[data] was undef.\n";
+		} elsif(!defined($opts->{data}) and !defined($opts->{path})) {
+			die __PACKAGE__."#attach, ARG[data]/ARG[path] was undef.\n";
 		} elsif(ref($opts->{data})) {
 			die __PACKAGE__."#attach, ARG[type] was a Ref. [$opts->{data}]\n";
 		}
@@ -328,24 +346,42 @@ sub attach {
 	my $part = {};
 	if($opts->{type} eq 'text/html' || $opts->{type} eq 'application/xhtml+xml') {
 		$part->{Type} = 'text/html; charset="ISO-2022-JP"';
-		$part->{Data} = Unicode::Japanese->new($opts->{data})->jis;
+		if(defined($opts->{data})) {
+			$part->{Data} = Unicode::Japanese->new($opts->{data})->jis;
+		} else {
+			$part->{Path} = $opts->{path};
+		}
 		$part->{Encoding} = $opts->{encoding} || '7bit';
 	} elsif($opts->{type} eq 'text/hdml' || $opts->{type} eq 'text/x-hdml') {
 		$part->{Type} = 'text/x-hdml; charset="UTF-8"';
-		$part->{Data} = $opts->{data};
+		if(defined($opts->{data})) {
+			$part->{Data} = $opts->{data};
+		} else {
+			$part->{Path} = $opts->{path};
+		}
 		$part->{Encoding} = $opts->{encoding} || 'base64';
 	} elsif($opts->{type} eq 'text/plain') {
 		$part->{Type} = 'text/plain; charset="ISO-2022-JP"';
-		$part->{Data} = Unicode::Japanese->new($opts->{data})->jis;
+		if(defined($opts->{data})) {
+			$part->{Data} = Unicode::Japanese->new($opts->{data})->jis;
+		} else {
+			$part->{Path} = $opts->{path};
+		}
 		$part->{Encoding} = $opts->{encoding} || '7bit';
 	} else {
 		$part->{Type} = $opts->{type};
-		$part->{Data} = $opts->{data};
+		if(defined($opts->{data})) {
+			$part->{Data} = $opts->{data};
+		} else {
+			$part->{Path} = $opts->{path};
+		}
 		$part->{Encoding} = $opts->{encoding} || 'base64';
 	}
 
 	my $filename = $opts->{filename};
 	if(defined($filename)) {
+		$filename = $this->_encodeHeader($filename, 10);
+		$filename =~ s/\t//g;
 		$part->{Filename} = $filename;
 	}
 
@@ -354,8 +390,154 @@ sub attach {
 		$part->{'Content-ID'} = $id;
 	}
 
-	$this->{entity}->attach(%$part);
+	$this->_mailproc(sub{
+		$this->{entity}->attach(%$part);
+	});
+	
 	$this;
+}
+
+# MIME::Entity の処理するときはここを通す.
+# $this->_mailproc(sub{ ... });
+sub _mailproc
+{
+	my $this = shift;
+	my $sub = shift;
+	
+	# hook fold line sub (Mail::Header v1.60)
+	my $old = \&Mail::Header::_fold_line;
+	local(*Mail::Header::_fold_line);
+	*Mail::Header::_fold_line = sub{
+		_my_fold_line($this, @_) or &$old;
+	};
+	
+	$sub->(@_);
+}
+
+# Mail::Header::_fold_line のカスタマイズ版.
+sub _my_fold_line
+{
+	my $this = shift;
+	my ($line, $maxlen) = @_;
+	if( $line!~/^(Content-Type|Content-Disposition)\s*:/i )
+	{
+		return;
+	}
+	
+	my @parts = $this->_restructure($line);
+	foreach my $part (@parts)
+	{
+		if( $part =~ /^(\s*[^\s"]+)="([^"]*)"(;?)\z/ )
+		{
+			my ($key, $value, $tail) = ($1, $2, $3);
+			my $firstlen = $maxlen - length($key) - length($tail) - 3;
+			$value = $this->_fold_line2($value, $maxlen, $firstlen);
+			chomp $value;
+			#$value =~ s/(\n)(\s)/$1$2$2/g;
+			$part = qq{$key="$value"$tail};
+		}else
+		{
+			$part = $this->_fold_line2($part, $maxlen);
+			chomp $part;
+		}
+	}
+	my $out = join("\n ", @parts)."\n";
+	$out =~ s/\s*\z/\n/;
+	$_[0] = $out;
+	1;
+}
+
+sub _fold_line2
+{
+	my $this = shift;
+	my $line = shift;
+	my $maxlen = shift;
+	my $firstlen = shift || $maxlen;
+	foreach ($maxlen, $firstlen)
+	{
+		$_<20 and $_ = 20;
+	}
+	my @lines = $line =~ /(.+)/g;
+	my @out;
+	foreach my $line (@lines)
+	{
+		if( length($line)<=$maxlen )
+		{
+			push(@out, $line);
+			next;
+		}
+		my $rest = $firstlen;
+		my $buf = '';
+		$line =~ s/^(\s*)//;
+		$buf .= $1;
+		while( $line ne '' )
+		{
+			$line =~ s/(\S+)(\s*)// or die;
+			my ($data, $spc) = ($1,$2);
+			my $data_len = length($data);
+			my $spc_len = length($spc);
+			if( $rest >= $data_len+$spc_len )
+			{
+				$buf .= $data.$spc;
+				$rest -= $data_len+$spc_len;
+				next;
+			}
+			if( $rest >= $data_len )
+			{
+				push(@out, $buf.$data);
+				$buf  = '';
+				$rest = $maxlen;
+				next;
+			}else
+			{
+				if( $buf ne '' )
+				{
+					push(@out, $buf);
+				}
+				$buf = $data.$spc;
+				$rest = $maxlen - $data_len - $spc_len;
+			}
+		}
+		if( $buf ne '' )
+		{
+			push(@out, $buf)
+		}
+	}
+	my $out = join("\n ", @out)."\n";
+	$out =~ s/\n  /\n /g;
+	$out;
+}
+
+sub _restructure
+{
+	my $this = shift;
+	my $line = shift;
+	
+	my @parts;
+	for(;;)
+	{
+		$line =~ s/^\s*//;
+		if( $line =~ s/^([^",;]*[,;])// )
+		{
+			# text/html; charset=utf-8;
+			push(@parts, $1);
+			redo;
+		}
+		if( $line =~ s/^([^"]+)\s// )
+		{
+			push(@parts, $1);
+			redo;
+		}
+		if( $line =~ s/^([^\s"]*("[^"]*"[^\s"]*)+)\s// )
+		{
+			# filename="xxx"
+			push(@parts, $1);
+			redo;
+		}
+		push(@parts, $line);
+		last;
+	}
+	@parts;
 }
 
 sub countParts {
@@ -412,7 +594,9 @@ sub toStr {
 	# 足りないヘッダがあれば追加する。
 	$this->__fillHeader;
 
-	my $str = $this->{entity}->stringify;
+	my $str = $this->_mailproc(sub{
+		$this->{entity}->stringify;
+	});
 	$str =~ s/\r?\n|\r/\r\n/g;
 	$str;
 }
@@ -421,9 +605,10 @@ sub _encodeHeader {
 	my $this = shift;
 	my $str = shift;			# 文字列本体
 	my $keylen = shift;			# ヘッダーキー長
+	
 	my $charcode = 'ISO-2022-JP';
+	my $re_char = qr/[\x00-\x7f]|[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xf7][\x80-\xbf]{3}|[\xf8-\xfb][\x80-\xbf]{4}|[\xfc-\xfd][\x80-\xbf]{5}/;
 
-	$str=Unicode::Japanese->new($str)->h2zKana->jis;
 
 	# MIME::Words を使ってエンコードする。
 	# ただエンコードするだけではRFC推奨の76文字改行が施されないため、
@@ -438,51 +623,74 @@ sub _encodeHeader {
 	my $result = '';
 	my $maxlinelength = 76;		# RFC上は78文字。今回は76文字。
 	my $length = 0;
-
-	my $atext = qr{[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~]+};
-	my $ascii = qr{[\x00|\x20-\x7e]+};
-	my $spbuf='';
-	my $before_tag=0;			# 前の処理がタグ時だったら1
-	my $before_enc=0;			# 前の処理でエンコードしてたら1
-	foreach my $parts (split(/(\s+)/,$str)) {
-		if ($parts=~/^\s+$/) {
-			# 空白のみだったらエンコード内に含めるので待避
-			$spbuf=$parts;
-			# 前の処理でエンコードしていればskip。
-			next if($before_enc);
+	
+	my $prev_is_enc = 0;
+	while( $str =~ /(\s*)(\S*)/g )
+	{
+		my $spc  = $1;
+		my $part = $2;
+		
+		my $spc_len  = length($spc);
+		my $part_len = length($part);
+		
+		if( !$part_len )
+		{
+			# 末尾が空白だったとき.
+			# はいるならいれておく.
+			if( $length + $spc_len <= $maxlinelength )
+			{
+				$result .= $spc;
+			}
+			last;
 		}
-
-		if ($parts=~/^$ascii$/) { # 全部ASCII
-			# そのまま展開
-			if (($length+length($parts)) > $maxlinelength) {
-				if ($result) {
-					$result=~s/^(.*?)\s+$/$1/s;
-					$result.="\n\t";
-					$length=0;
+		
+		my $is_ascii = $part !~ /[^\0 -~]/;
+		if( $is_ascii )
+		{
+			# ASCIIのみの時.
+			
+			if( $length + $spc_len + $part_len > $maxlinelength )
+			{
+				# あふれる.
+				$result =~ s/\s\z//;
+				if( $result ne '' )
+				{
+					$result .= "\n\t";
 				}
+				$length = 0;
 			}
-			if ($before_enc) { # encdata + ASCII の場合は間のスペースがskipされているので補完
-				$parts=($spbuf.$parts);
+			$result .= $spc . $part;
+			$length += $spc_len + $part_len;
+			$prev_is_enc = 0;
+		}else
+		{
+			# マルチバイトあり
+			if( $prev_is_enc )
+			{
+				$part = $spc . $part;
+			}else
+			{
+				$result .= $spc;
 			}
-			$result.=$parts;
-			$length+=length($parts);
-			$before_enc=0;
-		} else {				# マルチバイトあり
-			my $encdata=encode_mimeword($parts, 'B', $charcode);
-			if (($length+length($encdata)) > $maxlinelength) {
-				$result.="\n\t" if($result);
-				$length=0;
+			$result =~ s/\s\z//;
+			while( $part =~ /($re_char{1,7})/og )
+			{
+				my $part2 = $1;
+				$part2 = Unicode::Japanese->new($part2)->h2zKana->jis;
+				
+				my $encdata=encode_mimeword($part2, 'B', $charcode);
+				
+				if( $result ne '' )
+				{
+					$result .= "\n\t";
+				}
+				$result .= $encdata;
+				$length = length($encdata);
 			}
-			if ($before_enc) { # encdata + encdata の場合は間のスペースが消えるので補完
-				$encdata=encode_mimeword(($spbuf.$parts), 'B', $charcode);
-			}
-			$result.=$encdata;
-			$length+=length($encdata);
-			$before_enc=1;
+			$prev_is_enc = 1;
 		}
 	}
-
-	$result =~ s/^(.+)\n\t$/$1/s;
+	
 	$result;
 }
 
@@ -697,13 +905,24 @@ set メソッドの逆の操作。
 
   $mail->attach(part => $TL->newMail->...);
 
-それ以外の場合:
+バイナリデータを添付する場合:
+
+  my $html = $TL->readFile('attach.html');
+  $mail->attach(
+      type => 'text/html',
+      data => $html, # 添付するデータを指定
+      id => '<00112233>', # Content-ID, 省略可能
+      filename => 'attach.html', # 省略可能
+      encoding => 'base64', # 省略可能
+  );
+
+ローカルのディスクにあるファイルを添付する場合:
 
   $mail->attach(
       type => 'text/html',
-      data => $html,
+      path => 'attach.html', # 添付するファイルを指定
       id => '<00112233>', # Content-ID, 省略可能
-      filename => 'index.html', # 省略可能
+      filename => 'attach.html', # 省略可能
       encoding => 'base64', # 省略可能
   );
 

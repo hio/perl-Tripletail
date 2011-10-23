@@ -12,7 +12,7 @@ use File::Spec;
 use Data::Dumper;
 use Cwd ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

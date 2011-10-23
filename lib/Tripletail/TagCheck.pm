@@ -304,12 +304,12 @@ sub __autoLink {
 	$str =~ s{((?:https?|ftp|mailto)://[\x21-\x7e]+)}{
 		if(defined(my $target = $this->{target})) {
 			sprintf '<a href="%s" target="%s">%s</a>',
-				$TL->encodeURL($1),
+				$TL->escapeTag($1),
 				$target,
 				$TL->escapeTag($1);
 		} else {
 			sprintf '<a href="%s">%s</a>',
-				$TL->encodeURL($1),
+				$TL->escapeTag($1),
 				$TL->escapeTag($1);
 		}
 	}eg;

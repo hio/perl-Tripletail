@@ -15,6 +15,7 @@ my $src = qq{
     <hr>aaa</hr>
     <strong>foobar
     http://example.com/あああ
+    http://example.com/[test]#[test]
     <a href="http://example.com/" name="a">あああ</a>
     <table>
       <tr><td>foo</td></tr>
@@ -32,7 +33,8 @@ my $dst_1 = qq{
     &lt;foo&gt;
     <hr>aaa
     <strong>foobar</strong>
-    <a href="http%3a%2f%2fexample.com%2f" target="_blank">http://example.com/</a>あああ
+    <a href="http://example.com/" target="_blank">http://example.com/</a>あああ
+    <a href="http://example.com/[test]#[test]" target="_blank">http://example.com/[test]#[test]</a>
     &lt;a href=&quot;http://example.com/&quot; name=&quot;a&quot;&gt;あああ&lt;/a&gt;
     &lt;table&gt;
       &lt;tr&gt;&lt;td&gt;foo&lt;/td&gt;&lt;/tr&gt;
@@ -40,7 +42,7 @@ my $dst_1 = qq{
       foo&lt;/th&gt;
       <strong>aaa</strong>
 
-      <a href="http%3a%2f%2fexample.com%2f" target="_blank">http://example.com/</a>あああ
+      <a href="http://example.com/" target="_blank">http://example.com/</a>あああ
     &lt;/table&gt;
     &lt;/foo&gt;
     &lt;/table&gt;
@@ -50,7 +52,8 @@ my $dst_2 = qq{
     &lt;foo&gt;
     <hr>aaa
     &lt;strong&gt;foobar
-    <a href="http%3a%2f%2fexample.com%2f">http://example.com/</a>あああ
+    <a href="http://example.com/">http://example.com/</a>あああ
+    <a href="http://example.com/[test]#[test]">http://example.com/[test]#[test]</a>
     <a href="http://example.com/" name="a">あああ</a>
     <table><tr><td>foo</td></tr><tr>&lt;th&gt;foo&lt;/th&gt;</tr></table>
     &lt;/foo&gt;
@@ -61,7 +64,8 @@ my $dst_3 = qq{
     &lt;foo&gt;
     &lt;hr&gt;aaa&lt;/hr&gt;
     &lt;strong&gt;foobar
-    <a href="http%3a%2f%2fexample.com%2f" target="_new">http://example.com/</a>あああ
+    <a href="http://example.com/" target="_new">http://example.com/</a>あああ
+    <a href="http://example.com/[test]#[test]" target="_new">http://example.com/[test]#[test]</a>
     <a href="http://example.com/" target="_new">あああ</a>
     <table>
       <tr><td>foo</td></tr>
@@ -69,7 +73,7 @@ my $dst_3 = qq{
       foo&lt;/th&gt;
       &lt;strong&gt;aaa
 
-      <a href="http%3a%2f%2fexample.com%2f" target="_new">http://example.com/</a>あああ
+      <a href="http://example.com/" target="_new">http://example.com/</a>あああ
     </table>
     &lt;/foo&gt;
     &lt;/table&gt;
