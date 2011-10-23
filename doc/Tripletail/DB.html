@@ -80,6 +80,11 @@ Tripletail::DB - DBIのラッパ
 
 </span></a>
 </li>
+<li><a href="#SQL_Server_Xe8Xa8XadXe5XaeX9a">
+<span class="pod_lang">SQL Server 設定
+
+</span></a>
+</li>
 </ul>
 </li>
 </ul>
@@ -260,7 +265,7 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 
 <p>
 <span class="pod_lang">TripletailのDBクラスはDBIに対するラッパの形となっており、多くのインタフェースはDBIのものとは異なる。
-ただし、いつでも $DB-&gt;getDbh() メソッドにより元のDBIオブジェクトを取得できるので、DBIのインタフェースで利用することも可能となっている。
+ただし、いつでも <code class="pod_iseq_C">$DB-&gt;getDbh()</code> メソッドにより元のDBIオブジェクトを取得できるので、DBIのインタフェースで利用することも可能となっている。
 
 </span>
 </p>
@@ -332,7 +337,7 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
  my $ret = $sth-&gt;ret;</code></pre>
 
 <p>
-<span class="pod_lang">prepare/executeを一括で行うのは同様であるが、executeの戻り値は$sthオブジェクトであり、影響した行数を取得するためには $sth-&gt;ret メソッドを呼ぶ必要がある。
+<span class="pod_lang">prepare/executeを一括で行うのは同様であるが、executeの戻り値は$sthオブジェクトであり、影響した行数を取得するためには <code class="pod_iseq_C">$sth-&gt;ret</code> メソッドを呼ぶ必要がある。
 
 </span>
 </p>
@@ -377,8 +382,8 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
  my $id = $DB-&gt;getDbh()-&gt;{mysql_insertid};</code></pre>
 
 <p>
-<span class="pod_lang">トランザクションには <code class="pod_iseq_C">$DB-</code>tx(sub{...})&gt; メソッドを用いる。
-DBセットを指定する時には <code class="pod_iseq_C">$DB-</code>tx(dbset_name=&gt;sub{...})&gt; となる。
+<span class="pod_lang">トランザクションには <code class="pod_iseq_C">$DB-&gt;tx(sub{...})</code> メソッドを用いる。
+DBセットを指定する時には <code class="pod_iseq_C">$DB-&gt;tx(dbset_name=&gt;sub{...})</code> となる。
 渡したコードをトランザクション内で実行する。 
 die なしにコードを抜けた時に自動的にコミットされる。 
 途中で die した場合にはトランザクションはロールバックされる。 
@@ -938,6 +943,19 @@ DBセットでSQLが実行される。
 </p>
 
 </dd>
+<dt><a id="getLastInsertId"><span class="pod_lang">getLastInsertId
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $id = $DB-&gt;getLastInsertId()</code></pre>
+
+<p>
+<span class="pod_lang">セッション内の最後の自動採番の値を取得. 
+
+</span>
+</p>
+
+</dd>
 </dl>
 
 <h3><a id="Tripletail::DB::STH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">
@@ -1116,7 +1134,7 @@ DBセットは、予約済みではない名前であれば任意の名称が使
 
 <p>
 <span class="pod_lang">DBの種類を選択する。
-mysql, pgsql, oracleが使用可能。
+mysql, pgsql, oracle, sqlite, mssql が使用可能。
 必須項目。
 
 </span>
@@ -1201,6 +1219,52 @@ mysql, pgsql, oracleが使用可能。
 </dd>
 </dl>
 
+<h3><a id="SQL_Server_Xe8Xa8XadXe5XaeX9a">
+<span class="pod_lang">SQL Server 設定
+
+</span></a></h3>
+
+<p>
+<span class="pod_lang">試験的に SQL Server との接続が実装されています. 
+DBD::ODBC と, Linux であれば unixODBC + freetds で, Windows であれば
+組み込みの ODBC マネージャで動作します. 
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">設定例:
+ 
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> # &lt;tl.ini&gt;
+ [DB]
+ type=mssql
+ defaultset=SET_W_Trans
+ SET_W_Trans=CON_RW
+ [CON_RW]
+ # dbname に ODBC-dsn を設定.
+ dbname=test
+ user=test
+ password=test
+ # freetds経由の時は, そちらのServernameも指定.
+ tdsname=tds_test</code></pre>
+
+<p>
+<span class="pod_lang">freetdsでの接続文字コードの設定は <em class="pod_iseq_F">freetds.conf</em> で
+設定します. 
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code> ;; &lt;freetds.conf&gt;
+ [tds_test]
+ host = 10.0.0.1
+ ;;port = 1433
+ tds version = 7.0
+ client charset = UTF-8</code></pre>
+
 
 <hr />
 <h1><a id="SEE_ALSO">
@@ -1279,6 +1343,7 @@ Tripletail::DB - DBIのラッパ
 <li><a href="#METHODS">METHODS</a></li>
 <li><a href="#NAME">NAME</a></li>
 <li><a href="#SEE_ALSO">SEE ALSO</a></li>
+<li><a href="#SQL_Server_Xe8Xa8XadXe5XaeX9a">SQL Server 設定</a></li>
 <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
 <li><a href="#Tripletail::DB_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB メソッド</a></li>
 <li><a href="#Tripletail::DB::STH_Xe3X83Xa1Xe3X82XbdXe3X83X83Xe3X83X89">Tripletail::DB::STH メソッド</a></li>
@@ -1293,6 +1358,7 @@ Tripletail::DB - DBIのラッパ
 <li><a href="#fetchHash">fetchHash</a></li>
 <li><a href="#finish">finish</a></li>
 <li><a href="#getDbh">getDbh</a></li>
+<li><a href="#getLastInsertId">getLastInsertId</a></li>
 <li><a href="#getType">getType</a></li>
 <li><a href="#host">host</a></li>
 <li><a href="#inTx">inTx</a></li>

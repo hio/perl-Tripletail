@@ -1,11 +1,11 @@
 ## ----------------------------------------------------------------------------
-#  t/db-sqlite.t
+#  t/db-mssql.t
 # -----------------------------------------------------------------------------
 # Mastering programmed by YAMASHINA Hio
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.7 2007/03/08 07:27:08 hio Exp $
+# $Id: db-mssql.t,v 1.2 2007/03/08 07:27:08 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -15,10 +15,11 @@ use Test::Exception;
 our %DBINFO;
 BEGIN{
 	%DBINFO = (
-		dbname   => $ENV{SQLITE_DBNAME}  || 'test.sqlite',
-		user     => $ENV{SQLITE_USER}    || '',
-		password => $ENV{SQLITE_PASS}    || '',
-		host     => $ENV{SQLITE_HOST}    || '',
+		dbname   => $ENV{MSSQL_DBNAME}  || '',
+		user     => $ENV{MSSQL_USER}    || '',
+		password => $ENV{MSSQL_PASS}    || '',
+		tdsname  => $ENV{MSSQL_TDSNAME} || '',
+		host     => $ENV{MSSQL_HOST}    || '',
 	);
 };
 
@@ -27,20 +28,19 @@ use t::make_ini {
 		TL => {
 		},
 		DB => {
-			type       => 'sqlite',
+			type       => 'mssql',
 			defaultset => 'DBSET_test',
 			DBSET_test => [qw(DBCONN_test)]
 		},
 		DBCONN_test => \%DBINFO,
 	},
-	clean => [ 'test.sqlite' ],
 };
 use Tripletail $t::make_ini::INI_FILE;
 
-my $has_DBD_SQLite = eval 'use DBD::SQLite;1';
-if( !$has_DBD_SQLite )
+my $has_DBD_ODBC = eval 'use DBD::ODBC;1';
+if( !$has_DBD_ODBC )
 {
-	plan skip_all => "no DBD::SQLite";
+	plan skip_all => "no DBD::ODBC";
 }
 if( !$DBINFO{dbname} )
 {
@@ -109,9 +109,13 @@ sub test_misc
 			my $DB = $TL->getDB();
 			isa_ok($TL->getDB(), 'Tripletail::DB', '[misc] getDB');
 			$DB->execute( q{
-				CREATE TEMPORARY TABLE tripletail_test
+				IF EXISTS(SELECT 1 FROM sys.objects WHERE OBJECT_ID = OBJECT_ID('tripletail_test') AND type = 'U')
+					DROP TABLE tripletail_test
+			});
+			$DB->execute( q{
+				CREATE TABLE tripletail_test
 				(
-					nval INTEGER NOT NULL PRIMARY KEY,
+					nval INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1),
 					sval TEXT    NOT NULL
 				)
 			});
@@ -139,7 +143,7 @@ sub test_misc
 			# check last_insert_id.
 			{
 				my $sth = $DB->execute( q{
-					SELECT last_insert_rowid()
+					SELECT @@IDENTITY
 				});
 				ok($sth, '[misc] select lastid');
 				my $row1 = $sth->fetchArray();
@@ -148,7 +152,10 @@ sub test_misc
 				is($row2, undef, '[misc] no second record');
 				
 				is($DB->getLastInsertId(), 4, '[misc] getLastInsertId()');
-				is($DB->getDbh()->func('last_insert_rowid'), 4, '[misc] lastid via dbh func');
+				SKIP:{
+					#is($DB->getDbh()->func('last_insert_rowid'), 4, '[misc] lastid via dbh func');
+					skip("[misc] no lastid dbh func", 1);
+				}
 				SKIP:{
 					if( !$DB->getDbh()->can('last_insert_id') )
 					{
@@ -162,6 +169,7 @@ sub test_misc
 			{
 				my ($nval, $sval) = @$vals;
 				$DB->execute( q{
+					SET IDENTITY_INSERT tripletail_test ON;
 					INSERT
 						INTO tripletail_test (nval, sval)
 					VALUES (?, ?)
@@ -203,10 +211,14 @@ sub _create_table_colors
 {
 	my $DB = shift;
 	$DB->execute( q{
-		CREATE TEMPORARY TABLE test_colors
+		IF EXISTS(SELECT 1 FROM sys.objects WHERE OBJECT_ID = OBJECT_ID('test_colors') AND type = 'U')
+			DROP TABLE test_colors
+	});
+	$DB->execute( q{
+		CREATE TABLE test_colors
 		(
-			nval INTEGER NOT NULL PRIMARY KEY,
-			sval TEXT    NOT NULL
+			nval INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1),
+			sval VARCHAR(20) NOT NULL
 		)
 	});
 	foreach my $sval (qw(blue red yellow green aqua cyan))

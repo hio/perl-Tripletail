@@ -157,6 +157,8 @@ t/cookie.t
 t/csv.t
 t/csv2.t
 t/datetime.t
+t/db-mssql.t
+t/db-mysql.t
 t/db-sqlite.t
 t/db.t
 t/filter.t

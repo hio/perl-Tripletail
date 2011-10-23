@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Tripletail;
 require Time::HiRes;
+use DBI qw(:sql_types);
 
 sub _PRE_REQUEST_HOOK_PRIORITY()  { -1_000_000 } # 順序は問わない
 sub _POST_REQUEST_HOOK_PRIORITY() { -1_000_000 } # セッションフックの後
@@ -338,7 +339,7 @@ sub execute {
 			die __PACKAGE__."#execute, use `??' instead of `?' if you want to use ARRAY Ref as a bind parameter.\n";
 		}
 	}
-
+	
 	# executeを行うDBセットを探す
 	my $dbh = undef;
 	if(defined($dbset)) {
@@ -352,12 +353,23 @@ sub execute {
 		$dbh = $this->{locked_dbh} if(!$dbh);
 		$dbh = $this->{dbh}{$this->_getDbSetName} if(!$dbh);
 	}
+	
+	if( $dbh->{bindconvert} )
+	{
+		my $sub = $dbh->{bindconvert};
+		$dbh->$sub(\$sql, \@params);
+	}
 
 	my $sth = Tripletail::DB::STH->new(
 		$this,
 		$dbh,
 		$dbh->getDbh->prepare($sql)
 	);
+	if( $dbh->{fetchconvert} )
+	{
+		my $sub = $dbh->{fetchconvert};
+		$dbh->$sub($sth, new => [\$sql, \@params]);
+	}
 
 	# 全てのパラメータをbind_paramする。
 	for(my $i = 0; $i < @params; $i++) {
@@ -600,6 +612,15 @@ sub setBufferSize {
 	$this;
 }
 
+sub getLastInsertId
+{
+	my $this = shift;
+	my $dbh = $this->{trans_dbh};
+	$dbh ||= $this->{locked_dbh};
+	$dbh ||= $this->{dbh}{$this->_getDbSetName};
+	$dbh->getLastInsertId();
+}
+
 sub symquote {
 	my $this = shift;
 	my $str = shift;
@@ -667,7 +688,7 @@ sub _connect {
 
 	foreach my $group (@$groups) {
 		if (!defined($group)) {
-			die "TL#startCgi, -DB had an unref value.\n";
+			die "TL#startCgi, -DB had an undef value.\n";
 		} elsif(ref($group)) {
 			die "TL#startCgi, -DB had a Ref.\n";
 		}
@@ -838,6 +859,7 @@ sub new {
 	$this->{setname} = $setname;
 	$this->{inigroup} = $dbname;
 	$this->{dbh} = undef; # DBI-dbh
+	$this->{type} = undef; # set on connect().
 
 	$this;
 }
@@ -871,6 +893,7 @@ sub connect {
 	my $type = shift;
 
 	$type or die __PACKAGE__."#connect, type is not set.\n";
+	$this->{type} = $type;
 	if($type eq 'mysql') {
 		my $opts = {
 			dbname => $TL->INI->get($this->{inigroup} => 'dbname'),
@@ -986,6 +1009,115 @@ sub connect {
 			PrintError => 0,
 			RaiseError => 1,
 		});
+	} elsif($type eq 'mssql' || $type eq 'odbc' ) {
+		my $nl = $Tripletail::_CHKNONLAZY || 0;
+		my $dl = $Tripletail::_CHKDYNALDR || 0;
+		my $opts = {
+			map{ $_ => $TL->INI->get($this->{inigroup} => $_) }
+				qw(dbname host port tdsname odbcdsn odbcdriver),
+				qw(bindconvert fetchconvert)
+		};
+		$opts->{dbname} or die __PACKAGE__."#connect, dbname is not set.\n";
+
+		# build data source string.
+		my $dsn;
+		if( $opts->{odbcdsn} )
+		{
+			my $odbcdsn = $opts->{odbcdsn} || '';
+			if( $odbcdsn =~ m/^(\w+)$/ )
+			{
+				$dsn = "dbi:ODBC:DSN=$odbcdsn";
+			}elsif( $odbcdsn =~ /^Driver=|^DSN=/i )
+			{
+				$dsn = "dbi:ODBC:$odbcdsn";
+			}elsif( $odbcdsn =~ /^dbi:/ )
+			{
+				$dsn = $odbcdsn;
+			}else
+			{
+				die __PACKAGE__."#connect, unknown odbcdsn.\n";
+			}
+		}
+		# odbc driver.
+		if( !$dsn || $dsn!~/[:;]Driver=/i || $opts->{odbcdriver} )
+		{
+			my $driver = $opts->{odbcdriver};
+			$driver ||= $^O eq 'MSWin32' ? 'SQL Server' : 'freetdsdriver';
+			if( !$dsn )
+			{
+				$dsn = "dbi:ODBC:DRIVER={$driver}";
+			}else
+			{
+				$dsn .= ";DRIVER={$driver}";
+			}
+		}
+		$opts->{tdsname} and $dsn .= ";Servername=$opts->{tdsname}";
+		$opts->{host}    and $dsn .= ";Server=$opts->{host}";
+		$opts->{port}    and $dsn .= ";Port=$opts->{port}";
+		$opts->{dbname}  and $dsn .= ";Database=$opts->{dbname}";
+		
+		# bindconvert/fetchconvert from driver.
+		my $odbc_driver = $dsn =~ /[:;]DRIVER=\{(.*?)\}/i ? lc($1) : '';
+		if( $odbc_driver eq 'freetdsdriver' )
+		{
+			$opts->{bindconvert} ||= 'freetds';
+		}elsif( $odbc_driver eq 'sql server' )
+		{
+			local($SIG{__DIE__},$@) = 'DEFAULT';
+			my $codepage = eval{
+				require Win32::API;
+				my $get_acp   = Win32::API->new("kernel32", "GetACP",   "", "N");
+				$get_acp && $get_acp->Call();
+			} || 0;
+			if( !$codepage || $codepage==932 )
+			{
+				$opts->{bindconvert}  ||= 'mssql_cp932';
+				$opts->{fetchconvert} ||= 'mssql_cp932';
+				#$dsn .= ';AutoTranslate=No';
+			}
+		}
+		foreach my $key (qw(bindconvert fetchconvert))
+		{
+			$opts->{$key} or next;
+			$opts->{$key} eq 'no' and next;
+			my $sub = $this->can("_${key}_$opts->{$key}");
+			$sub or die __PACKAGE__."#connect, no such $key: $opts->{$key}";
+			$this->{$key} = $sub;
+		}
+		
+		#print "dsn = [$dsn]\n";
+		my $conn = sub{
+			$this->{dbh} = DBI->connect(
+				$dsn,
+				$TL->INI->get($this->{inigroup} => 'user'),
+				$TL->INI->get($this->{inigroup} => 'password'),
+				{
+					AutoCommit => 1,
+					PrintError => 0,
+					RaiseError => 1,
+				}
+			);
+		};
+		if( (!$dl && $nl) || $^O eq 'MSWin32' )
+		{
+			$conn->();
+		}else
+		{
+			eval{ $conn->(); };
+			if( $@ )
+			{
+				my $err = $@;
+				chomp $err;
+				$err .= " (perhaps you forgot to set env PERL_DL_NONLAZY=1?)";
+				$err .= " ...propagated";
+				die $err;
+			}
+		}
+		if( $this->{fetchconvert} )
+		{
+			my $sub = $this->{fetchconvert};
+			$this->$sub(undef, connect => undef);
+		}
 	} else {
 		die __PACKAGE__."#connect, DB type [$type] is not supported.\n";
 	}
@@ -995,6 +1127,197 @@ sub connect {
 	}
 
 	$this;
+}
+
+sub getLastInsertId
+{
+	my $this = shift;
+	my $type = $this->{type} or die __PACKAGE__."#getLastInsertId(), no type set";
+	my $obj  = shift; # for sequence on pgsql and oracle?
+	if( $type eq 'mysql' )
+	{
+		return $this->{dbh}{mysql_insertid};
+	}elsif($type eq 'pgsql')
+	{
+		my ($curval) = $this->{dbh}->selectrow_array(q{
+			SELECT currval(?)
+		}, $obj);
+		return $curval;
+	}elsif($type eq 'oracle')
+	{
+		$obj =~ /^((?:\w+\.)\w+)$/ or die __PACKAGE__."#getLastInsertId(), TODO: symquote for oracle is under construction";
+  		my $obj_sym = $1;
+		my ($curval) = $this->{dbh}->selectrow_array(q{
+			SELECT $obj_sym.curval
+			  FROM dual
+		});
+		return $curval;
+	}elsif( $type eq 'sqlite' )
+	{
+		return $this->{dbh}->func('last_insert_rowid');
+	}elsif( $type eq 'mssql' )
+	{
+		my ($curval) = $this->{dbh}->selectrow_array(q{
+			SELECT @@IDENTITY
+		});
+		return $curval;
+	}else
+	{
+		die __PACKAGE__."#getLastInsertId(), $type is not supported.";
+	}
+}
+
+sub _bindconvert_freetds
+{
+	my $this = shift;
+	my $ref_sql = shift;
+	my $params  = shift;
+	my $i = -1;
+	foreach my $elm (@$params)
+	{
+		++$i;
+		ref($elm) or next;
+		if( ${$elm->[1]} eq 'SQL_WVARCHAR' )
+		{
+			my $u = $TL->charconv($elm->[0], 'utf8', 'ucs2');
+			$elm->[0] = pack("v*",unpack("n*",$u));
+			$elm->[1] = \'SQL_BINARY';
+			
+			my $l = length($u)/2;
+			my $j = 0;
+			my $repl = "CAST(? AS NVARCHAR($l))";
+			$$ref_sql =~ s{\?}{$j++==$i?$repl:'?'}ge;
+		}
+	}
+}
+
+sub _bindconvert_mssql_cp932
+{
+	my $this = shift;
+	my $ref_sql = shift;
+	my $params  = shift;
+	$$ref_sql = $TL->charconv($$ref_sql, 'utf8' => 'sjis');
+	my $i = -1;
+	foreach my $elm (@$params)
+	{
+		++$i;
+		if( !ref($elm) )
+		{
+			$elm = $TL->charconv($elm, 'utf8', 'sjis');
+		}elsif( ${$elm->[1]} =~ /^SQL_W(?:(?:LONG)?VAR)?CHAR$/ )
+		{
+			my $u = $TL->charconv($elm->[0], 'utf8', 'ucs2');
+			$elm->[0] = pack("v*",unpack("n*",$u));
+			$elm->[1] = \'SQL_BINARY';
+			
+			my $l = length($u)/2;
+			my $j = 0;
+			my $repl = "CAST(? AS NVARCHAR($l))";
+			$$ref_sql =~ s{\?}{$j++==$i?$repl:'?'}ge;
+		}elsif( ${$elm->[1]} =~ /^SQL_(?:(?:LONG)?VAR)?CHAR$/ )
+		{
+			$elm = $TL->charconv($elm, 'utf8', 'sjis');
+		}
+	}
+}
+sub _fetchconvert
+{
+	my $this = shift;
+	if( $this->{fetchconvert} )
+	{
+		my $sub = $this->{fetchconvert};
+		$this->$sub(@_);
+	}
+}
+sub _fetchconvert_mssql_cp932
+{
+	my $this = shift;
+	my $sth  = shift;
+	my $mode = shift;
+	my $obj  = shift;
+	
+	if( $mode eq 'new' )
+	{
+		# obj is [\$sql, \@params];
+		
+		# なんだか先に一回やっとかないとおかしくなる?
+		$this->{dbh}->type_info(1);
+		
+		my $types = $sth->{sth}{TYPE};
+		my $dbh = $sth->{dbh}{dbh};
+		my @types = map{ $dbh->type_info($_)->{TYPE_NAME} } @$types;
+		$sth->{_types} = \@types;
+		$sth->{_name_hash} = {%{$sth->{sth}{NAME_hash}||{}}}; # raw encoded.
+		my @names;
+		while(my($k,$v)=each%{$sth->{_name_hash}})
+		{
+			$names[$v] = $TL->charconv($k, "sjis" => "utf8");
+		}
+		$sth->{_name_arraymap} = \@names;
+		$sth->{_decode_cols} = [];
+	}elsif( $mode eq 'nameArray' )
+	{
+		# obj is arrayref.;
+		@$obj = @{$sth->{sth}{NAME}||[]};
+		foreach my $elm (@$obj)
+		{
+			$elm = lc $TL->charconv($elm, 'cp932' => 'utf8');
+		}
+	}elsif( $mode eq 'nameHash' )
+	{
+		# obj is hashref.
+		foreach my $key (keys %$obj)
+		{
+			my $ukey = lc $TL->charconv($key, 'cp932' => 'utf8');
+			$obj->{$ukey} = delete $obj->{$key};
+		}
+	}elsif( $mode eq 'fetchArray' )
+	{
+		# obj is arrayref.
+		my $i = -1;
+		foreach my $val (@$obj)
+		{
+			++$i;
+			defined($val) or next;
+			my $type = (defined($i) && $sth->{_types}[$i]) || '';
+			if( $type =~ /^n?((long)?var)?char$/ )
+			{
+				if( defined($val) && $val =~ /[^\0-\x7f]/ )
+				{
+					$val = $TL->charconv($val, 'cp932' => 'utf8');
+				}
+			}
+			my $ukey = $sth->{_name_arraymap}[$i] || "\0";
+			if( grep{$_ eq $i || $_ eq $ukey} @{$sth->{_decode_cols}} )
+			{
+				my $bin = pack("v*",unpack("n*",$val));
+				$val = $TL->charconv($bin,"ucs2","utf8");
+			}
+		}
+	}elsif( $mode eq 'fetchHash' )
+	{
+		# obj is hashref.
+		foreach my $key (keys %$obj)
+		{
+			my $ukey = $TL->charconv($key, 'cp932' => 'utf8');
+			my $i = $sth->{_name_hash}{$key}; # raw encoded.
+			my $type = (defined($i) && $sth->{_types}[$i]) || '*';
+			my $val = delete $obj->{$key};
+			if( $type =~ /^n?((long)?var)?char$/ )
+			{
+				if( defined($val) && $val =~ /[^\0-\x7f]/ )
+				{
+					$val = $TL->charconv($val, 'cp932' => 'utf8');
+				}
+			}
+			if( grep{$_ eq $i || $_ eq $ukey} @{$sth->{_decode_cols}} )
+			{
+				my $bin = pack("v*",unpack("n*",$val));
+				$val = $TL->charconv($bin,"ucs2","utf8");
+			}
+			$obj->{$ukey} = $val;
+		}
+	}
 }
 
 sub disconnect {
@@ -1058,6 +1381,11 @@ sub fetchHash {
 			data    => $hash,
 		);
 	}
+	if( $this->{dbh}{fetchconvert} )
+	{
+		my $sub = $this->{dbh}{fetchconvert};
+		$this->{dbh}->$sub($this, fetchHash => $hash);
+	}
 
 
 	if(my $lim = $this->{db_center}{bufsize}) {
@@ -1078,6 +1406,11 @@ sub fetchArray {
 	my $this = shift;
 	my $array = $this->{sth}->fetchrow_arrayref;
 
+	if( $this->{dbh}{fetchconvert} )
+	{
+		my $sub = $this->{dbh}{fetchconvert};
+		$this->{dbh}->$sub($this, fetchArray => $array);
+	}
 	if($array) {
 		$TL->getDebug->_dbLogData(
 			group   => $this->{group},
@@ -1119,12 +1452,36 @@ sub finish {
 
 sub nameArray {
 	my $this = shift;
-	$this->{sth}{NAME_lc};
+	my $name_lc = $this->{sth}{NAME_lc};
+	if( $name_lc && $this->{dbh}{fetchconvert} )
+	{
+		$name_lc = [@{$this->{sth}{NAME}}]; # start from mixed case.
+		my $sub = $this->{dbh}{fetchconvert};
+		$this->{dbh}->$sub($this, nameArray => $name_lc);
+	}
+	$name_lc;
 }
 
 sub nameHash {
 	my $this = shift;
-	$this->{sth}{NAME_lc_hash};
+	my $name_lc_hash = $this->{sth}{NAME_lc_hash};
+	if( $name_lc_hash && $this->{dbh}{fetchconvert} )
+	{
+		$name_lc_hash = {%{$this->{sth}{NAME_hash}}}; # start from mixed case.
+		my $sub = $this->{dbh}{fetchconvert};
+		$this->{dbh}->$sub($this, nameHash => $name_lc_hash);
+	}
+	$name_lc_hash;
+}
+
+sub _fetchconvert
+{
+	my $this = shift;
+	if( $this->{dbh}{fetchconvert} )
+	{
+		my $sub = $this->{dbh}{fetchconvert};
+		$this->{dbh}->$sub($this, @_);
+	}
 }
 
 __END__
@@ -1217,7 +1574,7 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 =head2 DBIからの移行
 
 TripletailのDBクラスはDBIに対するラッパの形となっており、多くのインタフェースはDBIのものとは異なる。
-ただし、いつでも $DB->getDbh() メソッドにより元のDBIオブジェクトを取得できるので、DBIのインタフェースで利用することも可能となっている。
+ただし、いつでも C<< $DB->getDbh() >> メソッドにより元のDBIオブジェクトを取得できるので、DBIのインタフェースで利用することも可能となっている。
 
 DBIのインタフェースは以下のようなケースで利用できる。ただし、DBIを直接利用する場合は、TLの拡張プレースホルダやデバッグ機能、トランザクション整合性の管理などの機能は利用できない。
 
@@ -1256,7 +1613,7 @@ INSERT・UPDATEは、以下のように置き換えられる。
  my $sth = $DB->execute(q{INSERT INTO test VALUES (?, ?)}, $id, $data);
  my $ret = $sth->ret;
 
-prepare/executeを一括で行うのは同様であるが、executeの戻り値は$sthオブジェクトであり、影響した行数を取得するためには $sth->ret メソッドを呼ぶ必要がある。
+prepare/executeを一括で行うのは同様であるが、executeの戻り値は$sthオブジェクトであり、影響した行数を取得するためには C<< $sth->ret >> メソッドを呼ぶ必要がある。
 
 プレースホルダの型指定は以下のように行う。
 
@@ -1285,8 +1642,8 @@ TLの拡張プレースホルダ（??で表記される）を利用し、配列�
  # TL
  my $id = $DB->getDbh()->{mysql_insertid};
 
-トランザクションには C<$DB->tx(sub{...})> メソッドを用いる。
-DBセットを指定する時には C<$DB->tx(dbset_name=E<gt>sub{...})> となる。
+トランザクションには C<< $DB->tx(sub{...}) >> メソッドを用いる。
+DBセットを指定する時には C<< $DB->tx(dbset_name=>sub{...}) >> となる。
 渡したコードをトランザクション内で実行する。 
 die なしにコードを抜けた時に自動的にコミットされる。 
 途中で die した場合にはトランザクションはロールバックされる。 
@@ -1585,6 +1942,12 @@ DBセット内のDBハンドルを返す。
 ネイティブのDBハンドルを使用してクエリを発行した場合、デバッグ機能（プロファイリング等）の機能は使用できません。
 また、トランザクションやロック状態の管理もフレームワークで行えなくなるため、注意して使用する必要があります。
 
+=item getLastInsertId
+
+  $id = $DB->getLastInsertId()
+
+セッション内の最後の自動採番の値を取得. 
+
 =back
 
 =head3 C<Tripletail::DB::STH> メソッド
@@ -1686,7 +2049,7 @@ C<< /* foo.pl:111 [DB.R_Transaction1.DBR1] */ >> のようなコメントを挿�
   type = mysql
 
 DBの種類を選択する。
-mysql, pgsql, oracleが使用可能。
+mysql, pgsql, oracle, sqlite, mssql が使用可能。
 必須項目。
 
 =item C<< defaultset >>
@@ -1731,6 +2094,36 @@ DBに接続する際のパスワードを設定する。
 
 =back
 
+=head3 SQL Server 設定
+
+試験的に SQL Server との接続が実装されています. 
+DBD::ODBC と, Linux であれば unixODBC + freetds で, Windows であれば
+組み込みの ODBC マネージャで動作します. 
+
+設定例:
+ 
+ # <tl.ini>
+ [DB]
+ type=mssql
+ defaultset=SET_W_Trans
+ SET_W_Trans=CON_RW
+ [CON_RW]
+ # dbname に ODBC-dsn を設定.
+ dbname=test
+ user=test
+ password=test
+ # freetds経由の時は, そちらのServernameも指定.
+ tdsname=tds_test
+
+freetdsでの接続文字コードの設定は F<freetds.conf> で
+設定します. 
+
+ ;; <freetds.conf>
+ [tds_test]
+ host = 10.0.0.1
+ ;;port = 1433
+ tds version = 7.0
+ client charset = UTF-8
 
 =head1 SEE ALSO
 

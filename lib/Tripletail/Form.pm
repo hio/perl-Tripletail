@@ -415,6 +415,38 @@ sub getFile {
 	$this->{filehandle}{$key};
 }
 
+sub existsFile {
+	my $this = shift;
+	my $key = shift;
+
+	if(ref($key)) {
+		die "Tripletail::Form#existsFile, ARG[1]: is Ref.\n";
+	}
+
+	if( defined($this->{filehandle}{$key}) )
+	{
+		return 1;
+	}
+
+	undef;
+}
+
+sub isUploaded {
+	my $this = shift;
+	my $key = shift;
+
+	if(ref($key)) {
+		die "Tripletail::Form#isUploaded, ARG[1]: is Ref.\n";
+	}
+
+	if( defined($this->{filename}{$key}) && $this->{filename}{$key} ne '' )
+	{
+		return 1;
+	}
+
+	undef;
+}
+
 sub setFile {
 	my $this = shift;
 	my $key = shift;
@@ -955,6 +987,7 @@ $keyが存在しなくてもエラーとはならない。
   $flag = $form->exists($key)
 
 キーが存在すれば1を、そうでなければundefを返す。
+ファイルの確認には使えない(常に偽となる)。
 
 =item remove
 
@@ -968,6 +1001,21 @@ $keyが存在しなくてもエラーとはならない。
   $form->delete($key)
 
 指定されたキーを削除する。キーが存在しない場合は何もしない。
+
+=item existsFile
+
+  $flag = $form->existsFile($key)
+
+アップロードキーが存在すれば1を、そうでなければundefを返す。
+ファイルが実際にアップロードされたかどうかに関わらず, キーの存在だけを
+判断します. 
+
+=item isUploaded
+
+  $flag = $form->isUploaded($key)
+
+キーに対応するファイルがアップロードされていれば1を、
+そうでなければundefを返す。
 
 =item getFile
 

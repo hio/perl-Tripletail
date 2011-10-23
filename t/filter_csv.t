@@ -6,24 +6,79 @@
 #
 # Copyright 2006 YAMASHINA Hio
 # -----------------------------------------------------------------------------
-# $Id: filter_csv.t,v 1.1 2006/10/10 06:31:13 hio Exp $
+# $Id: filter_csv.t,v 1.2 2007/03/08 07:27:08 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More;
 use Test::Exception;
 use File::Spec;
 our $TL;
 
+check_fork();
+plan tests => 5;
 &test_001;
+
+sub check_fork
+{
+	my $pid = eval{ fork(); };
+	$@ and plan skip_all => "fork required";
+	if( $pid )
+	{
+		waitpid($pid, 0);
+		return; # success.
+	}elsif( !defined($pid) )
+	{
+		plan skip_all => "fork failed: $!";
+	}else
+	{
+		# child;
+		exit(0);
+	}
+}
+
+# my $pid = my_fork(my $stdout);
+sub my_fork
+{
+	my $r = pipe(my$stdout_r,my$stdout_w);
+	$r or die "pipe: $!";
+	my $pid = fork();
+	if( !defined($pid) )
+	{
+		die "fork failed: $!";
+	}elsif( $pid )
+	{
+		# parent.
+		$_[0] = $stdout_r;
+		close($stdout_w);
+		return $pid;
+	}else
+	{
+		# child.
+		open(STDIN,  "<",  "/dev/null") or die "reset STDIN failed: $!";
+		if( $^O eq 'MSWin32' )
+		{
+			# dup handle not work correctly on win32?
+			*STDOUT = $stdout_w;
+			*STDERR = $stdout_w;
+		}else
+		{
+			open(STDOUT, ">&", $stdout_w)   or die "reset STDOUT failed: $!";
+			open(STDERR, ">&", $stdout_w)   or die "reset STDERR failed: $!";
+			close($stdout_w);
+		}
+		close($stdout_r);
+		return $pid;
+	}
+}
 
 sub run_cgi(&;$)
 {
 	my $code  = shift;
 	my $param = shift || {};
 	
-	my $pid = open(my $stdout, "-|");
+	my $pid = my_fork(my $stdout);
 	defined($pid) or die "open failed: $!";
 	if( !$pid )
 	{	# child.

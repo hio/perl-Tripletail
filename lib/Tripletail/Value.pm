@@ -684,6 +684,32 @@ sub convWide {
 	$this;
 }
 
+sub convKanaNarrow {
+	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
+	my $unijp = Unicode::Japanese->new($this->{value});
+	$this->{value} = $unijp->z2hKana->get;
+
+	$this;
+}
+
+sub convKanaWide {
+	my $this = shift;
+
+	if(!defined($this->{value})) {
+		return $this;
+	}
+
+	my $unijp = Unicode::Japanese->new($this->{value});
+	$this->{value} = $unijp->h2zKana->get;
+
+	$this;
+}
+
 sub convComma {
 	my $this = shift;
 
@@ -1436,6 +1462,18 @@ $checkmaskは空白で区切って複数個指定する事が可能。
   $val->convWide
 
 半角文字を全角に変換する。
+
+=item convKanaNarrow
+
+  $val->convKanaNarrow
+
+全角カタカナを半角に変換する。
+
+=item convKanaWide
+
+  $val->convKanaWide
+
+半角カタカナを全角に変換する。
 
 =item convComma
 

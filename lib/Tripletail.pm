@@ -4,11 +4,13 @@
 package Tripletail;
 use strict;
 use warnings;
+BEGIN{ our $_CHKNONLAZY=$ENV{PERL_DL_NONLAZY} }
+BEGIN{ our $_CHKDYNALDR=$INC{'DynaLoader.pm'} }
 use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 our $TL = Tripletail->__new;
 our @specialization = ();

@@ -27,10 +27,11 @@ sub _formFromPairs {
 	foreach my $pair (@$pairs) {
 		my ($key, $value) = @$pair;
 
-		if (my $filename = $filename_h->{$key}) {
+		if( exists($filename_h->{$key}) )
+		{
 			# このキーに対するファイル名が存在する。
 			$form->setFileName(
-				$this->_raw2utf8($key => $incode) => $this->_raw2utf8($filename => $incode));
+				$this->_raw2utf8($key => $incode) => $this->_raw2utf8($filename_h->{$key} => $incode));
 			
 		}
 

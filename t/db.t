@@ -35,10 +35,10 @@ if ($@) {
 	plan skip_all => "Failed to connect to local MySQL: $@";
 }
 
-plan tests => 67+23+15;
+plan tests => 67+24+15;
 
 &test_mysql; #67.
-&test_tx_transaction; #23.
+&test_tx_transaction; #24.
 &test_old_transaction;  #15.
 
 sub test_mysql
@@ -330,6 +330,7 @@ sub test_tx_transaction
 			
 			# create test data (blue red yellow green aqua cyan)
 			_create_table_colors($DB);
+			is $DB->getLastInsertId(), 6, "[tx_tran] lastid";
 			{
 				my $s = $DB->selectAllHash("SELECT * FROM test_colors");
 				is(@$s, 6, '[tx_tran] implicit commit, 6 records in tx');

@@ -290,6 +290,7 @@ $keyが存在しなくてもエラーとはならない。
 
 <p>
 <span class="pod_lang">キーが存在すれば1を、そうでなければundefを返す。
+ファイルの確認には使えない(常に偽となる)。
 
 </span>
 </p>
@@ -317,6 +318,35 @@ $keyが存在しなくてもエラーとはならない。
 
 <p>
 <span class="pod_lang">指定されたキーを削除する。キーが存在しない場合は何もしない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="existsFile"><span class="pod_lang">existsFile
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $flag = $form-&gt;existsFile($key)</code></pre>
+
+<p>
+<span class="pod_lang">アップロードキーが存在すれば1を、そうでなければundefを返す。
+ファイルが実際にアップロードされたかどうかに関わらず, キーの存在だけを
+判断します. 
+
+</span>
+</p>
+
+</dd>
+<dt><a id="isUploaded"><span class="pod_lang">isUploaded
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $flag = $form-&gt;isUploaded($key)</code></pre>
+
+<p>
+<span class="pod_lang">キーに対応するファイルがアップロードされていれば1を、
+そうでなければundefを返す。
 
 </span>
 </p>
@@ -616,6 +646,7 @@ Tripletail::Form - フォーム情報
 <li><a href="#const">const</a></li>
 <li><a href="#delete">delete</a></li>
 <li><a href="#exists">exists</a></li>
+<li><a href="#existsFile">existsFile</a></li>
 <li><a href="#get">get</a></li>
 <li><a href="#getFile">getFile</a></li>
 <li><a href="#getFileKeys">getFileKeys</a></li>
@@ -626,6 +657,7 @@ Tripletail::Form - フォーム情報
 <li><a href="#getSliceValues">getSliceValues</a></li>
 <li><a href="#getValues">getValues</a></li>
 <li><a href="#haveSessionCheck">haveSessionCheck</a></li>
+<li><a href="#isUploaded">isUploaded</a></li>
 <li><a href="#lookup">lookup</a></li>
 <li><a href="#remove">remove</a></li>
 <li><a href="#set">set</a></li>

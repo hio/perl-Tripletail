@@ -147,6 +147,23 @@ Encodeが利用可能でない場合はUnicode::Japaneseが用いられる。
 </span>
 </p>
 
+<p>
+<span class="pod_lang">文字コードの判別は、フォームの中の CCC キーに含まれる「愛」という文字列によって行われる。
+通常、TL から出力された HTML には、自動的にこの情報が追加されるが、
+外部の静的な HTML や FLASH コンテンツ等からフォームデータを渡す場合は、
+追加する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">例えば、UTF-8 コードで、name キーに「名前」の文字列を渡す場合は、
+CCC=%e6%84%9b&amp;name=%E5%90%8D%E5%89%8D
+をフォームデータとして渡す。
+
+</span>
+</p>
+
 <h2><a id="METHODS">
 <span class="pod_lang">METHODS
 

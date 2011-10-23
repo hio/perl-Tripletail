@@ -15,7 +15,7 @@ END {
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 129;
+use Test::More tests => 131;
 
 #---------------------------------- 一般
 my $v;
@@ -139,6 +139,8 @@ is($v->set('1あアあ')->convKata->get, '1アアア', 'convKata');
 is($v->set('あ１２３')->convNumber->get, 'あ123', 'convNumber');
 is($v->set('_！１Ａ')->convNarrow->get, '_!1A', 'convNarrow');
 is($v->set('＃3b')->convWide->get, '＃３ｂ', 'convWide');
+is($v->set('1１aａあいうアイウポダｱｲｳﾎﾟﾀﾞ')->convKanaNarrow->get, '1１aａあいうｱｲｳﾎﾟﾀﾞｱｲｳﾎﾟﾀﾞ', 'convKanaNarrow');
+is($v->set('1１aａあいうアイウポダｱｲｳﾎﾟﾀﾞ')->convKanaWide->get, '1１aａあいうアイウポダアイウポダ', 'convKanaWide');
 is($v->set('1')->convComma->get, '1', 'convComma');
 is($v->set('12')->convComma->get, '12', 'convComma');
 is($v->set('123')->convComma->get, '123', 'convComma');

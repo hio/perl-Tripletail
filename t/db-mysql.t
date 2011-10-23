@@ -1,11 +1,11 @@
 ## ----------------------------------------------------------------------------
-#  t/db-sqlite.t
+#  t/db-mysql.t
 # -----------------------------------------------------------------------------
 # Mastering programmed by YAMASHINA Hio
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.7 2007/03/08 07:27:08 hio Exp $
+# $Id: db-mysql.t,v 1.2 2007/03/08 07:27:08 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -15,10 +15,10 @@ use Test::Exception;
 our %DBINFO;
 BEGIN{
 	%DBINFO = (
-		dbname   => $ENV{SQLITE_DBNAME}  || 'test.sqlite',
-		user     => $ENV{SQLITE_USER}    || '',
-		password => $ENV{SQLITE_PASS}    || '',
-		host     => $ENV{SQLITE_HOST}    || '',
+		dbname   => $ENV{MYSQL_DBNAME}  || 'test',
+		user     => $ENV{MYSQL_USER}    || '',
+		password => $ENV{MYSQL_PASS}    || '',
+		host     => $ENV{MYSQL_HOST}    || '',
 	);
 };
 
@@ -27,20 +27,19 @@ use t::make_ini {
 		TL => {
 		},
 		DB => {
-			type       => 'sqlite',
+			type       => 'mysql',
 			defaultset => 'DBSET_test',
 			DBSET_test => [qw(DBCONN_test)]
 		},
 		DBCONN_test => \%DBINFO,
 	},
-	clean => [ 'test.sqlite' ],
 };
 use Tripletail $t::make_ini::INI_FILE;
 
-my $has_DBD_SQLite = eval 'use DBD::SQLite;1';
-if( !$has_DBD_SQLite )
+my $has_DBD_mysql = eval 'use DBD::mysql;1';
+if( !$has_DBD_mysql )
 {
-	plan skip_all => "no DBD::SQLite";
+	plan skip_all => "no DBD::mysql";
 }
 if( !$DBINFO{dbname} )
 {
@@ -50,14 +49,14 @@ if( !$DBINFO{dbname} )
 # -----------------------------------------------------------------------------
 # test spec.
 # -----------------------------------------------------------------------------
-plan tests => 1+3+25+24+15+4;
+plan tests => 1+3+25+24+15+5;
 
 &test_setup; #1.
 &test_getdb; #3.
 &test_misc;  #25.
 &test_tx_transaction; #24.
 &test_old_transaction;  #15.
-&test_locks;  #4.
+&test_locks;  #5.
 
 # -----------------------------------------------------------------------------
 # test setup.
@@ -111,7 +110,7 @@ sub test_misc
 			$DB->execute( q{
 				CREATE TEMPORARY TABLE tripletail_test
 				(
-					nval INTEGER NOT NULL PRIMARY KEY,
+					nval INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
 					sval TEXT    NOT NULL
 				)
 			});
@@ -139,7 +138,7 @@ sub test_misc
 			# check last_insert_id.
 			{
 				my $sth = $DB->execute( q{
-					SELECT last_insert_rowid()
+					SELECT last_insert_id()
 				});
 				ok($sth, '[misc] select lastid');
 				my $row1 = $sth->fetchArray();
@@ -148,7 +147,10 @@ sub test_misc
 				is($row2, undef, '[misc] no second record');
 				
 				is($DB->getLastInsertId(), 4, '[misc] getLastInsertId()');
-				is($DB->getDbh()->func('last_insert_rowid'), 4, '[misc] lastid via dbh func');
+				SKIP:{
+					#is($DB->getDbh()->func('last_insertid'), 4, '[misc] lastid via dbh func');
+					skip("[misc] no lastid dbh func", 1);
+				}
 				SKIP:{
 					if( !$DB->getDbh()->can('last_insert_id') )
 					{
@@ -205,9 +207,9 @@ sub _create_table_colors
 	$DB->execute( q{
 		CREATE TEMPORARY TABLE test_colors
 		(
-			nval INTEGER NOT NULL PRIMARY KEY,
+			nval INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
 			sval TEXT    NOT NULL
-		)
+		) Engine=InnoDB
 	});
 	foreach my $sval (qw(blue red yellow green aqua cyan))
 	{
@@ -358,9 +360,10 @@ sub test_locks
 			_create_table_colors($DB);
 			
 			lives_ok { $DB->execute(q{SELECT COUNT(*) FROM test_colors}) } "[locks] table test_colors exists";
-			dies_ok { $DB->lock(read=>'test_colors') } "[locks] lock test_colors failed";
+			lives_ok { $DB->lock(read=>'test_colors') } "[locks] lock test_colors";
 			
 			throws_ok { $DB->lock } qr/Tripletail::DB#lock, no tables are being locked. Specify at least one table./, "[locks] lock no tables";
+			lives_ok { $DB->unlock } "[locks] unlock ok";
 			throws_ok { $DB->unlock } qr/Tripletail::DB#unlock, no tables are locked/, "[locks] unlock w/o lock";
 			
 		},
