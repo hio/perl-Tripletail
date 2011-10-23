@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xml:lang="ja-JP">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <link rel="stylesheet" type="text/css" href="../style.css" />
+  <title>Tripletail::Value - 値の検証や変換</title>
+  <link rel="index"     href="./" />
+  <link rel="up"        href="../" />
+</head>
+<body>
+
+<div class="pod_title_block">
+Tripletail::Value - 値の検証や変換
+
+
+</div>
+
+<!-- Begin TABLE_OF_CONTENTS -->
+<div class="pod_toc">
+<p>
+<strong><span class="pod_lang">TABLE OF CONTENTS</span></strong>
+</p>
+<ul>
+<li><a href="#NAME">
+<span class="pod_lang">NAME
+
+</span></a>
+</li>
+<li><a href="#SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
+
+</span></a>
+</li>
+<li><a href="#DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
+
+</span></a>
+<ul>
+<li><a href="#METHODS">
+<span class="pod_lang">METHODS
+
+</span></a>
+<ul>
+<li><a href="#Xe4Xb8X80Xe8X88Xac">
+<span class="pod_lang">一般
+
+</span></a>
+</li>
+<li><a href="#setXe7Xb3Xbb">
+<span class="pod_lang">set系
+
+</span></a>
+</li>
+<li><a href="#getXe7Xb3Xbb">
+<span class="pod_lang">get系
+
+</span></a>
+</li>
+<li><a href="#isXe7Xb3Xbb">
+<span class="pod_lang">is系
+
+</span></a>
+</li>
+<li><a href="#convXe7Xb3Xbb">
+<span class="pod_lang">conv系
+
+</span></a>
+</li>
+<li><a href="#forceXe7Xb3Xbb">
+<span class="pod_lang">force系
+
+</span></a>
+</li>
+<li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">
+<span class="pod_lang">その他
+
+</span></a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a>
+</li>
+<li><a href="#AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
+
+</span></a>
+</li>
+</ul>
+</div>
+<!-- End TABLE_OF_CONTENTS -->
+
+<!-- Begin CONTENT -->
+
+<hr />
+<h1><a id="NAME">
+<span class="pod_lang">NAME
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang">Tripletail::Value - 値の検証や変換
+
+</span>
+</p>
+
+
+<hr />
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
+
+</span></a></h1>
+
+<pre class="pod_verbatim"><code>  my $value = $TL-&gt;newValue('null@example.org');
+  
+  if ($value-&gt;isEmail) {
+      print $value-&gt;get . &quot; is a valid email address.\n&quot;;
+  }
+
+  # ｎｕｌｌ＠ｅｘａｍｐｌｅ．ｏｒｇ を表示
+  print $value-&gt;convWide-&gt;get . &quot;\n&quot;;</code></pre>
+
+
+<hr />
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang">セットした値１つの形式をチェックし、または形式を矯正する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">値を文字列として扱う場合は、常に UTF-8 である事が前提となる。
+
+</span>
+</p>
+
+<h2><a id="METHODS">
+<span class="pod_lang">METHODS
+
+</span></a></h2>
+
+<h3><a id="Xe4Xb8X80Xe8X88Xac">
+<span class="pod_lang">一般
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_X$TL->newValue"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newValue</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val = $TL-&gt;newValue
+  $val = $TL-&gt;newValue($value)</code></pre>
+
+<p>
+<span class="pod_lang">Tripletail::Value オブジェクトを作成。
+引数があれば、その引数で set が実行される。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_set"><span class="pod_lang">set
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;set($value)</code></pre>
+
+<p>
+<span class="pod_lang">値をセット。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_get"><span class="pod_lang">get
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $value = $val-&gt;get</code></pre>
+
+<p>
+<span class="pod_lang">矯正後の値を取得。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h3><a id="setXe7Xb3Xbb">
+<span class="pod_lang">set系
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_setDate"><span class="pod_lang"><code class="pod_iseq_C">setDate</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;setDate($year, $month, $day)</code></pre>
+
+<p>
+<span class="pod_lang">年月日を指定してYYYY-MM-DD形式でセットする。
+日付として不正である場合はundefがセットされる。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_setDateTime"><span class="pod_lang"><code class="pod_iseq_C">setDateTime</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;setDateTime($year, $month, $day, $hour, $min, $sec)</code></pre>
+
+<p>
+<span class="pod_lang">各値を指定して時刻をYYYY-MM-DD HH:MM:SS形式でセットする。
+時刻として不正である場合はundefがセットされる。
+$min、$secは省略でき、省略時は0が使用される。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_setTime"><span class="pod_lang"><code class="pod_iseq_C">setTime</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;setTime($hour, $min, $sec)</code></pre>
+
+<p>
+<span class="pod_lang">各値を指定して時刻をHH:MM:SS形式でセットする。
+範囲は00:00:00～23:59:59までで、時刻として正しくない場合はundefがセットされる。
+$min、$secは省略でき、省略時は0が使用される。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h3><a id="getXe7Xb3Xbb">
+<span class="pod_lang">get系
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_getLen"><span class="pod_lang">getLen
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $n_bytes = $val-&gt;getLen</code></pre>
+
+<p>
+<span class="pod_lang">バイト数を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getSjisLen"><span class="pod_lang">getSjisLen
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $n_bytes = $val-&gt;getSjisLen</code></pre>
+
+<p>
+<span class="pod_lang">Shift_Jisでのバイト数を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getCharLen"><span class="pod_lang">getCharLen
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $n_chars = $val-&gt;getCharLen</code></pre>
+
+<p>
+<span class="pod_lang">文字数を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getAge"><span class="pod_lang">getAge
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $age = $val-&gt;getAge
+  $age = $val-&gt;getAge($date)</code></pre>
+
+<p>
+<span class="pod_lang">YYYY-MM-DD形式の値として、$date の日付での年齢を返す。省略可能。
+日付の形式が間違っている場合はundefを返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは現在の日付。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getRegexp"><span class="pod_lang">getRegexp
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $regexp = $val-&gt;getRegexp($type)</code></pre>
+
+<p>
+<span class="pod_lang">指定された$typeに対応する正規表現を返す。
+対応する$typeは次の通り。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">hira
+ひらがなに対応する正規表現を返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">kata
+カタカナに対応する正規表現を返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">numbernarrow
+半角数字に対応する正規表現を返す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">numberwide
+全角数字に対応する正規表現を返す。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h3><a id="isXe7Xb3Xbb">
+<span class="pod_lang">is系
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_isEmpty"><span class="pod_lang">isEmpty
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isEmpty</code></pre>
+
+<p>
+<span class="pod_lang">値が空（undefまたは0文字）なら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isWhitespace"><span class="pod_lang">isWhitespace
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isWhitespace</code></pre>
+
+<p>
+<span class="pod_lang">半角/全角スペース、タブのみで構成されているか、空（undefまたは0文字）なら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isPrintableAscii"><span class="pod_lang">isPrintableAscii
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPrintableAscii</code></pre>
+
+<p>
+<span class="pod_lang">文字列が制御コードを除くASCII文字のみで構成されているなら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isWide"><span class="pod_lang">isWide
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isWide</code></pre>
+
+<p>
+<span class="pod_lang">文字列が全角文字のみで構成されているなら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isPassword"><span class="pod_lang">isPassword
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPassword</code></pre>
+
+<p>
+<span class="pod_lang">文字列が半角の数字、アルファベット大文字、小文字、記号を
+全て最低1ずつ含んでいるなら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isZipCode"><span class="pod_lang">isZipCode
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isZipCode</code></pre>
+
+<p>
+<span class="pod_lang">7桁の郵便番号（XXX-XXXX形式）なら1。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">実在する郵便番号かどうかは確認しない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isTelNumber"><span class="pod_lang">isTelNumber
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isTelNumber</code></pre>
+
+<p>
+<span class="pod_lang">電話番号（/^\d[\d-]*\d$/）なら1。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">数字で始まり、数字で終わり、その間が数字とハイフン(-)のみで構成されていれば電話番号とみなす。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isEmail"><span class="pod_lang">isEmail
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isEmail</code></pre>
+
+<p>
+<span class="pod_lang">メールアドレスとして正しい形式であれば1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isMobileEmail"><span class="pod_lang">isMobileEmail
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isMobileEmail</code></pre>
+
+<p>
+<span class="pod_lang">メールアドレスとして正しい形式であれば1。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">但し携帯電話のメールアドレスでは、アカウント名の末尾にピリオドを含んでいる場合がある為、これも正しい形式であるとみなす。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">携帯電話キャリアのドメイン名を判別するわけではないため、通常のメールアドレスも 1 を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isInteger($min,$max)"><span class="pod_lang">isInteger($min,$max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isInteger($min,$max)</code></pre>
+
+<p>
+<span class="pod_lang">整数で、かつ$min以上$max以下なら1。省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトでは、最大最小のチェックは行わなず整数であれば1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isReal($min,$max)"><span class="pod_lang">isReal($min,$max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isReal($min,$max)</code></pre>
+
+<p>
+<span class="pod_lang">整数もしくは小数で、かつ$min以上$max以下なら1。省略可能。
+	
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトでは、最大最小のチェックは行わなず、整数もしくは小数であれば1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isHira"><span class="pod_lang">isHira
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isHira</code></pre>
+
+<p>
+<span class="pod_lang">平仮名だけが含まれている場合は1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isKata"><span class="pod_lang">isKata
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isKata</code></pre>
+
+<p>
+<span class="pod_lang">片仮名だけが含まれている場合は1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isExistentDay"><span class="pod_lang">isExistentDay
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isExistentDay</code></pre>
+
+<p>
+<span class="pod_lang">YYYY-MM-DDで設定された日付が実在するものなら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isGif"><span class="pod_lang">isGif
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isGif</code></pre>
+
+</dd>
+<dt><a id="item_isJpeg"><span class="pod_lang">isJpeg
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isJpeg</code></pre>
+
+</dd>
+<dt><a id="item_isPng"><span class="pod_lang">isPng
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isPng</code></pre>
+
+<p>
+<span class="pod_lang">それぞれの形式の画像なら1。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">画像として厳密に正しい形式であるかどうかは確認しない。
+( file(1) 程度の判断のみ。)
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isHttpUrl"><span class="pod_lang">isHttpUrl
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isHttpUrl</code></pre>
+
+<p>
+<span class="pod_lang">&quot;http://&quot; で始まる文字列なら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isHttpsUrl"><span class="pod_lang">isHttpsUrl
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isHttpsUrl</code></pre>
+
+<p>
+<span class="pod_lang">&quot;https://&quot; で始まる文字列なら1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isLen($min,$max)"><span class="pod_lang">isLen($min,$max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isLen($min,$max)</code></pre>
+
+<p>
+<span class="pod_lang">バイト数の範囲が指定値以内かチェックする。
+undefを指定した場合はチェックを行わない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isSjisLen($min,$max)"><span class="pod_lang">isSjisLen($min,$max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isSjisLen($min,$max)</code></pre>
+
+<p>
+<span class="pod_lang">Shift-Jisでのバイト数の範囲が指定値以内かチェックする。
+undefを指定した場合はチェックを行わない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isCharLen($min,$max)"><span class="pod_lang">isCharLen($min,$max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isCharLen($min,$max)</code></pre>
+
+<p>
+<span class="pod_lang">文字数の範囲が指定値以内かチェックする。
+undefを指定した場合はチェックを行わない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isHtmlTag"><span class="pod_lang">isHtmlTag
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isHtmlTag</code></pre>
+
+<p>
+<span class="pod_lang">HTMLタグを含んでいるなら1。でなければundef。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isTrailingSlash"><span class="pod_lang">isTrailingSlash
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isTrailingSlash</code></pre>
+
+<p>
+<span class="pod_lang">文字列が半角スラッシュで終わっているなら1。でなければundef。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isUnportable"><span class="pod_lang">isUnportable
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isUnportable</code></pre>
+
+<p>
+<span class="pod_lang">機種依存文字を含んでいるなら1。でなければundef。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isIpAddress"><span class="pod_lang">isIpAddress
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $val-&gt;isIpAddress($checkmask)</code></pre>
+
+<p>
+<span class="pod_lang">$checkmaskに対して、設定されたIPアドレスが一致すれば1。でなければundef。
+	
+</span>
+</p>
+
+<p>
+<span class="pod_lang">$checkmaskは空白で区切って複数個指定する事が可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">例：'10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1 fe80::/10 ::1'。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h3><a id="convXe7Xb3Xbb">
+<span class="pod_lang">conv系
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_convHira"><span class="pod_lang">convHira
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convHira</code></pre>
+
+<p>
+<span class="pod_lang">ひらがなに変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convKata"><span class="pod_lang">convKata
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convKata</code></pre>
+
+<p>
+<span class="pod_lang">カタカナに変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convNumber"><span class="pod_lang">convNumber
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convNumber</code></pre>
+
+<p>
+<span class="pod_lang">半角数字に変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convNarrow"><span class="pod_lang">convNarrow
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convNarrow</code></pre>
+
+<p>
+<span class="pod_lang">全角文字を半角に変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convWide"><span class="pod_lang">convWide
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convWide</code></pre>
+
+<p>
+<span class="pod_lang">半角文字を全角に変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convComma"><span class="pod_lang">convComma
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convComma</code></pre>
+
+<p>
+<span class="pod_lang">半角数字を3桁区切りのカンマ表記に変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convLF"><span class="pod_lang">convLF
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convLF</code></pre>
+
+<p>
+<span class="pod_lang">改行コードを LF (\n) に変換する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_convBR"><span class="pod_lang">convBR
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;convBR</code></pre>
+
+<p>
+<span class="pod_lang">改行コードを &lt;BR&gt;\n に変換する。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h3><a id="forceXe7Xb3Xbb">
+<span class="pod_lang">force系
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_forceHira"><span class="pod_lang">forceHira
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceHira</code></pre>
+
+<p>
+<span class="pod_lang">ひらがな以外の文字は削除。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceKata"><span class="pod_lang">forceKata
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceKata</code></pre>
+
+<p>
+<span class="pod_lang">カタカナ以外の文字は削除。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceNumber"><span class="pod_lang">forceNumber
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceNumber</code></pre>
+
+<p>
+<span class="pod_lang">半角数字以外の文字は削除。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceMin($max,$val)"><span class="pod_lang">forceMin($max,$val)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceMin($max,$val)</code></pre>
+
+<p>
+<span class="pod_lang">半角数字以外の文字を削除し、min未満なら$valをセットする。$val省略時はundefをセットする。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceMax($max,$val)"><span class="pod_lang">forceMax($max,$val)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceMax($max,$val)</code></pre>
+
+<p>
+<span class="pod_lang">半角数字以外の文字を削除し、maxより大きければ$valをセットする。$val省略時はundefをセットする。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceMaxLen($max)"><span class="pod_lang">forceMaxLen($max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceMaxLen($max)</code></pre>
+
+<p>
+<span class="pod_lang">最大バイト数を指定。超える場合はそのバイト数までカットする。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceMaxUtf8Len($max)"><span class="pod_lang">forceMaxUtf8Len($max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceMaxUtf8Len($max)</code></pre>
+
+<p>
+<span class="pod_lang">UTF-8での最大バイト数を指定。
+超える場合はそのバイト数以下まで
+UTF-8の文字単位でカットする。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceMaxSjisLen($max)"><span class="pod_lang">forceMaxSjisLen($max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceMaxSjisLen($max)</code></pre>
+
+<p>
+<span class="pod_lang">SJISでの最大バイト数を指定。超える場合はそのバイト数以下まで
+SJISの文字単位でカットする。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceMaxCharLen($max)"><span class="pod_lang">forceMaxCharLen($max)
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceMaxCharLen($max)</code></pre>
+
+<p>
+<span class="pod_lang">最大文字数を指定。超える場合はその文字数以下までカットする。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_forceWhitespace"><span class="pod_lang">forceWhitespace
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val-&gt;forceWhitespace</code></pre>
+
+<p>
+<span class="pod_lang">値の前後に付いている半角/全角スペース、タブを削除する。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h3><a id="Xe3X81X9dXe3X81XaeXe4XbbX96">
+<span class="pod_lang">その他
+
+</span></a></h3>
+
+<dl>
+<dt><a id="item_countWords"><span class="pod_lang">countWords
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">全角/半角スペースで単語に区切った時の個数を返す。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+
+<hr />
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang"><a href=".././Tripletail.html">Tripletail</a>
+
+</span>
+</p>
+
+
+<hr />
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
+
+</span></a></h1>
+
+<ul>
+<p>
+<span class="pod_lang">Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このフレームワークはフリーソフトウェアです。あなたは Perl と同じライセンスの 元で再配布及び変更を行うことが出来ます。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">Address bug reports and comments to: tl@tripletail.jp
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">HP : http://tripletail.jp/
+
+</span>
+</p>
+
+</ul>
+
+<!-- End CONTENT -->
+
+<div class="pod_title_block">
+Tripletail::Value - 値の検証や変換
+
+
+</div>
+
+<!-- Begin INDEX -->
+<hr />
+<h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
+<div class="pod_idx_outer">
+<ul class="pod_idx">
+<li><a href="#item_X$TL->newValue">$TL-&gt;newValue</a></li>
+<li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
+<li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#METHODS">METHODS</a></li>
+<li><a href="#NAME">NAME</a></li>
+<li><a href="#SEE_ALSO">SEE ALSO</a></li>
+<li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#item_convBR">convBR</a></li>
+<li><a href="#item_convComma">convComma</a></li>
+<li><a href="#item_convHira">convHira</a></li>
+<li><a href="#item_convKata">convKata</a></li>
+<li><a href="#item_convLF">convLF</a></li>
+<li><a href="#item_convNarrow">convNarrow</a></li>
+<li><a href="#item_convNumber">convNumber</a></li>
+<li><a href="#item_convWide">convWide</a></li>
+<li><a href="#convXe7Xb3Xbb">conv系</a></li>
+<li><a href="#item_countWords">countWords</a></li>
+<li><a href="#item_forceHira">forceHira</a></li>
+<li><a href="#item_forceKata">forceKata</a></li>
+<li><a href="#item_forceMax($max,$val)">forceMax($max,$val)</a></li>
+<li><a href="#item_forceMaxCharLen($max)">forceMaxCharLen($max)</a></li>
+<li><a href="#item_forceMaxLen($max)">forceMaxLen($max)</a></li>
+<li><a href="#item_forceMaxSjisLen($max)">forceMaxSjisLen($max)</a></li>
+<li><a href="#item_forceMaxUtf8Len($max)">forceMaxUtf8Len($max)</a></li>
+<li><a href="#item_forceMin($max,$val)">forceMin($max,$val)</a></li>
+<li><a href="#item_forceNumber">forceNumber</a></li>
+<li><a href="#item_forceWhitespace">forceWhitespace</a></li>
+<li><a href="#forceXe7Xb3Xbb">force系</a></li>
+<li><a href="#item_get">get</a></li>
+<li><a href="#item_getAge">getAge</a></li>
+<li><a href="#item_getCharLen">getCharLen</a></li>
+<li><a href="#item_getLen">getLen</a></li>
+<li><a href="#item_getRegexp">getRegexp</a></li>
+<li><a href="#item_getSjisLen">getSjisLen</a></li>
+<li><a href="#getXe7Xb3Xbb">get系</a></li>
+<li><a href="#item_isCharLen($min,$max)">isCharLen($min,$max)</a></li>
+<li><a href="#item_isEmail">isEmail</a></li>
+<li><a href="#item_isEmpty">isEmpty</a></li>
+<li><a href="#item_isExistentDay">isExistentDay</a></li>
+<li><a href="#item_isGif">isGif</a></li>
+<li><a href="#item_isHira">isHira</a></li>
+<li><a href="#item_isHtmlTag">isHtmlTag</a></li>
+<li><a href="#item_isHttpUrl">isHttpUrl</a></li>
+<li><a href="#item_isHttpsUrl">isHttpsUrl</a></li>
+<li><a href="#item_isInteger($min,$max)">isInteger($min,$max)</a></li>
+<li><a href="#item_isIpAddress">isIpAddress</a></li>
+<li><a href="#item_isJpeg">isJpeg</a></li>
+<li><a href="#item_isKata">isKata</a></li>
+<li><a href="#item_isLen($min,$max)">isLen($min,$max)</a></li>
+<li><a href="#item_isMobileEmail">isMobileEmail</a></li>
+<li><a href="#item_isPassword">isPassword</a></li>
+<li><a href="#item_isPng">isPng</a></li>
+<li><a href="#item_isPrintableAscii">isPrintableAscii</a></li>
+<li><a href="#item_isReal($min,$max)">isReal($min,$max)</a></li>
+<li><a href="#item_isSjisLen($min,$max)">isSjisLen($min,$max)</a></li>
+<li><a href="#item_isTelNumber">isTelNumber</a></li>
+<li><a href="#item_isTrailingSlash">isTrailingSlash</a></li>
+<li><a href="#item_isUnportable">isUnportable</a></li>
+<li><a href="#item_isWhitespace">isWhitespace</a></li>
+<li><a href="#item_isWide">isWide</a></li>
+<li><a href="#item_isZipCode">isZipCode</a></li>
+<li><a href="#isXe7Xb3Xbb">is系</a></li>
+<li><a href="#item_set">set</a></li>
+<li><a href="#item_setDate">setDate</a></li>
+<li><a href="#item_setDateTime">setDateTime</a></li>
+<li><a href="#item_setTime">setTime</a></li>
+<li><a href="#setXe7Xb3Xbb">set系</a></li>
+<li><a href="#Xe3X81X9dXe3X81XaeXe4XbbX96">その他</a></li>
+<li><a href="#Xe4Xb8X80Xe8X88Xac">一般</a></li>
+</ul>
+</div>
+<!-- End INDEX -->
+
+<div class="pod_title_block">
+Tripletail::Value - 値の検証や変換
+
+
+</div>
+
+</body>
+</html>

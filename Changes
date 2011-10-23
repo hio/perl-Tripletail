@@ -1,0 +1,70 @@
+Revision history for Tripletail
+
+0.12    Wed Aug  2 10:36:54 JST 2006
+	- フレーム版ドキュメントのリンク切れを修正
+	- 祝日生成モジュールがパッケージ名称変更に未対応だったため修正
+	- Tripletail::InputFilter::Plainを追加
+
+0.11_01 Thu Jul 27 12:05:32 JST 2006
+	- [[重要:0.10_07からの非互換な仕様変更]]
+	  - TLからTripletailにパッケージ名称を変更
+	  - DateTimeクラスのspan系で、(引数) - (this)としていたものを、(this) - (引数)に変更
+	  - DateTimeクラスのspanMonth、spanYearの挙動を実際の期間を、指定された単位で計算するように修正
+	  - DateTimeクラスのadd系に関して、コピーを生成せず破壊的動作をするように修正
+	- DateTimeクラスのspan系で、(引数1) - (引数2)を追加
+	- DateTimeクラスにminusSecond、minusMinute,minusHour,minusDay,minusMonth,minusYearを追加
+	- DateTimeクラスにてユリウス日時から、グレゴリオ暦への変換時に誤差が発生していた問題を修正
+	- $TL->newForm($hashref) 形式でもフォームオブジェクトを作成できるように変更
+	- $TL->addHiddenForm({key => val}, 'formname') 形式でも使用できるように変更
+	- $TL->setForm({key => val}, 'formname') 形式でも使用できるように変更
+	- DBのコネクションのグループ名称の頭文字をCNTからCONに変更
+	- GMT等のタイムゾーンを正常に扱えない問題を修正
+
+0.10_07 Tue Jul 18 16:43:44 JST 2006
+	- [[重要:0.10_06からの非互換な仕様変更]]
+	  - DBクラスのselectRowHash/Arrayで、データが0件の場合の戻り値に関する仕様を変更
+	  - 従来は {} または [] が返っていたが、undef を返すように変更
+	- DBクラスでデッドロック発生時の処理に問題があったため修正
+	- バグ発生時のメール送信でのログ出力の問題を修正
+	- stacktrace=fullでのデバッグ表示が崩れる場合がある問題を修正
+	- stacktrace=fullでソースの表示する時、初期値をTLライブラリ外のフレームに変更
+	- デバッグ時にポップアップウィンドウがブロックされた際、JavaScriptでエラーが発生する問題を修正
+	- Makefile.PLからCache::Memcached::XSを削除
+
+0.10_06 Fri Jul 14 19:02:48 JST 2006
+	- DBのsthクラスに最後のexecute戻り値を取得するretメソッドを追加
+	- テスト時の出力を改善
+	- DateTimeクラスにaddBusinessDayを追加
+	- DateTimeクラスのisHolidayにオプション追加
+	- DateTimeクラスのisHolidayのデフォルトの挙動を変更
+	- READMEファイルにHPへのURLを追加
+	- Makefile.PLでCache::Memcached::XSを追加
+	- Makefile.PLでDigest::MD5を削除
+	- Makefile.PLでDigest::SHA1を削除
+	- ログ出力時にディレクトリまたはファイルが作成できず、かつメール通知の設定がされていて
+	  メール通知できない状況で永久ループするバグを修正
+	- ログの出力フォーマットに関するドキュメントを追加。
+	- $TL->getLogHeader メソッドを追加。
+	- マニュアルの整形ミスを修正。
+	- TL::DB#selectRowHash, selectRowArray を追加。
+
+0.10_05 Mon Jul 10 10:58 JST 2006
+	- ドキュメント修正、make test時にファイルが残る問題の修正
+
+0.10_04 Sat Jul 08 16:56 JST 2006
+	- CPANで文字化け等していたPODの不都合を修正
+
+0.10_03 Sat Jul 08 13:28 JST 2006
+	- DBが利用できないときテストに失敗する問題を修正
+	- templateテストでエラーが出ている問題を修正
+	- PODのNAMEに直接日本語を書くように修正
+
+0.10_02 Fri Jul 07 21:18 JST 2006
+	- encoding指定ミスを修正
+
+0.10_01 Fri Jul 07 16:34 JST 2006
+	- CPAN公開初版
+
+0.09 Tue Jun 13 18:09 JST 2006
+	- 限定公開版
+

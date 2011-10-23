@@ -1,0 +1,17 @@
+
+☆ TL::SMIME ☆
+
+* バージョンアップ方法
+
+  1. lib/TL/SMIME.pm 内の $VERSION 書き換え.
+  2. Changes に変更内容を記録.
+  3. TAGINFO にタグ情報を追加.
+
+* コンパイル方法
+
+  $ CFLAGS=-I/usr/local/ymir/perl/openssl/include \
+    LDFLAGS=-L/usr/local/ymir/perl/openssl/lib \
+      perl Makefile.PL
+  $ make
+
+[EOF]

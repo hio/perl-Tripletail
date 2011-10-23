@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xml:lang="ja-JP">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <link rel="stylesheet" type="text/css" href="../style.css" />
+  <title>Tripletail::Session - セッション</title>
+  <link rel="index"     href="./" />
+  <link rel="up"        href="../" />
+</head>
+<body>
+
+<div class="pod_title_block">
+Tripletail::Session - セッション
+
+
+</div>
+
+<!-- Begin TABLE_OF_CONTENTS -->
+<div class="pod_toc">
+<p>
+<strong><span class="pod_lang">TABLE OF CONTENTS</span></strong>
+</p>
+<ul>
+<li><a href="#NAME">
+<span class="pod_lang">NAME
+
+</span></a>
+</li>
+<li><a href="#SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
+
+</span></a>
+</li>
+<li><a href="#DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
+
+</span></a>
+<ul>
+<li><a href="#METHODS">
+<span class="pod_lang">METHODS
+
+</span></a>
+</li>
+<li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
+
+</span></a>
+</li>
+</ul>
+</li>
+<li><a href="#SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a>
+</li>
+<li><a href="#AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
+
+</span></a>
+</li>
+</ul>
+</div>
+<!-- End TABLE_OF_CONTENTS -->
+
+<!-- Begin CONTENT -->
+
+<hr />
+<h1><a id="NAME">
+<span class="pod_lang">NAME
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang">Tripletail::Session - セッション
+
+</span>
+</p>
+
+
+<hr />
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
+
+</span></a></h1>
+
+<pre class="pod_verbatim"><code>  $TL-&gt;startCgi(
+      -DB      =&gt; 'DB',
+      -Session =&gt; 'Session',
+      -main        =&gt; \&amp;main,
+  );
+
+  sub main {
+      my $session = $TL-&gt;getSession('Session');
+
+      my $oldValue = $session-&gt;getValue;
+      
+      $session-&gt;setValue(12345);
+
+      ...
+  }</code></pre>
+
+
+<hr />
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang">64bit符号無し整数値の管理機能を持ったセッション管理クラス。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションは64bit符号無し整数以外のデータを取り扱えない為、その他のデータを管理したい場合は、
+セッションキーを用い別途管理する必要がある。 
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションキーは、 <a href=".././Tripletail.html#Xe5X87XbaXe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">出力フィルタ</a> に <a href=".././Tripletail/Filter/HTML.html">Tripletail::Filter::HTML</a>
+を使用している場合は <a href=".././Tripletail/Cookie.html">クッキー</a> に、 <a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a>
+の場合は <a href=".././Tripletail/Form.html">クエリ</a> に、それぞれ挿入される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">また、 <a href=".././Tripletail.html#Xe5X85Xa5Xe5X8aX9bXe3X83X95Xe3X82Xa3Xe3X83XabXe3X82Xbf">入力フィルタ</a> に <a href=".././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a>
+を使用している場合は <a href=".././Tripletail/Cookie.html">クッキー</a> から、<a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a>
+の場合は <a href=".././Tripletail/Form.html">クエリ</a> から、それぞれ読み取られる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">Sessionは <a href=".././Tripletail/DB.html">DB</a> を使用してセッションの管理を行う。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">プログラム本体とDB接続を共有するため、以下の点に注意しなければならない。
+
+</span>
+</p>
+
+<dl>
+<dt><a id="item_Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X81XaeXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82"><span class="pod_lang">セッションの操作は、トランザクション中及びテーブルロック中には行わない。
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe3X82Xb3Xe3X83Xb3Xe3X83X86Xe3X83Xb3Xe3X83X84Xe3X81XaeXe5X87XbaXe5X8aX9bXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82"><span class="pod_lang">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。
+
+</span></a></dt>
+<dd>
+</dd>
+</dl>
+
+<h2><a id="METHODS">
+<span class="pod_lang">METHODS
+
+</span></a></h2>
+
+<dl>
+<dt><a id="item_X$TL->getSession"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;getSession</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $session = $TL-&gt;getSession($group)</code></pre>
+
+<p>
+<span class="pod_lang">Tripletail::Session オブジェクトを取得。
+引数には <a href=".././Tripletail/Ini.html">ini</a> で設定したグループ名を渡す。省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このメソッドは、 <a href=".././Tripletail.html#startCgi">Tripletail#startCgi</a>
+の呼び出し時に <code class="pod_iseq_C">-Session =&gt; '(Iniグループ名)'</code> で指定されたグループのセッションが有効化
+されていなければ <code class="pod_iseq_C">die</code> する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">引数省略時は 'Session' グループが使用される。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_isHttps"><span class="pod_lang"><code class="pod_iseq_C">isHttps</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $session-&gt;isHttps</code></pre>
+
+<p>
+<span class="pod_lang">現在のリクエストがhttpsなら1を、そうでなければundefを返す。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  if ($session-&gt;isHttps) {
+      ...
+  }</code></pre>
+
+</dd>
+<dt><a id="item_get"><span class="pod_lang"><code class="pod_iseq_C">get</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $sid = $session-&gt;get</code></pre>
+
+<p>
+<span class="pod_lang">ユニークなセッションキーを取得する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションキーは64bit符号無し整数値となる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">Perlでは通常32bit整数値までしか扱えないため、セッションキーを数値として扱ってはならない。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションが存在しなければ、新規に発行する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションの発行は常に行え、double モード時の非SSL側からの get メソッド呼び出しでもセッションは設定される。
+ただし、SSL側からアクセスした際にセッションが無効になるため、その時にセッションIDは再作成される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このメソッドの呼び出しは、コンテンツデータを返す前に行わなければならない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_renew"><span class="pod_lang"><code class="pod_iseq_C">renew</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $sid = $session-&gt;renew</code></pre>
+
+<p>
+<span class="pod_lang">新しくユニークなセッションキーを発行し、取得する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">以前のセッションキーが存在した場合、そのセッションキーは無効となる。
+また、以前のセッションに保存されていた値も破棄される。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このメソッドの呼び出しは、コンテンツデータを返す前に行わなければならない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_discard"><span class="pod_lang"><code class="pod_iseq_C">discard</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $session-&gt;discard</code></pre>
+
+<p>
+<span class="pod_lang">現在のセッションキーを無効にする。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このメソッドの呼び出しは、コンテンツデータを返す前に行わなければならない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_setValue"><span class="pod_lang"><code class="pod_iseq_C">setValue</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $session-&gt;setValue($value)</code></pre>
+
+<p>
+<span class="pod_lang">セッションに値を設定する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">設定できる値は '64bit符号無し整数' のみ。
+その他のデータを管理したい場合は、セッションキーを用いて別途実装する必要がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">doubleモードの場合は、SSL起動時の場合に限り、両方のセッションに書き込まれる。
+doubleモードで非SSL側からこのメソッドを使ってセッションを書換えようとした場合、
+httpsモードで非SSL側から書き換えようとした場合は <code class="pod_iseq_C">die</code> する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このメソッドの呼び出しは、コンテンツデータを返す前に行わなければならない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getValue"><span class="pod_lang"><code class="pod_iseq_C">getValue</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $value = $session-&gt;getValue</code></pre>
+
+<p>
+<span class="pod_lang">セッションから値を取得する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションが存在しない場合は undef を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getSessionInfo"><span class="pod_lang"><code class="pod_iseq_C">getSessionInfo</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  ($name, $sid, $checkval) = $session-&gt;getSessionInfo</code></pre>
+
+<p>
+<span class="pod_lang">セッション情報を取得する。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">クッキーやフォームにセッションを保存する際の名称、セッションキー、チェック値を返す。
+チェック値は、現在のリクエストが https/http によって使用されているものが返される。
+そのため、double モードの場合、現在のリクエスト状態に応じてチェック値が異なる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">セッションが存在しない場合は $sid、$checkval には undef が返る。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+<h2><a id="Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">
+<span class="pod_lang">Ini パラメータ
+
+</span></a></h2>
+
+<dl>
+<dt><a id="item_mode"><span class="pod_lang">mode
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  mode = double</code></pre>
+
+<p>
+<span class="pod_lang">設定可能な値は、'http'、 'https'、 'double'のいずれか。省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトはdouble。
+
+</span>
+</p>
+
+<dl>
+<dt><a id="item_httpXe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">httpモード
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">SSLでの保護がないセッションを利用する。http/httpsの両方で使用できるが、セッションキーはhttp側から漏洩する可能性があるため、https領域からアクセスした場合も、十分な安全性は確保できないことに注意する必要がある。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_httpsXe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">httpsモード
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">SSLでの保護があるセッションを利用する。セッションキーはhttp側からの漏洩を防ぐため、http通信上には出力されない。https側でのみセッションへのアクセスが可能。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_doubleXe3X83Xa2Xe3X83XbcXe3X83X89"><span class="pod_lang">doubleモード
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">http側とhttps側で二重にセッションを張る。
+https側からのみセッションへの書き込み・破棄が行え、その際にhttp側のセッション情報も同時に書き換えられる。
+http側からはhttps側からセットされたセッション情報の参照のみが出来る。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">http側はセッションキー漏洩の危険性があり、十分な安全性は確保できないが、https側は十分な安全性が確保できる。http側からセッションキーが漏洩した場合でも、https領域でのアクセスは安全である。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>                http領域読込    http領域書込    https領域読込   http領域書込
+  httpモード    ○              ○              ○              ○
+  httpsモード   C&lt;die&gt;             C&lt;die&gt;             ○              ○
+  doubleモード  ○              C&lt;die&gt;             ○              ○</code></pre>
+
+</dd>
+</dl>
+
+</dd>
+<dt><a id="item_cookie"><span class="pod_lang">cookie
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  cookie = Cookie</code></pre>
+
+<p>
+<span class="pod_lang">http領域で使用するクッキーのグループ名を指定する。省略可能。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは'Cookie'。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_securecookie"><span class="pod_lang">securecookie
+
+</span></a></dt>
+<dd>
+<p>
+<span class="pod_lang">https 領域で使用するクッキーのグループ名を指定する。省略可能。
+secureフラグが付いていなければエラーとなる。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは'SecureCookie'．
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_timeout"><span class="pod_lang">timeout
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  timeout = 30 min</code></pre>
+
+<p>
+<span class="pod_lang">指定の時間経過したセッションは無効とする。<a href=".././Tripletail.html#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">度量衡</a> 参照。省略可能。
+最短で timeout - updateinterval の時間でタイムアウトする可能性がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは30min。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_updateinterval"><span class="pod_lang">updateinterval
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  updateinterval = 10 min</code></pre>
+
+<p>
+<span class="pod_lang">最終更新時刻から指定時間以上経過していたら、DBの更新時刻を更新する。<a href=".././Tripletail.html#Xe5XbaXa6Xe9X87X8fXe8Xa1Xa1">度量衡</a> 参照。省略可能。
+最短で timeout - updateinterval の時間でタイムアウトする可能性がある。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは10min。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_setvaluewithrenew"><span class="pod_lang">setvaluewithrenew
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  setvaluewithrenew = 1</code></pre>
+
+<p>
+<span class="pod_lang">setValueした際に自動的にrenewを行うか否か。
+0の場合、行わない。
+1の場合、行う。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">デフォルトは1。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_dbgroup"><span class="pod_lang">dbgroup
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  dbgroup = DB</code></pre>
+
+<p>
+<span class="pod_lang">使用するDBのグループ名。
+<a href=".././Tripletail/Ini.html">ini</a> で設定したグループ名を渡す。
+<a href=".././Tripletail.html#startCgi">Tripletail#startCgi</a> で有効化しなければならない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_dbset"><span class="pod_lang">dbset
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  dbset = W_Trans</code></pre>
+
+<p>
+<span class="pod_lang">使用する書き込み用DBセット名。
+<a href=".././Tripletail.html#startCgi">Tripletail#startCgi</a> で有効化しなければならない。
+<a href=".././Tripletail/Ini.html">ini</a> で設定したグループ名を渡す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_readdbset"><span class="pod_lang">readdbset
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  readdbset = R_Trans</code></pre>
+
+<p>
+<span class="pod_lang">使用する読み込み用DBセット名。
+<a href=".././Tripletail.html#startCgi">Tripletail#startCgi</a> で有効化しなければならない。
+<a href=".././Tripletail/Ini.html">ini</a> で設定したグループ名を渡す。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">省略された場合は dbset と同じものが使用される。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_sessiontable"><span class="pod_lang">sessiontable
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  sessiontable = tl_session</code></pre>
+
+<p>
+<span class="pod_lang">セッションで使用するテーブル名。
+デフォルトは tl_session_グループ名 が使用される。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_csrfkey"><span class="pod_lang">csrfkey
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  csrfkey = JLapCbI4XW7G8oEi</code></pre>
+
+<p>
+<span class="pod_lang">addSessionCheck及びhaveSessionCheckで使用するキー。
+サイト毎に値を変更する必要性がある。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+
+<hr />
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a></h1>
+
+<dl>
+<dt><a id="item_X_"><span class="pod_lang"><a href=".././Tripletail.html">Tripletail</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__00"><span class="pod_lang"><a href=".././Tripletail/Cookie.html">Tripletail::Cookie</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__01"><span class="pod_lang"><a href=".././Tripletail/DB.html">Tripletail::DB</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__02"><span class="pod_lang"><a href=".././Tripletail/Filter/HTML.html">Tripletail::Filter::HTML</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__03"><span class="pod_lang"><a href=".././Tripletail/Filter/MobileHTML.html">Tripletail::Filter::MobileHTML</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__04"><span class="pod_lang"><a href=".././Tripletail/InputFilter/HTML.html">Tripletail::InputFilter::HTML</a>
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X__05"><span class="pod_lang"><a href=".././Tripletail/InputFilter/MobileHTML.html">Tripletail::InputFilter::MobileHTML</a>
+
+</span></a></dt>
+<dd>
+</dd>
+</dl>
+
+
+<hr />
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
+
+</span></a></h1>
+
+<ul>
+<p>
+<span class="pod_lang">Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このフレームワークはフリーソフトウェアです。あなたは Perl と同じライセンスの 元で再配布及び変更を行うことが出来ます。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">Address bug reports and comments to: tl@tripletail.jp
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">HP : http://tripletail.jp/
+
+</span>
+</p>
+
+</ul>
+
+<!-- End CONTENT -->
+
+<div class="pod_title_block">
+Tripletail::Session - セッション
+
+
+</div>
+
+<!-- Begin INDEX -->
+<hr />
+<h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
+<div class="pod_idx_outer">
+<ul class="pod_idx">
+<li><a href="#item_X$TL->getSession">$TL-&gt;getSession</a></li>
+<li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
+<li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#Ini_Xe3X83X91Xe3X83Xa9Xe3X83Xa1Xe3X83XbcXe3X82Xbf">Ini パラメータ</a></li>
+<li><a href="#METHODS">METHODS</a></li>
+<li><a href="#NAME">NAME</a></li>
+<li><a href="#SEE_ALSO">SEE ALSO</a></li>
+<li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#item_X_">Tripletail</a></li>
+<li><a href="#item_X__00">Tripletail::Cookie</a></li>
+<li><a href="#item_X__01">Tripletail::DB</a></li>
+<li><a href="#item_X__02">Tripletail::Filter::HTML</a></li>
+<li><a href="#item_X__03">Tripletail::Filter::MobileHTML</a></li>
+<li><a href="#item_X__04">Tripletail::InputFilter::HTML</a></li>
+<li><a href="#item_X__05">Tripletail::InputFilter::MobileHTML</a></li>
+<li><a href="#item_cookie">cookie</a></li>
+<li><a href="#item_csrfkey">csrfkey</a></li>
+<li><a href="#item_dbgroup">dbgroup</a></li>
+<li><a href="#item_dbset">dbset</a></li>
+<li><a href="#item_discard">discard</a></li>
+<li><a href="#item_doubleXe3X83Xa2Xe3X83XbcXe3X83X89">doubleモード</a></li>
+<li><a href="#item_get">get</a></li>
+<li><a href="#item_getSessionInfo">getSessionInfo</a></li>
+<li><a href="#item_getValue">getValue</a></li>
+<li><a href="#item_httpsXe3X83Xa2Xe3X83XbcXe3X83X89">httpsモード</a></li>
+<li><a href="#item_httpXe3X83Xa2Xe3X83XbcXe3X83X89">httpモード</a></li>
+<li><a href="#item_isHttps">isHttps</a></li>
+<li><a href="#item_mode">mode</a></li>
+<li><a href="#item_readdbset">readdbset</a></li>
+<li><a href="#item_renew">renew</a></li>
+<li><a href="#item_securecookie">securecookie</a></li>
+<li><a href="#item_sessiontable">sessiontable</a></li>
+<li><a href="#item_setValue">setValue</a></li>
+<li><a href="#item_setvaluewithrenew">setvaluewithrenew</a></li>
+<li><a href="#item_timeout">timeout</a></li>
+<li><a href="#item_updateinterval">updateinterval</a></li>
+<li><a href="#item_Xe3X82Xb3Xe3X83Xb3Xe3X83X86Xe3X83Xb3Xe3X83X84Xe3X81XaeXe5X87XbaXe5X8aX9bXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82">コンテンツの出力操作は、トランザクション中及びテーブルロック中には行わない。</a></li>
+<li><a href="#item_Xe3X82XbbXe3X83X83Xe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe3X81XaeXe6X93X8dXe4XbdX9cXe3X81XafXe3X80X81Xe3X83X88Xe3X83Xa9Xe3X83Xb3Xe3X82Xb6Xe3X82XafXe3X82Xb7Xe3X83Xa7Xe3X83Xb3Xe4Xb8XadXe5X8fX8aXe3X81Xb3Xe3X83X86Xe3X83XbcXe3X83X96Xe3X83XabXe3X83XadXe3X83X83Xe3X82XafXe4Xb8XadXe3X81XabXe3X81XafXe8Xa1X8cXe3X82X8fXe3X81XaaXe3X81X84Xe3X80X82">セッションの操作は、トランザクション中及びテーブルロック中には行わない。</a></li>
+</ul>
+</div>
+<!-- End INDEX -->
+
+<div class="pod_title_block">
+Tripletail::Session - セッション
+
+
+</div>
+
+</body>
+</html>

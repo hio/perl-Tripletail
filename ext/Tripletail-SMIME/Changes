@@ -1,0 +1,20 @@
+Revision history for TL-SMIME
+
+0.06    Wed Sep  7 18:32:12 JST 2005
+        fix: Attempt to free unreferenced scalar on x509_xx_hash. 
+
+0.05    Fri Aug 12 14:06:56 JST 2005
+        add: x509_subject_hash, x509_issuer_hash.
+
+0.04    Fri Aug 12 11:55:38 JST 2005
+        fix: signonly had returned with "\n", new return with "\r\n".
+
+0.03    Tue Aug  9 12:44:53 JST 2005
+        add: prepareSmimeMessage method.
+
+0.02    Mon Aug  8 19:21:04 JST 2005
+        add: signonly method.
+
+0.01    Mon Aug  8 17:55:33 JST 2005
+        First version.
+

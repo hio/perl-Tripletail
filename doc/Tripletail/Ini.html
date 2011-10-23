@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xml:lang="ja-JP">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <link rel="stylesheet" type="text/css" href="../style.css" />
+  <title>Tripletail::Ini - 設定ファイルを読み書きする</title>
+  <link rel="index"     href="./" />
+  <link rel="up"        href="../" />
+</head>
+<body>
+
+<div class="pod_title_block">
+Tripletail::Ini - 設定ファイルを読み書きする
+
+
+</div>
+
+<!-- Begin TABLE_OF_CONTENTS -->
+<div class="pod_toc">
+<p>
+<strong><span class="pod_lang">TABLE OF CONTENTS</span></strong>
+</p>
+<ul>
+<li><a href="#NAME">
+<span class="pod_lang">NAME
+
+</span></a>
+</li>
+<li><a href="#SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
+
+</span></a>
+</li>
+<li><a href="#DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
+
+</span></a>
+<ul>
+<li><a href="#METHODS">
+<span class="pod_lang">METHODS
+
+</span></a>
+</li>
+</ul>
+</li>
+<li><a href="#SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a>
+</li>
+<li><a href="#AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
+
+</span></a>
+</li>
+</ul>
+</div>
+<!-- End TABLE_OF_CONTENTS -->
+
+<!-- Begin CONTENT -->
+
+<hr />
+<h1><a id="NAME">
+<span class="pod_lang">NAME
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang">Tripletail::Ini - 設定ファイルを読み書きする
+
+</span>
+</p>
+
+
+<hr />
+<h1><a id="SYNOPSIS">
+<span class="pod_lang">SYNOPSIS
+
+</span></a></h1>
+
+<pre class="pod_verbatim"><code>  my $ini = $TL-&gt;newIni('foo.ini');
+  
+  print $ini-&gt;get(Group1 =&gt; 'Key1');
+  
+  $ini-&gt;set(Group2 =&gt; 'Key1' =&gt; 'value');
+  $ini-&gt;write('bar.ini');</code></pre>
+
+
+<hr />
+<h1><a id="DESCRIPTION">
+<span class="pod_lang">DESCRIPTION
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang">以下のような設定ファイルを読み書きする。
+
+</span>
+</p>
+
+<pre class="pod_verbatim"><code>  [HOST]
+  Debughost = 192.168.10.0/24
+  Testuser = 192.168.11.5 192.168.11.50
+  [TL@server:Debughost]
+  logdir = /home/tl/logs
+  errormail = tl@example.org
+  [TL:regist@server:Debughost]
+  logdir = /home/tl/logs/regist
+  [TL]
+  logdir = /home/tl/logs
+  errormail = tl@example.org
+  [TL:regist]
+  logdir = /home/tl/logs/regist
+  [Debug@remote:Testuser]
+  enable_debug=1
+  [Group]
+  Key=Value
+  [DB]
+  Type=MySQL
+  host=1.2.3.4
+  [Cookie]
+  expire=30day
+  domain=.ymir.jp
+  [Smtp]
+  host=localhost</code></pre>
+
+<dl>
+<dt><a id="item_TLXe3X81XaeuseXe5X8fX8aXe3X81Xb3Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X82X82Xe5X8fX82Xe7X85Xa7Xe3X81X99Xe3X82X8bXe4XbaX8b"><span class="pod_lang">TLのuse及び特化指定も参照する事
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8dXe3X81XabXe3X81Xaf_"["_"]"_Xe5X88Xb6Xe5XbeXa1Xe6X96X87Xe5XadX97(0x00-0x20,0x7f,0x80-0x9f,0xff)_Xe4XbbXa5Xe5Xa4X96Xe3X81XaeXe5X8dX8aXe8Xa7X92Xe8X8bXb1Xe6X95Xb0Xe5XadX97Xe3X81X8cXe4XbdXbfXe7X94Xa8Xe5X8fXafXe8X83XbdXe3X80X82"><span class="pod_lang">グループ名には &quot;[&quot; &quot;]&quot; 制御文字(0x00-0x20,0x7f,0x80-0x9f,0xff) 以外の半角英数字が使用可能。
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8dXe3X81Xae"@"_":"Xe3X81XafXe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe7X94Xa8Xe3X81XaeXe6X96X87Xe5XadX97Xe3X81Xa8Xe3X81XaaXe3X82X8bXe7X82XbaXe3X80X81Xe4XbbXbbXe6X84X8fXe3X81XaeXe9Xa0X85Xe7X9bXaeXe3X81Xb8Xe3X81XaeXe4XbdXbfXe7X94Xa8Xe3X81XafXe5X87XbaXe6X9dXa5Xe3X81XaaXe3X81X84Xe3X80X82"><span class="pod_lang">グループ名の&quot;@&quot; &quot;:&quot;は特化指定用の文字となる為、任意の項目への使用は出来ない。
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe7Xa9XbaXe8Xa1X8cXe3X81XafXe7X84Xa1Xe8Xa6X96"><span class="pod_lang">空行は無視
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_X#_Xe3X81Xa7Xe5Xa7X8bXe3X81XbeXe3X82X8bXe8Xa1X8cXe3X81XafXe3X82Xb3Xe3X83Xa1Xe3X83Xb3Xe3X83X88"><span class="pod_lang"># で始まる行はコメント
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe9X80Xa3Xe7Xb6X9aXe8Xa1X8cXe3X81XafXe5XafXbeXe5XbfX9cXe3X81X97Xe3X81XaaXe3X81X84"><span class="pod_lang">連続行は対応しない
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe5X90X8cXe4Xb8X80Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8dXe3X81XafXe4Xb8X80Xe3X81Xa4Xe3X81XaeXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X81Xa8Xe3X81X97Xe3X81Xa6Xe6X89Xb1Xe3X82X8fXe3X82X8cXe3X82X8b"><span class="pod_lang">同一グループ名は一つのグループとして扱われる
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe5X90X8cXe4Xb8X80Xe9Xa0X85Xe7X9bXaeXe3X81XafXe6X9cX80Xe5X88X9dXe3X81XabXe6X9bXb8Xe3X81X8bXe3X82X8cXe3X81X9fXe7X89Xa9Xe3X81X8cXe6X9cX89Xe5X8aXb9"><span class="pod_lang">同一項目は最初に書かれた物が有効
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81Xaf_Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8d:Xe5X90X8dXe7Xa7Xb0@server:Servermask@remote:Remotemask_Xe3X81XaeXe9Xa0X86Xe7X95XaaXe3X81Xa7Xe8Xa8X98Xe8XbfXb0Xe3X81X99Xe3X82X8bXe5XbfX85Xe8Xa6X81Xe6X80Xa7Xe3X81X8cXe3X81X82Xe3X82X8b"><span class="pod_lang">特化指定は グループ名:名称@server:Servermask@remote:Remotemask の順番で記述する必要性がある
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe9X81Xa9Xe5X90X88Xe3X81X99Xe3X82X8bXe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81X8cXe8Xa4X87Xe6X95Xb0Xe5XadX98Xe5X9cXa8Xe3X81X99Xe3X82X8bXe5Xa0Xb4Xe5X90X88Xe3X80X81Xe6X9cX80Xe5X88X9dXe3X81XabXe5XadX98Xe5X9cXa8Xe3X81X99Xe3X82X8bXe7X89Xa9Xe3X81X8cXe6X9cX89Xe5X8aXb9Xe3X81Xa8Xe3X81XaaXe3X82X8b"><span class="pod_lang">適合する特化指定が複数存在する場合、最初に存在する物が有効となる
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81X8cXe5XadX98Xe5X9cXa8Xe3X81X99Xe3X82X8bXe5Xa0Xb4Xe5X90X88Xe3X80X81Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe7X84Xa1Xe3X81X97Xe3X81XafXe5Xb8Xb8Xe3X81XabXe6X9cX80Xe5XbeX8cXe3X81XabXe5X88Xa9Xe7X94Xa8Xe3X81X95Xe3X82X8cXe3X82X8b"><span class="pod_lang">特化指定が存在する場合、特化指定無しは常に最後に利用される
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_Xe5X88X9dXe6X9cX9fXe3X81XabuseXe3X81Xa7Xe6X8cX87Xe5XaeX9aXe3X81X95Xe3X82X8cXe3X82X8biniXe3X83X95Xe3X82Xa1Xe3X82Xa4Xe3X83XabXe4XbbXa5Xe5Xa4X96Xe3X81XaeiniXe3X83X95Xe3X82Xa1Xe3X82Xa4Xe3X83XabXe3X81XabXe3X82X82useXe3X81Xa7Xe6X8cX87Xe5XaeX9aXe3X81X97Xe3X81X9fXe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81X8cXe6X9cX89Xe5X8aXb9Xe3X81Xa8Xe3X81XaaXe3X82X8b"><span class="pod_lang">初期に<code class="pod_iseq_C">use</code>で指定されるiniファイル以外のiniファイルにも<code class="pod_iseq_C">use</code>で指定した特化指定が有効となる
+
+</span></a></dt>
+<dd>
+</dd>
+<dt><a id="item_HOSTXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X81XabXe3X81XafXe3X80X81Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81XafXe4XbdXbfXe7X94Xa8Xe3X81Xa7Xe3X81X8dXe3X81XaaXe3X81X84"><span class="pod_lang">HOSTグループには、特化指定は使用できない
+
+</span></a></dt>
+<dd>
+</dd>
+</dl>
+
+<h2><a id="METHODS">
+<span class="pod_lang">METHODS
+
+</span></a></h2>
+
+<dl>
+<dt><a id="item_X$TL->newIni"><span class="pod_lang"><code class="pod_iseq_C">$TL-&gt;newIni</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $TL-&gt;newIni
+  $TL-&gt;newIni($filename)</code></pre>
+
+<p>
+<span class="pod_lang">Tripletail::Ini オブジェクトを作成。
+設定ファイルを指定してあればreadメソッドで読み込む。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_read"><span class="pod_lang"><code class="pod_iseq_C">read</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $ini-&gt;read($filename)</code></pre>
+
+<p>
+<span class="pod_lang">指定した設定ファイルを読み込む。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_write"><span class="pod_lang"><code class="pod_iseq_C">write</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $ini-&gt;write($filename)</code></pre>
+
+<p>
+<span class="pod_lang">指定した設定ファイルに書き込む。
+自動的に読み込まれる$INIに関しては書き込みは出来ない。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_existsGroup"><span class="pod_lang"><code class="pod_iseq_C">existsGroup</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $ini-&gt;existsGroup($group, $raw)</code></pre>
+
+<p>
+<span class="pod_lang">グループの存在を確認する。存在すれば1、しなければundefを返す。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で存在を確認する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_existsKey"><span class="pod_lang"><code class="pod_iseq_C">existsKey</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $bool = $ini-&gt;existsKey($group =&gt; $key, $raw)</code></pre>
+
+<p>
+<span class="pod_lang">指定グループのキーの存在を確認する。存在すれば1、しなければundefを返す。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で存在を確認する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getGroups"><span class="pod_lang"><code class="pod_iseq_C">getGroups</code>
+  
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  @groups = $ini-&gt;getGroups($raw)</code></pre>
+
+<p>
+<span class="pod_lang">グループ一覧を配列で返す。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で一覧を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_getKeys"><span class="pod_lang"><code class="pod_iseq_C">getKeys</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  @keys = $ini-&gt;getKeys($group, $raw)</code></pre>
+
+<p>
+<span class="pod_lang">グループのキー一覧を配列で返す。グループがなければ空配列を返す。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で確認し一覧を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_get"><span class="pod_lang"><code class="pod_iseq_C">get</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $val = $ini-&gt;get($group =&gt; $key, $default, $raw)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたグループ・キーの値を返す。グループorキーがなければ$defaultで指定された値を返す。
+$defaultが指定されなかった場合は、undefを返す。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で確認し値を返す。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_set"><span class="pod_lang"><code class="pod_iseq_C">set</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $ini-&gt;set($group =&gt; $key =&gt; $value)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたグループ・キーの値を設定する。グループがなければ作成される。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_const"><span class="pod_lang"><code class="pod_iseq_C">const</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $ini-&gt;const</code></pre>
+
+<p>
+<span class="pod_lang">このメソッドを呼び出すと、以後データの変更は不可能となる。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_delete"><span class="pod_lang"><code class="pod_iseq_C">delete</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $ini-&gt;delete($group =&gt; $key, $raw)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたグループ・キーの値を削除する。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で確認し削除する。
+
+</span>
+</p>
+
+</dd>
+<dt><a id="item_deleteGroup"><span class="pod_lang"><code class="pod_iseq_C">deleteGroup</code>
+
+</span></a></dt>
+<dd>
+<pre class="pod_verbatim"><code>  $ini-&gt;deleteGroup($group, $raw)</code></pre>
+
+<p>
+<span class="pod_lang">指定されたグループを削除する。
+$rawに1を指定した場合、特化指定を含んだグループ文字列で確認し削除する。
+
+</span>
+</p>
+
+</dd>
+</dl>
+
+
+<hr />
+<h1><a id="SEE_ALSO">
+<span class="pod_lang">SEE ALSO
+
+</span></a></h1>
+
+<p>
+<span class="pod_lang"><a href=".././Tripletail.html">Tripletail</a>
+
+</span>
+</p>
+
+
+<hr />
+<h1><a id="AUTHOR_INFORMATION">
+<span class="pod_lang">AUTHOR INFORMATION
+
+</span></a></h1>
+
+<ul>
+<p>
+<span class="pod_lang">Copyright 2006 YMIRLINK Inc. All Rights Reserved.
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">This framework is free software; you can redistribute it and/or modify it under the same terms as Perl itself
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">このフレームワークはフリーソフトウェアです。あなたは Perl と同じライセンスの 元で再配布及び変更を行うことが出来ます。
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">Address bug reports and comments to: tl@tripletail.jp
+
+</span>
+</p>
+
+<p>
+<span class="pod_lang">HP : http://tripletail.jp/
+
+</span>
+</p>
+
+</ul>
+
+<!-- End CONTENT -->
+
+<div class="pod_title_block">
+Tripletail::Ini - 設定ファイルを読み書きする
+
+
+</div>
+
+<!-- Begin INDEX -->
+<hr />
+<h1><a id="INDEX"><span class="pod_lang">INDEX</span></a></h1>
+<div class="pod_idx_outer">
+<ul class="pod_idx">
+<li><a href="#item_X#_Xe3X81Xa7Xe5Xa7X8bXe3X81XbeXe3X82X8bXe8Xa1X8cXe3X81XafXe3X82Xb3Xe3X83Xa1Xe3X83Xb3Xe3X83X88"># で始まる行はコメント</a></li>
+<li><a href="#item_X$TL->newIni">$TL-&gt;newIni</a></li>
+<li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a></li>
+<li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#item_HOSTXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X81XabXe3X81XafXe3X80X81Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81XafXe4XbdXbfXe7X94Xa8Xe3X81Xa7Xe3X81X8dXe3X81XaaXe3X81X84">HOSTグループには、特化指定は使用できない</a></li>
+<li><a href="#METHODS">METHODS</a></li>
+<li><a href="#NAME">NAME</a></li>
+<li><a href="#SEE_ALSO">SEE ALSO</a></li>
+<li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#item_TLXe3X81XaeuseXe5X8fX8aXe3X81Xb3Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X82X82Xe5X8fX82Xe7X85Xa7Xe3X81X99Xe3X82X8bXe4XbaX8b">TLのuse及び特化指定も参照する事</a></li>
+<li><a href="#item_const">const</a></li>
+<li><a href="#item_delete">delete</a></li>
+<li><a href="#item_deleteGroup">deleteGroup</a></li>
+<li><a href="#item_existsGroup">existsGroup</a></li>
+<li><a href="#item_existsKey">existsKey</a></li>
+<li><a href="#item_get">get</a></li>
+<li><a href="#item_getGroups">getGroups</a></li>
+<li><a href="#item_getKeys">getKeys</a></li>
+<li><a href="#item_read">read</a></li>
+<li><a href="#item_set">set</a></li>
+<li><a href="#item_write">write</a></li>
+<li><a href="#item_Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8dXe3X81XabXe3X81Xaf_"["_"]"_Xe5X88Xb6Xe5XbeXa1Xe6X96X87Xe5XadX97(0x00-0x20,0x7f,0x80-0x9f,0xff)_Xe4XbbXa5Xe5Xa4X96Xe3X81XaeXe5X8dX8aXe8Xa7X92Xe8X8bXb1Xe6X95Xb0Xe5XadX97Xe3X81X8cXe4XbdXbfXe7X94Xa8Xe5X8fXafXe8X83XbdXe3X80X82">グループ名には &quot;[&quot; &quot;]&quot; 制御文字(0x00-0x20,0x7f,0x80-0x9f,0xff) 以外の半角英数字が使用可能。</a></li>
+<li><a href="#item_Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8dXe3X81Xae"@"_":"Xe3X81XafXe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe7X94Xa8Xe3X81XaeXe6X96X87Xe5XadX97Xe3X81Xa8Xe3X81XaaXe3X82X8bXe7X82XbaXe3X80X81Xe4XbbXbbXe6X84X8fXe3X81XaeXe9Xa0X85Xe7X9bXaeXe3X81Xb8Xe3X81XaeXe4XbdXbfXe7X94Xa8Xe3X81XafXe5X87XbaXe6X9dXa5Xe3X81XaaXe3X81X84Xe3X80X82">グループ名の&quot;@&quot; &quot;:&quot;は特化指定用の文字となる為、任意の項目への使用は出来ない。</a></li>
+<li><a href="#item_Xe5X88X9dXe6X9cX9fXe3X81XabuseXe3X81Xa7Xe6X8cX87Xe5XaeX9aXe3X81X95Xe3X82X8cXe3X82X8biniXe3X83X95Xe3X82Xa1Xe3X82Xa4Xe3X83XabXe4XbbXa5Xe5Xa4X96Xe3X81XaeiniXe3X83X95Xe3X82Xa1Xe3X82Xa4Xe3X83XabXe3X81XabXe3X82X82useXe3X81Xa7Xe6X8cX87Xe5XaeX9aXe3X81X97Xe3X81X9fXe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81X8cXe6X9cX89Xe5X8aXb9Xe3X81Xa8Xe3X81XaaXe3X82X8b">初期にuseで指定されるiniファイル以外のiniファイルにもuseで指定した特化指定が有効となる</a></li>
+<li><a href="#item_Xe5X90X8cXe4Xb8X80Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8dXe3X81XafXe4Xb8X80Xe3X81Xa4Xe3X81XaeXe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe3X81Xa8Xe3X81X97Xe3X81Xa6Xe6X89Xb1Xe3X82X8fXe3X82X8cXe3X82X8b">同一グループ名は一つのグループとして扱われる</a></li>
+<li><a href="#item_Xe5X90X8cXe4Xb8X80Xe9Xa0X85Xe7X9bXaeXe3X81XafXe6X9cX80Xe5X88X9dXe3X81XabXe6X9bXb8Xe3X81X8bXe3X82X8cXe3X81X9fXe7X89Xa9Xe3X81X8cXe6X9cX89Xe5X8aXb9">同一項目は最初に書かれた物が有効</a></li>
+<li><a href="#item_Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81X8cXe5XadX98Xe5X9cXa8Xe3X81X99Xe3X82X8bXe5Xa0Xb4Xe5X90X88Xe3X80X81Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe7X84Xa1Xe3X81X97Xe3X81XafXe5Xb8Xb8Xe3X81XabXe6X9cX80Xe5XbeX8cXe3X81XabXe5X88Xa9Xe7X94Xa8Xe3X81X95Xe3X82X8cXe3X82X8b">特化指定が存在する場合、特化指定無しは常に最後に利用される</a></li>
+<li><a href="#item_Xe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81Xaf_Xe3X82Xb0Xe3X83XabXe3X83XbcXe3X83X97Xe5X90X8d:Xe5X90X8dXe7Xa7Xb0@server:Servermask@remote:Remotemask_Xe3X81XaeXe9Xa0X86Xe7X95XaaXe3X81Xa7Xe8Xa8X98Xe8XbfXb0Xe3X81X99Xe3X82X8bXe5XbfX85Xe8Xa6X81Xe6X80Xa7Xe3X81X8cXe3X81X82Xe3X82X8b">特化指定は グループ名:名称@server:Servermask@remote:Remotemask の順番で記述する必要性がある</a></li>
+<li><a href="#item_Xe7Xa9XbaXe8Xa1X8cXe3X81XafXe7X84Xa1Xe8Xa6X96">空行は無視</a></li>
+<li><a href="#item_Xe9X80Xa3Xe7Xb6X9aXe8Xa1X8cXe3X81XafXe5XafXbeXe5XbfX9cXe3X81X97Xe3X81XaaXe3X81X84">連続行は対応しない</a></li>
+<li><a href="#item_Xe9X81Xa9Xe5X90X88Xe3X81X99Xe3X82X8bXe7X89Xb9Xe5X8cX96Xe6X8cX87Xe5XaeX9aXe3X81X8cXe8Xa4X87Xe6X95Xb0Xe5XadX98Xe5X9cXa8Xe3X81X99Xe3X82X8bXe5Xa0Xb4Xe5X90X88Xe3X80X81Xe6X9cX80Xe5X88X9dXe3X81XabXe5XadX98Xe5X9cXa8Xe3X81X99Xe3X82X8bXe7X89Xa9Xe3X81X8cXe6X9cX89Xe5X8aXb9Xe3X81Xa8Xe3X81XaaXe3X82X8b">適合する特化指定が複数存在する場合、最初に存在する物が有効となる</a></li>
+</ul>
+</div>
+<!-- End INDEX -->
+
+<div class="pod_title_block">
+Tripletail::Ini - 設定ファイルを読み書きする
+
+
+</div>
+
+</body>
+</html>
