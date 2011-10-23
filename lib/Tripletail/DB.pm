@@ -13,6 +13,10 @@ sub _TERM_HOOK_PRIORITY()         { -1_000_000 } # セッションフックの�
 
 our $INSTANCES = {}; # グループ名 => インスタンス
 
+sub _TX_STATE_NONE()      { 0 }
+sub _TX_STATE_ACTIVE()    { 1 }
+sub _TX_STATE_CLOSEWAIT() { 2 }
+
 1;
 
 sub _getInstance {
@@ -29,6 +33,7 @@ sub _getInstance {
 	if(!$obj) {
 		die "TL#getDB, DB [$group] was not specified in the startCgi() / trapError().\n";
 	}
+	$obj->{tx_state}!=_TX_STATE_NONE and die "tx state : $obj->{tx_state}";
 
 	$obj;
 }
@@ -42,6 +47,7 @@ sub connect {
 			$dbh->connect($this->{type});
 		}
 	}
+	$this->{tx_state} = _TX_STATE_NONE;
 
 	$this;
 }
@@ -52,6 +58,7 @@ sub disconnect {
 	foreach my $dbh (values %{$this->{dbname}}) {
 		$dbh->disconnect;
 	}
+	$this->{tx_state} = _TX_STATE_NONE;
 
 	$this;
 }
@@ -65,11 +72,19 @@ sub tx
 	require Sub::ScopeFinalizer;
 	my @ret;
 	
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
 	my $succ = 0;
 	my $anchor = Sub::ScopeFinalizer->new(sub{
-		$succ or $this->rollback();
+		$succ and return;
+		# on exception.
+		if( $this->{tx_state}==_TX_STATE_ACTIVE )
+		{
+			$this->rollback();
+		}
+		$this->{tx_state} = _TX_STATE_NONE;
 	});
 	$this->begin($setname);
+	$this->{tx_state} = _TX_STATE_ACTIVE;
 	if( wantarray )
 	{
 		@ret    = $sub->();
@@ -81,55 +96,54 @@ sub tx
 	{
 		$this->commit();
 	}
+	$this->{tx_state} = _TX_STATE_NONE;
 	$succ = 1;
 	wantarray ? @ret : $ret[0];
 }
 
-sub requireTx
+sub _closewait_broken
 {
 	my $this = shift;
-	my $set  = shift;
-	$this->_requireTx($set, 'requireTx', 1);
+	my $where = shift;
+	if( !$where )
+	{
+		$where = (caller(1))[3];
+		$where =~ s/.*:://;
+	}
+	die __PACKAGE__."#$where, act something on close-wait transaction";
 }
-sub requireNoTx
+sub inTx
 {
 	my $this = shift;
 	my $set  = shift;
-	$this->_requireTx($set, 'requireNoTx', 0);
+	$this->_requireTx($set, 'inTx');
 }
 sub _requireTx
 {
 	my $this    = shift;
 	my $setname = shift;
 	my $where   = shift;
-	my $require = shift;
 	
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken($where);
 	if( my $trans = $this->{trans_dbh} )
 	{
 		my $set = $this->_getDbSetName($setname);
 		
 		my $trans_set = $trans->getSetName;
-		if($trans_set ne $set)
+		if($trans_set eq $set)
 		{
-			# another transaction running.
-			die __PACKAGE__."#$where, attempted to begin a".
-				" new transaction on DB Set [$set] but".
-				" another DB Set [$trans_set] were already in transaction.".
-				" Commit or rollback it before begin another one.\n";
-		} else {
 			# same transaction.
-			if( !$require )
-			{
-				die __PACKAGE__."#$where, no transaction required";
-			}
+			return 1;
 		}
+		# another transaction running, always die.
+		die __PACKAGE__."#$where, attempted to begin a".
+			" new transaction on DB Set [$set] but".
+			" another DB Set [$trans_set] were already in transaction.".
+			" Commit or rollback it before begin another one.\n";
 	}else
 	{
 		# no transaction.
-		if( $require )
-		{
-			die __PACKAGE__."#$where, transaction required";
-		}
+		return 0;
 	}
 }
 
@@ -139,7 +153,7 @@ sub begin {
 
 	my $set = $this->_getDbSetName($setname);
 
-	$this->_requireTx($setname, 'begin', 0);
+	$this->_requireTx($setname, 'begin');
 
 	my $begintime = [Time::HiRes::gettimeofday()];
 
@@ -166,7 +180,8 @@ sub begin {
 
 sub rollback {
 	my $this = shift;
-
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
+	
 	my $dbh = $this->{trans_dbh};
 	if(!defined($dbh)) {
 		die __PACKAGE__."#rollback, not in transaction.\n";
@@ -175,6 +190,10 @@ sub rollback {
 	my $begintime = [Time::HiRes::gettimeofday()];
 
 	$dbh->rollback;
+	if( $this->{tx_state}==_TX_STATE_ACTIVE )
+	{
+		$this->{tx_state} = _TX_STATE_CLOSEWAIT;
+	}
 
 	my $elapsed = Time::HiRes::tv_interval($begintime);
 
@@ -196,6 +215,7 @@ sub rollback {
 
 sub commit {
 	my $this = shift;
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
 
 	my $dbh = $this->{trans_dbh};
 	if (!defined($dbh)) {
@@ -205,6 +225,10 @@ sub commit {
 	my $begintime = [Time::HiRes::gettimeofday()];
 
 	$dbh->commit;
+	if( $this->{tx_state}==_TX_STATE_ACTIVE )
+	{
+		$this->{tx_state} = _TX_STATE_CLOSEWAIT;
+	}
 
 	my $elapsed = Time::HiRes::tv_interval($begintime);
 
@@ -240,6 +264,8 @@ sub setDefaultSet {
 sub execute {
 	my $this = shift;
 	my $dbset = shift;
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
+	
 	if(ref($dbset)) {
 		$dbset = $$dbset;
 	} else {
@@ -407,8 +433,9 @@ sub execute {
 
 sub selectAllHash {
 	my $this = shift;
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
+	
 	my $sth = $this->execute(@_);
-
 	my $result = [];
 	while(my $data = $sth->fetchHash) {
 		push @$result, { %$data };
@@ -418,8 +445,9 @@ sub selectAllHash {
 
 sub selectAllArray {
 	my $this = shift;
-	my $sth = $this->execute(@_);
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
 
+	my $sth = $this->execute(@_);
 	my $result = [];
 	while (my $data = $sth->fetchArray) {
 		push @$result, [ @$data ];
@@ -429,8 +457,9 @@ sub selectAllArray {
 
 sub selectRowHash {
 	my $this = shift;
-	my $sth = $this->execute(@_);
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
 	
+	my $sth = $this->execute(@_);
 	my $data = $sth->fetchHash();
 	$data = $data ? {%$data} : undef;
 	$sth->finish();
@@ -440,9 +469,9 @@ sub selectRowHash {
 
 sub selectRowArray {
 	my $this = shift;
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
+	
 	my $sth = $this->execute(@_);
-	
-	
 	my $data = $sth->fetchArray();
 	$data = $data ? [@$data] : undef;
 	$sth->finish();
@@ -531,6 +560,7 @@ sub lock {
 
 sub unlock {
 	my $this = shift;
+	$this->{tx_state}==_TX_STATE_CLOSEWAIT and $this->_closewait_broken();
 
 	my $dbh = $this->{locked_dbh};
 	if(!defined($dbh)) {
@@ -684,8 +714,9 @@ sub _new {
 
 	$this->{default_set} = $TL->INI->get($group => 'defaultset', undef); # デフォルトのセット名
 
-	$this->{locked_dbh} = undef; # Tripletail::DB::Dbh
-	$this->{trans_dbh} = undef; # Tripletail::DB::Dbh
+	$this->{locked_dbh}   = undef; # Tripletail::DB::Dbh
+	$this->{trans_dbh}    = undef; # Tripletail::DB::Dbh
+	$this->{tx_state}     = _TX_STATE_NONE;
 
 	do {
 		local $SIG{__DIE__} = 'DEFAULT';
@@ -1255,10 +1286,10 @@ TLの拡張プレースホルダ（??で表記される）を利用し、配列�
  my $id = $DB->getDbh()->{mysql_insertid};
 
 トランザクションには C<$DB->tx(sub{...})> メソッドを用いる。
-DBセットを指定する時には C<$DB->tx(dbset_name=E<gt>sub{...})> となる.
-渡したコードをトランザクション内で実行する. 
-die なしにコードを抜けた時に自動的にコミットされる. 
-途中で die した場合にはトランザクションはロールバックされる. 
+DBセットを指定する時には C<$DB->tx(dbset_name=E<gt>sub{...})> となる。
+渡したコードをトランザクション内で実行する。 
+die なしにコードを抜けた時に自動的にコミットされる。 
+途中で die した場合にはトランザクションはロールバックされる。 
 
  # DBI
  $DB->do(q{BEGIN WORK});
@@ -1270,8 +1301,8 @@ die なしにコードを抜けた時に自動的にコミットされる.
    # do something.
  });
 
-C<begin()> メソッドも実装はされているがその使用は非推奨である. 
-また, C<< $DB->execute(q{BEGIN WORK}); >> は無効にされている. 
+C<begin()> メソッドも実装はされているがその使用は非推奨である。 
+また、 C<< $DB->execute(q{BEGIN WORK}); >> は無効にされている。 
 
 =head2 拡張プレースホルダ詳細
 
@@ -1368,12 +1399,13 @@ L<< $TL->newDB|"$TL->newDB" >> で作成した Tripletail::DB オブジェクト
 指定されたDBセット名でトランザクションを開始し、その中でコードを
 実行する。トランザクション名(DBセット名) はiniで定義されていな
 ければならない。名前を省略した場合は、デフォルトのDBセットが使われるが、
-setDefaultSetによってデフォルトが選ばれていない場合にはエラーとなる。
+setDefaultSetによってデフォルトが選ばれていない場合には例外を発生させる。
 
 コードを die なしに終了した時にトランザクションは暗黙にコミットされる。
 die した場合にはロールバックされる。
 コードの中で明示的にコミット若しくはロールバックを行うこともできる。
-
+明示的にコミット若しくはロールバックをした後は、 tx を抜けるまで
+DB 操作は禁止される。 この間の DB 操作は例外を発生させる。 
 
 =item C<< rollback >>
 
@@ -1387,20 +1419,17 @@ die した場合にはロールバックされる。
 
 現在実行中のトランザクションを確定する。
 
-=item C<< requireTx >>
+=item C<< inTx >>
 
-  $DB->requireTx();
+  $DB->inTx() and die "double transaction";
+  $DB->inTx('SET_W_Trans') or die "transaction required";
 
-トランザクション中であることを確認する。
-もしトランザクションの中でなければ例外を生成する。
-
-=item C<< requireNoTx >>
-
-  $DB->requireNoTx();
-
-トランザクション中でないことを確認する。
-もしトランザクションの中であれば例外を生成する。
-C<< $DB->requireTx() >> の逆。
+既にトランザクション中であるかを確認する。 
+既にトランザクション中であれば真を、 
+他にトランザクションが走っていなければ偽を返す。 
+トランザクションの指定も可能。 
+異なるDBセット名のトランザクションが実行中だった場合には
+例外を発生させる。 
 
 =item C<< begin >>
 
@@ -1412,12 +1441,12 @@ C<< $DB->requireTx() >> の逆。
 指定されたDBセット名でトランザクションを開始する。トランザクション名
 (DBセット名) はiniで定義されていなければならない。
 名前を省略した場合は、デフォルトのDBセットが使われるが、
-setDefaultSetによってデフォルトが選ばれていない場合にはエラーとなる。
+setDefaultSetによってデフォルトが選ばれていない場合には例外を発生させる。
 
 CGIの中でトランザクションを開始し、終了せずにMain関数を抜けた場合は、自動的に
 rollbackされる。
 
-トランザクション実行中にこのメソッドを呼んだ場合には、エラーとなる。
+トランザクション実行中にこのメソッドを呼んだ場合には、例外を発生させる。
 1度に開始出来るトランザクションは、1つのDBグループにつき1つだけとなる。
 
 =item C<< setDefaultSet >>
@@ -1449,10 +1478,10 @@ DBセットでSQLが実行される。
 
 いずれの場合でもない場合は、L</"setDefaultSet"> で指定された
 トランザクションが使用される。
-L</"setDefaultSet"> による設定がされていない場合は、エラーとなる。
+L</"setDefaultSet"> による設定がされていない場合は、例外を発生させる。
 
 このメソッドを使用して、LOCK/UNLOCK/BEGIN/COMMITといったSQL文を
-実行してはならない。実行しようとした場合はエラーになる。
+実行してはならない。実行しようとした場合は例外を発生させる。
 代わりに専用のメソッドを使用する事。
 
 =item C<< selectAllHash >>
@@ -1513,7 +1542,7 @@ SELECT結果の最初の１行を配列へのリファレンスで返す。
 のDBセットが選ばれる。CGIの中でロックした場合は、 L<Main関数|Tripletail/"Main関数">
 を抜けた時点で自動的にunlockされる。
 
-ロック実行中にこのメソッドを呼んだ場合には、エラーとなる。
+ロック実行中にこのメソッドを呼んだ場合には、例外を発生させる。
 1度に開始出来るロックは、1つのDBグループにつき1つだけとなる。
 
 =item C<< unlock >>
@@ -1521,7 +1550,7 @@ SELECT結果の最初の１行を配列へのリファレンスで返す。
   $DB->unlock
 
 UNLOCK TABLES を実行する。
-ロックがかかっていない場合はエラーとなる。
+ロックがかかっていない場合は例外を発生させる。
 
 =item C<< setBufferSize >>
 

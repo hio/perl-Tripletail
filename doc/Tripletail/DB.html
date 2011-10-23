@@ -378,10 +378,10 @@ DBコネクションの名称はCON_XXXX(XXXXは任意の文字列)でなけれ�
 
 <p>
 <span class="pod_lang">トランザクションには <code class="pod_iseq_C">$DB-</code>tx(sub{...})&gt; メソッドを用いる。
-DBセットを指定する時には <code class="pod_iseq_C">$DB-</code>tx(dbset_name=&gt;sub{...})&gt; となる.
-渡したコードをトランザクション内で実行する. 
-die なしにコードを抜けた時に自動的にコミットされる. 
-途中で die した場合にはトランザクションはロールバックされる. 
+DBセットを指定する時には <code class="pod_iseq_C">$DB-</code>tx(dbset_name=&gt;sub{...})&gt; となる。
+渡したコードをトランザクション内で実行する。 
+die なしにコードを抜けた時に自動的にコミットされる。 
+途中で die した場合にはトランザクションはロールバックされる。 
 
 </span>
 </p>
@@ -397,8 +397,8 @@ die なしにコードを抜けた時に自動的にコミットされる.
  });</code></pre>
 
 <p>
-<span class="pod_lang"><code class="pod_iseq_C">begin()</code> メソッドも実装はされているがその使用は非推奨である. 
-また, <code class="pod_iseq_C">$DB-&gt;execute(q{BEGIN WORK});</code> は無効にされている. 
+<span class="pod_lang"><code class="pod_iseq_C">begin()</code> メソッドも実装はされているがその使用は非推奨である。 
+また、 <code class="pod_iseq_C">$DB-&gt;execute(q{BEGIN WORK});</code> は無効にされている。 
 
 </span>
 </p>
@@ -588,7 +588,7 @@ SQL型名として扱われる。配列が複数の値を持つ時には、そ�
 <span class="pod_lang">指定されたDBセット名でトランザクションを開始し、その中でコードを
 実行する。トランザクション名(DBセット名) はiniで定義されていな
 ければならない。名前を省略した場合は、デフォルトのDBセットが使われるが、
-setDefaultSetによってデフォルトが選ばれていない場合にはエラーとなる。
+setDefaultSetによってデフォルトが選ばれていない場合には例外を発生させる。
 
 </span>
 </p>
@@ -597,6 +597,8 @@ setDefaultSetによってデフォルトが選ばれていない場合にはエ�
 <span class="pod_lang">コードを die なしに終了した時にトランザクションは暗黙にコミットされる。
 die した場合にはロールバックされる。
 コードの中で明示的にコミット若しくはロールバックを行うこともできる。
+明示的にコミット若しくはロールバックをした後は、 tx を抜けるまで
+DB 操作は禁止される。 この間の DB 操作は例外を発生させる。 
 
 </span>
 </p>
@@ -628,30 +630,20 @@ die した場合にはロールバックされる。
 </p>
 
 </dd>
-<dt><a id="requireTx"><span class="pod_lang"><code class="pod_iseq_C">requireTx</code>
+<dt><a id="inTx"><span class="pod_lang"><code class="pod_iseq_C">inTx</code>
 
 </span></a></dt>
 <dd>
-<pre class="pod_verbatim"><code>  $DB-&gt;requireTx();</code></pre>
+<pre class="pod_verbatim"><code>  $DB-&gt;inTx() and die &quot;double transaction&quot;;
+  $DB-&gt;inTx('SET_W_Trans') or die &quot;transaction required&quot;;</code></pre>
 
 <p>
-<span class="pod_lang">トランザクション中であることを確認する。
-もしトランザクションの中でなければ例外を生成する。
-
-</span>
-</p>
-
-</dd>
-<dt><a id="requireNoTx"><span class="pod_lang"><code class="pod_iseq_C">requireNoTx</code>
-
-</span></a></dt>
-<dd>
-<pre class="pod_verbatim"><code>  $DB-&gt;requireNoTx();</code></pre>
-
-<p>
-<span class="pod_lang">トランザクション中でないことを確認する。
-もしトランザクションの中であれば例外を生成する。
-<code class="pod_iseq_C">$DB-&gt;requireTx()</code> の逆。
+<span class="pod_lang">既にトランザクション中であるかを確認する。 
+既にトランザクション中であれば真を、 
+他にトランザクションが走っていなければ偽を返す。 
+トランザクションの指定も可能。 
+異なるDBセット名のトランザクションが実行中だった場合には
+例外を発生させる。 
 
 </span>
 </p>
@@ -674,7 +666,7 @@ die した場合にはロールバックされる。
 <span class="pod_lang">指定されたDBセット名でトランザクションを開始する。トランザクション名
 (DBセット名) はiniで定義されていなければならない。
 名前を省略した場合は、デフォルトのDBセットが使われるが、
-setDefaultSetによってデフォルトが選ばれていない場合にはエラーとなる。
+setDefaultSetによってデフォルトが選ばれていない場合には例外を発生させる。
 
 </span>
 </p>
@@ -687,7 +679,7 @@ rollbackされる。
 </p>
 
 <p>
-<span class="pod_lang">トランザクション実行中にこのメソッドを呼んだ場合には、エラーとなる。
+<span class="pod_lang">トランザクション実行中にこのメソッドを呼んだ場合には、例外を発生させる。
 1度に開始出来るトランザクションは、1つのDBグループにつき1つだけとなる。
 
 </span>
@@ -749,14 +741,14 @@ DBセットでSQLが実行される。
 <p>
 <span class="pod_lang">いずれの場合でもない場合は、<a href="#setDefaultSet">&quot;setDefaultSet&quot;</a> で指定された
 トランザクションが使用される。
-<a href="#setDefaultSet">&quot;setDefaultSet&quot;</a> による設定がされていない場合は、エラーとなる。
+<a href="#setDefaultSet">&quot;setDefaultSet&quot;</a> による設定がされていない場合は、例外を発生させる。
 
 </span>
 </p>
 
 <p>
 <span class="pod_lang">このメソッドを使用して、LOCK/UNLOCK/BEGIN/COMMITといったSQL文を
-実行してはならない。実行しようとした場合はエラーになる。
+実行してはならない。実行しようとした場合は例外を発生させる。
 代わりに専用のメソッドを使用する事。
 
 </span>
@@ -856,7 +848,7 @@ DBセットでSQLが実行される。
 </p>
 
 <p>
-<span class="pod_lang">ロック実行中にこのメソッドを呼んだ場合には、エラーとなる。
+<span class="pod_lang">ロック実行中にこのメソッドを呼んだ場合には、例外を発生させる。
 1度に開始出来るロックは、1つのDBグループにつき1つだけとなる。
 
 </span>
@@ -871,7 +863,7 @@ DBセットでSQLが実行される。
 
 <p>
 <span class="pod_lang">UNLOCK TABLES を実行する。
-ロックがかかっていない場合はエラーとなる。
+ロックがかかっていない場合は例外を発生させる。
 
 </span>
 </p>
@@ -1303,14 +1295,13 @@ Tripletail::DB - DBIのラッパ
 <li><a href="#getDbh">getDbh</a></li>
 <li><a href="#getType">getType</a></li>
 <li><a href="#host">host</a></li>
+<li><a href="#inTx">inTx</a></li>
 <li><a href="#lock">lock</a></li>
 <li><a href="#nameArray">nameArray</a></li>
 <li><a href="#nameHash">nameHash</a></li>
 <li><a href="#namequery">namequery</a></li>
 <li><a href="#password">password</a></li>
 <li><a href="#prepare/executeXe3X82X92Xe5X88X86Xe3X81X91Xe3X81XaaXe3X81X84Xe3X80X82fetchXe3X81XafXe5X88X86Xe3X81X91Xe3X82X8bXe3X80X82">prepare/executeを分けない。fetchは分ける。</a></li>
-<li><a href="#requireNoTx">requireNoTx</a></li>
-<li><a href="#requireTx">requireTx</a></li>
 <li><a href="#ret">ret</a></li>
 <li><a href="#rollback">rollback</a></li>
 <li><a href="#rows">rows</a></li>

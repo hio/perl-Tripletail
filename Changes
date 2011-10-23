@@ -1,5 +1,8 @@
 Revision history for Tripletail
 
+0.22	Fri Dec  8 16:23:03 JST 2006
+	- $DB->tx, $DB->inTx メソッドの追加.
+
 0.21	Mon Dec  4 19:14:30 JST 2006
 	- 空白から始まるファイルをアップロードできないバグの修正.
 	- Htmlフィルタで落ちることがあるバグの修正. 

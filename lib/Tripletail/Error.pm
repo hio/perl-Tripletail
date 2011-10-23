@@ -67,6 +67,7 @@ sub _new {
 	if ($this->{show_trace}) {
 		# TLのdieハンドラから呼ばれるかも知れないので、無限再帰を防ぐ。
 		local $SIG{__DIE__} = 'DEFAULT';
+		local($@);
 		eval {
 			$this->_fetch_frames;
 		};

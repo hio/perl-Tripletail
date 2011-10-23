@@ -8,7 +8,7 @@ use UNIVERSAL qw(isa);
 use File::Spec;
 use Data::Dumper;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 our $TL = Tripletail->__new;
 our @specialization = ();
@@ -325,6 +325,7 @@ sub startCgi {
 	
 	$this->{outputbuffering} = $this->INI->get(TL => 'outputbuffering', 0);
 
+	my $main_err;
 	eval {
 		# trap = diewithprint の場合はエラーハンドラを付け替える
 		# そうしないと Content-Type: text/plain が出力されてしまう。
@@ -422,6 +423,7 @@ sub startCgi {
 				}
 
 				$this->__executeCgi($param->{-main});
+				$main_err = $@;
 
 				$request->Flush;
 
@@ -439,6 +441,7 @@ sub startCgi {
 			$this->log(TL => 'CGI mode');
 
 			$this->__executeCgi($param->{-main});
+			$main_err = $@;
 		}
 
 		$this->__executeHook('term');
@@ -463,6 +466,7 @@ sub startCgi {
 			$this->__dispError($err);
 		}
 	}
+	!$@ && $main_err and $@ = $main_err;
 
 	$this;
 }
@@ -471,6 +475,7 @@ sub trapError {
 	my $this = shift;
 	my $param = { @_ };
 
+	my $main_err;
 	eval {
 		# trap = diewithprint の場合はエラーハンドラを付け替える
 		# そうしないと Content-Type: text/plain が出力されてしまう。
@@ -503,6 +508,7 @@ sub trapError {
 		eval {
 			$param->{'-main'}();
 		};
+		$main_err = $@;
 		if(my $err = $@) {
 			if($this->{trap} eq 'none') {
 				die $err;
@@ -530,6 +536,7 @@ sub trapError {
 		$this->log(trapError => "Died outside the `-main': $err");
 		print STDERR __PACKAGE__."#trapError, Died outside the `-main': $err\n";
 	}
+	!$@ && $main_err and $@ = $main_err;
 
 	$this;
 }
@@ -1366,8 +1373,14 @@ sub newTagCheck {
 
 sub newTemplate {
 	my $this = shift;
-
-	require Tripletail::Template;
+	
+	my $err;
+	{
+		local($@);
+		eval{ require Tripletail::Template; };
+		$err = $@;
+	}
+	$err and die $err;
 
 	Tripletail::Template->_new(@_);
 }
@@ -1401,12 +1414,16 @@ sub newError {
 
 	# Tripletail::Error のロード失敗は特別に扱わなければならない。
 	# die ハンドラがこれを利用する為である。
-	eval {
-		require Tripletail::Error;
-	};
-	if ($@) {
-		print STDERR $@;
-		exit 1;
+	if( !Tripletail::Error->can("_new") )
+	{
+		local($@);
+		eval {
+			require Tripletail::Error;
+		};
+		if ($@) {
+			print STDERR $@;
+			exit 1;
+		}
 	}
 
 	Tripletail::Error->_new(@_);

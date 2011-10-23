@@ -5,7 +5,7 @@
 #
 # Copyright YMIRLINK, Inc.
 # -----------------------------------------------------------------------------
-# $Id: db-sqlite.t,v 1.4 2006/12/04 10:14:52 hio Exp $
+# $Id: db-sqlite.t,v 1.5 2006/12/08 08:08:53 hio Exp $
 # -----------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -37,13 +37,13 @@ if( !$has_DBD_SQLite )
 # -----------------------------------------------------------------------------
 # test spec.
 # -----------------------------------------------------------------------------
-plan tests => 1+3+23+15+15+4;
+plan tests => 1+3+23+23+15+4;
 
 &test_setup; #1.
 &test_getdb; #3.
 &test_misc;  #23.
-&test_transaction;  #15.
-&test_transaction2; #15.
+&test_tx_transaction; #23.
+&test_old_transaction;  #15.
 &test_locks;  #4.
 
 # -----------------------------------------------------------------------------
@@ -196,107 +196,50 @@ sub _create_table_colors
 }
 
 # -----------------------------------------------------------------------------
-# test transaction.
+# test tx transaction.
 # -----------------------------------------------------------------------------
-sub test_transaction
+sub test_tx_transaction
 {
 	$TL->trapError(
 		-DB => 'DB',
 		-main => sub{
 			my $DB = $TL->getDB();
-			
-			# begin and commit.
-			lives_ok { $DB->begin; }    "[tran] begin ok";
-			lives_ok { $DB->commit; }   "[tran] commit ok";
-			
-			# begin and rollback.
-			lives_ok { $DB->begin; }    "[tran] begin ok";
-			lives_ok { $DB->rollback; } "[tran] rollback ok";
-			
-			# begin tran within transaction;
-			lives_ok { $DB->begin; }    "[tran] begin ok";
-			dies_ok  { $DB->begin; }    "[tran] begin in tran dies";
-			lives_ok { $DB->rollback; } "[tran] rollback ok";
-			
-			# begin/rollback w/o transaction.
-			dies_ok { $DB->commit; }   "[tran] commit w/o transaction dies";
-			dies_ok { $DB->rollback; } "[tran] rollback w/o transaction dies";
-			
-			# create test data.
-			_create_table_colors($DB);
-			
-			# check whether rollback works.
-			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[tran] test table contains 6 records");
-			lives_ok { $DB->begin; } "[tran] begin";
-			lives_ok { $DB->execute("DELETE FROM test_colors"); } "[tran] delete all";
-			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 0, "[tran] test table contains no records");
-			lives_ok { $DB->rollback; } "[tran] rollback";
-			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[tran] test table contains 6 records");
-		},
-	);
-}
-
-# -----------------------------------------------------------------------------
-# test transaction (2).
-# -----------------------------------------------------------------------------
-sub test_transaction2
-{
-	$TL->trapError(
-		-DB => 'DB',
-		-main => sub{
-			my $DB = $TL->getDB();
-			
-			# requireTx, requireNoTx.
-			lives_ok {
-				$DB->begin();
-				$DB->requireTx();
-				$DB->commit();
-			} "[tran2] requireTx on transaction";
-			throws_ok {
-				$DB->requireTx();
-			} qr/^Tripletail::DB#requireTx, transaction required at/, "[tran2] requireTx outside of tx";
-			lives_ok {
-				$DB->requireNoTx();
-			} "[tran2] requireNoTx out of transaction";
-			throws_ok {
-				$DB->begin();
-				$DB->requireNoTx();
-			} qr/^Tripletail::DB#requireNoTx, no transaction required at/, "[tran2] requireNoTx on transaction";
-			eval{ $DB->rollback(); };
 			
 			# tx.
 			my $tx_works;
 			$DB->tx(sub{
 				$tx_works = 1;
 			});
-			ok($tx_works, "[tran2] tx works");
+			ok($tx_works, "[tx_tran] tx works");
 			
-			lives_ok {$DB->tx(sub{
-				$DB->requireTx();
-			})} "[tran2] requireTx in tx";
-			
+			my $in_tx;
+			is do{
+				my $in_tx;
+				$DB->tx(sub{ $in_tx = $DB->inTx(); });
+			}, 1, "[tx_tran] inTx in tx";
+			isnt 1, $DB->inTx(), "[tx_tran] inTx out of tx";
 			
 			# create test data (blue red yellow green aqua cyan)
 			_create_table_colors($DB);
 			{
 				my $s = $DB->selectAllHash("SELECT * FROM test_colors");
-				is(@$s, 6, '[tran2] implicit commit, 6 records in tx');
+				is(@$s, 6, '[tx_tran] implicit commit, 6 records in tx');
 				$DB->tx(sub{
 					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'yellow');
 					$s = $DB->selectAllHash("SELECT * FROM test_colors");
-					is(@$s, 5, '[tran2] implicit commit, 5 records at end of tx');
+					is(@$s, 5, '[tx_tran] implicit commit, 5 records at end of tx');
 				});
 				$s = $DB->selectAllHash("SELECT * FROM test_colors");
-				is(@$s, 5, '[tran2] implicit commit, 5 records after tx');
+				is(@$s, 5, '[tx_tran] implicit commit, 5 records after tx');
 				
 				$DB->tx(sub{
 					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'red');
 					$s = $DB->selectAllHash("SELECT * FROM test_colors");
-					is(@$s, 4, '[tran2] explicit rollback, 4 records in tx');
+					is(@$s, 4, '[tx_tran] explicit rollback, 4 records in tx');
 					$DB->rollback;
 				});
 				$s = $DB->selectAllHash("SELECT * FROM test_colors");
-				is(@$s, 5, '[tran2] explicit rollback, 5 records after tx (rollbacked)');
+				is(@$s, 5, '[tx_tran] explicit rollback, 5 records after tx (rollbacked)');
 				
 				$DB->tx(sub{
 					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'red');
@@ -304,18 +247,76 @@ sub test_transaction2
 					$DB->commit;
 				});
 				$s = $DB->selectAllHash("SELECT * FROM test_colors");
-				is(@$s, 4, '[tran2] explicit commit');
+				is(@$s, 4, '[tx_tran] explicit commit');
 				
 				eval{ $DB->tx(sub{
 					$DB->execute("DELETE FROM test_colors WHERE sval = ?", 'cyan');
 					$s = $DB->selectAllHash("SELECT * FROM test_colors");
-					is(@$s, 3, '[tran2] die implicits rollback, 3 records in tx');
+					is(@$s, 3, '[tx_tran] die implicits rollback, 3 records in tx');
 					die "test\n";
 				}) };
-				is($@, "test\n", "[trans] die in tx");
+				is($@, "test\n", "[tx_tran] die in tx");
 				$s = $DB->selectAllHash("SELECT * FROM test_colors");
-				is(@$s, 4, '[tran2] die implicits rollback, 4 records after tx');
+				is(@$s, 4, '[tx_tran] die implicits rollback, 4 records after tx');
 			}
+			
+			# close-wait.
+			my $pkg = "Tripletail::DB";
+			my $msg = "act something on close-wait transaction";
+			foreach my $meth (qw(
+				execute
+				selectAllHash selectAllArray
+				selectRowHash selectRowArray
+			)){
+				throws_ok {
+					$DB->tx(sub{ $DB->commit(); $DB->$meth("SELECT 1"); })
+				} qr/^$pkg#$meth, $msg\b/, "[tx_tran] execute on commit close-wait tx";
+				throws_ok {
+					$DB->tx(sub{ $DB->rollback(); $DB->$meth("SELECT 1"); })
+				} qr/^$pkg#$meth, $msg\b/, "[tx_tran] $meth on rollback close-wait tx";
+			}
+		},
+	);
+	is($@, '', '[tx_tran] success');
+}
+
+# -----------------------------------------------------------------------------
+# test old transaction.
+# -----------------------------------------------------------------------------
+sub test_old_transaction
+{
+	$TL->trapError(
+		-DB => 'DB',
+		-main => sub{
+			my $DB = $TL->getDB();
+			
+			# begin and commit.
+			lives_ok { $DB->begin; }    "[old_tran] begin ok";
+			lives_ok { $DB->commit; }   "[old_tran] commit ok";
+			
+			# begin and rollback.
+			lives_ok { $DB->begin; }    "[old_tran] begin ok";
+			lives_ok { $DB->rollback; } "[old_tran] rollback ok";
+			
+			# begin tran within transaction;
+			lives_ok { $DB->begin; }    "[old_tran] begin ok";
+			dies_ok  { $DB->begin; }    "[old_tran] begin in tran dies";
+			lives_ok { $DB->rollback; } "[old_tran] rollback ok";
+			
+			# begin/rollback w/o transaction.
+			dies_ok { $DB->commit; }   "[old_tran] commit w/o transaction dies";
+			dies_ok { $DB->rollback; } "[old_tran] rollback w/o transaction dies";
+			
+			# create test data.
+			_create_table_colors($DB);
+			
+			# check whether rollback works.
+			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[old_tran] test table contains 6 records");
+			lives_ok { $DB->begin; } "[old_tran] begin";
+			lives_ok { $DB->execute("DELETE FROM test_colors"); } "[old_tran] delete all";
+			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 0, "[old_tran] test table contains no records");
+			lives_ok { $DB->rollback; } "[old_tran] rollback";
+			is($DB->selectRowHash(q{SELECT COUNT(*) cnt FROM test_colors})->{cnt}, 6, "[old_tran] test table contains 6 records");
 		},
 	);
 }
