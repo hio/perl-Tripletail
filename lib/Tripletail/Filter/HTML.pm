@@ -170,7 +170,7 @@ sub _relink_html {
 
 	my $is_xhtml = $this->{option}{type} eq 'xhtml' || 0;
 	my @intr = qw(form a);
-	$is_xhtml and push(@intr, qw(input br));
+	$is_xhtml and push(@intr, qw(input br option));
 	my $filter = $TL->newHtmlFilter(
 		interest => \@intr,
 	);
@@ -209,6 +209,10 @@ sub _relink_html {
 
 			# このリンクが内部リンクなら$saveの内容を追加
 			if(!$elem->attr('EXT')) {
+				if( $is_xhtml )
+				{
+					$context->add($context->newElement('div'));
+				}
 				foreach my $key ($this->{save}->getKeys) {
 					foreach my $value ($this->{save}->getValues($key)) {
 						my $e = $context->newElement('input');
@@ -229,6 +233,10 @@ sub _relink_html {
 
 						$context->add($e);
 					}
+				}
+				if( $is_xhtml )
+				{
+					$context->add($context->newElement('/div'));
 				}
 			} else {
 				$elem->attr(EXT => undef);
@@ -251,15 +259,24 @@ sub _relink_html {
 			}
 
 			$elem->attr(href => $newurl);
-		} elsif($elem_name_lc eq 'input' || $elem_name_lc eq 'br' ) {
-			if( $is_xhtml ) {
-				my $end = $elem->end || '';
-				if( $end =~ s/checked// && !$elem->attr('checked') )
-				{
-					$elem->attr('checked' => 'checked');
-				}
-				$elem->end('/');
+		} elsif($elem_name_lc =~ /^(input|br)$/ )
+		{
+			# ここに来るのは $is_xhtml の時だけ.
+			my $end = $elem->end || '';
+			if( $end =~ s/checked// && !$elem->attr('checked') )
+			{
+				$elem->attr('checked' => 'checked');
 			}
+			$elem->end('/');
+		} elsif($elem_name_lc eq 'option' )
+		{
+			# ここに来るのは $is_xhtml の時だけ.
+			my $end = $elem->end || '';
+			if( $end =~ s/selected// && !$elem->attr('selected') )
+			{
+				$elem->attr('selected' => 'selected');
+			}
+			$elem->end($end =~ /\S/ ? $end : '');
 		}
 	}
 

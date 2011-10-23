@@ -7,7 +7,7 @@ use Data::Dumper;
 use t::test_server;
 
 &setup;
-plan tests => 4 + 4 + 1 + 1 + 6 + 1 + 2 + 8;
+plan tests => 4 + 4 + 1 + 1 + 6 + 1 + 2 + 10;
 &test_01_html;              #4.
 &test_02_mobile_html;       #4.
 &test_03_csv;               #1.
@@ -15,7 +15,7 @@ plan tests => 4 + 4 + 1 + 1 + 6 + 1 + 2 + 8;
 &test_05_input_filter;      #6.
 &test_06_seo_filter;        #1.
 &test_07_seo_input_filter;  #2.
-&test_08_xhtml;             #8.
+&test_08_xhtml;             #10.
 exit;
 
 # -----------------------------------------------------------------------------
@@ -605,6 +605,61 @@ sub test_08_xhtml
 		my $c = $res->content();
 		$c =~ s{<form action="/">|</form>}{}g;
 		is($c, qq{<input type="checkbox" name="chk" value="val" checked="checked" />}, '[xhtml] checkbox (xhtml)');
+	}
+	
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'html';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<select name="sel">};
+					$tmpl   .= q{<option value="val">label</option>};
+					$tmpl   .= q{</select>};
+					$tmpl   .= q{</form>};
+					my $form = { sel => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		$c =~ s{<select name="sel">|</select>}{}g;
+		is($c, qq{<option value="val" selected>label</option>}, '[xhtml] option (html)');
+	}
+	{
+		my $res = raw_request(
+			method => 'GET',
+			script => q{
+				$TL->startCgi(
+					-main => \&main,
+				);
+				
+				sub main {
+					my $filt = 'xhtml';
+					my $tmpl = q{<form action="">};
+					$tmpl   .= q{<select name="sel">};
+					$tmpl   .= q{<option value="val">label</option>};
+					$tmpl   .= q{</select>};
+					$tmpl   .= q{</form>};
+					my $form = { sel => 'val' };
+					my $t = $TL->newTemplate->setTemplate($tmpl)->setForm($form)->extForm;
+					$TL->setContentFilter('Tripletail::Filter::HTML',type=>$filt);
+					$TL->print($t->toStr);
+				}
+			},
+		);
+		my $c = $res->content();
+		$c =~ s{<form action="/">|</form>}{}g;
+		$c =~ s{<select name="sel">|</select>}{}g;
+		is($c, qq{<option value="val" selected="selected">label</option>}, '[xhtml] option (xhtml)');
 	}
 	
 	{

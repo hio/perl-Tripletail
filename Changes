@@ -1,6 +1,9 @@
 Revision history for Tripletail
 
-0.26	
+0.27	Tue Mar 27 22:16:06 JST 2007
+    - xhtml タグ調整追加(option).
+
+0.26	Tue Mar 27 17:42:48 JST 2007
     - xhtml 出力フィルタ利用時に一部の単一で使うタグが閉じられない不具合の修正. 
 
 0.25	Tue Mar 27 14:40:11 JST 2007
